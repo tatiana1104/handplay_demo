@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "332080945965",
+    "project_id": "handplaydemo",
+    "storage_bucket": "handplaydemo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332080945965:android:85c1bf78bb55bd0c5791a4",
+        "android_client_info": {
+          "package_name": "com.example.handplay_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332080945965-493uad1m41ahg1c66ojcjsgonem5dv77.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAp2PbLngEYQf5X3LS4CuHltS54AFGJ5r8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "332080945965-493uad1m41ahg1c66ojcjsgonem5dv77.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
