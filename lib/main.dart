@@ -1,7 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/constants/app_constants.dart';
+import 'firebase_options.dart';
 import 'core/routing/route_names.dart'; // Importamos los nombres de ruta para poder usarlos en el router
 import 'core/theme/app_theme.dart'; // Importamos el tema de la app para poder usarlo en MaterialApp.router
 import 'features/auth/presentation/screens/login_screen.dart'; // Importamos la pantalla de login para poder usarla en el router
@@ -10,7 +12,11 @@ import 'features/auth/presentation/screens/register_screen.dart'; // Importamos 
 import 'features/auth/presentation/screens/splash_screen.dart'; // Importamos la pantalla de splash para poder usarla en el router
 import 'features/tournaments/presentation/screens/torneos_screen.dart'; // Importamos la pantalla de torneos para poder usarla en el router
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const HandPlayApp());
 }
 
