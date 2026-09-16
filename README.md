@@ -85,7 +85,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
-- [ ] Navegación protegida por rol (pendiente: `redirect` de go_router según `AuthBloc`)
+- [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
 
 ### ⬜ Sprint 2 — Torneos y equipos
 ### ⬜ Sprint 3 — Calendario y árbitros
