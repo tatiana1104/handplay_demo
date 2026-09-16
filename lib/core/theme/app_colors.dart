@@ -46,5 +46,4 @@ class AppColors {
   static const Color amberLight = Color(0xFFB07D00); // advertencias (tema claro)
   static const Color amberDark = Color(0xFFE0AA33); // advertencias (tema oscuro)
   static const Color error = Color(0xFFD32F2F); // bloqueos duros (ej. RN-02)
-  static const Color gold = Color(0xFFE0AA33); // estrella de "favorito" (RF-04)
 }
