@@ -80,9 +80,9 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Dependencias base (Firebase, BLoC, go_router, get_it)
 - [x] Tema visual (colores/tipografías de marca)
 - [x] Rutas iniciales con pantallas placeholder
-- [ ] Configuración real de Firebase (`flutterfire configure` — proyecto `handplay-718c1`)
-- [ ] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
-- [ ] Firestore Security Rules desplegadas (`firebase deploy --only firestore:rules`)
+- [x] Configuración real de Firebase (`flutterfire configure` — proyecto `handplaydemo`)
+- [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
+- [ ] Firestore Security Rules desplegadas (`firebase deploy --only firestore:rules`) — reglas base: solo usuarios autenticados
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
 - [ ] Navegación protegida por rol (pendiente: `redirect` de go_router según `AuthBloc`)
 
