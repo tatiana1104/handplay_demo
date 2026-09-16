@@ -14,8 +14,6 @@ import 'features/auth/presentation/screens/recover_password_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/tournaments/presentation/screens/torneos_screen.dart';
-import 'features/tournaments/data/tournament_repository.dart';
-import 'features/tournaments/presentation/screens/tournament_detail_screen.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -95,12 +93,6 @@ class _HandPlayAppState extends State<HandPlayApp> {
         GoRoute(
           path: RouteNames.home,
           builder: (context, state) => const TorneosScreen(),
-        ),
-        GoRoute(
-          path: '${RouteNames.tournament}/:tournamentId',
-          builder: (context, state) => TournamentDetailScreen(
-            tournament: state.extra! as Tournament,
-          ),
         ),
         GoRoute(
           path: RouteNames.login,

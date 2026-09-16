@@ -87,13 +87,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
 - [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
 
-### ✅ Sprint 2 — Torneos y equipos
-- [x] Listado de torneos del usuario desde Firestore (`participantIds`)
-- [x] Filtro de torneos activos y finalizados
-- [x] Favoritos por usuario
-- [x] Detalle de torneo con progreso de jornada
-- [x] Consulta y creación de equipos en `tournaments/{id}/teams`
-- [x] Modelo y repositorio documentados con comentarios explicativos
+### ⬜ Sprint 2 — Torneos y equipos
 ### ⬜ Sprint 3 — Calendario y árbitros
 ### ⬜ Sprint 4 — Partido en vivo
 ### ⬜ Sprint 5 — Estadísticas
