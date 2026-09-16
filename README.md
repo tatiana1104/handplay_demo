@@ -66,7 +66,8 @@ Cada feature sigue tres capas internas:
 git clone https://github.com/tatiana1104/handplay
 cd handplay
 flutter pub get
-flutterfire configure   # genera lib/firebase_options.dart (no versionado)
+flutterfire configure   # genera lib/firebase_options.dart
+firebase deploy --only "firestore:rules" --project handplaydemo
 flutter run
 ```
 
@@ -82,7 +83,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Rutas iniciales con pantallas placeholder
 - [x] Configuración real de Firebase (`flutterfire configure` — proyecto `handplaydemo`)
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
-- [ ] Firestore Security Rules desplegadas (`firebase deploy --only firestore:rules`) — reglas base: solo usuarios autenticados
+- [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
 - [ ] Navegación protegida por rol (pendiente: `redirect` de go_router según `AuthBloc`)
 
