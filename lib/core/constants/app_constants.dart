@@ -22,4 +22,16 @@ class AppConstants {
   static const String passwordLabel = 'Contraseña';
   static const String separatorLabel = 'o';
   static const String googleButton = 'Continuar con Google';
+
+  /// "Web client (auto created by Google Service)" — el client_id tipo
+  /// 3 (`client_type: 3`) dentro de `android/app/google-services.json`,
+  /// bajo `oauth_client`. `GoogleSignIn.instance.initialize()` lo
+  /// necesita como `serverClientId` para que, en Android, el idToken
+  /// que devuelve `authenticate()` tenga la audiencia correcta y
+  /// Firebase Auth lo acepte. Si el proyecto de Firebase cambia o se
+  /// regenera `google-services.json`, este valor hay que actualizarlo
+  /// (o volver a correr `flutterfire configure`, que no lo toca —
+  /// este es un client_id de Google Cloud, no de Firebase).
+  static const String googleServerClientId =
+      '332080945965-493uad1m41ahg1c66ojcjsgonem5dv77.apps.googleusercontent.com';
 }
