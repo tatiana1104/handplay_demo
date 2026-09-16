@@ -2,9 +2,80 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Base segura: ningún documento es público.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Todas las operaciones requieren una sesión válida de Firebase Auth.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Los administradores se gestionan mediante custom claims desde un entorno seguro.
+    function isAdmin() {
+      return signedIn() && request.auth.token.rol == 'admin';
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function tournamentMember(tournamentId) {
+      return signedIn()
+        && get(/databases/$(database)/documents/tournaments/$(tournamentId))
+          .data.participantIds.hasAny([request.auth.uid]);
+    }
+
+    function canManageTournament(tournamentId) {
+      return isAdmin()
+        || (signedIn()
+          && get(/databases/$(database)/documents/tournaments/$(tournamentId))
+            .data.ownerId == request.auth.uid);
+    }
+
+    // El usuario solo puede consultar y actualizar su propio perfil.
+    match /users/{userId} {
+      allow read: if isSelf(userId) || isAdmin();
+      allow create: if isSelf(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.rol == 'jugador';
+      allow update: if isSelf(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.rol == resource.data.rol;
+      allow delete: if isAdmin();
+    }
+
+    // Los torneos son visibles para participantes y administradores.
+    match /tournaments/{tournamentId} {
+      allow read: if isAdmin() || tournamentMember(tournamentId);
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.participantIds.hasAny([request.auth.uid]);
+      allow update: if canManageTournament(tournamentId)
+        || (tournamentMember(tournamentId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['favoriteUserIds']));
+      allow delete: if canManageTournament(tournamentId);
+
+      // Los equipos pertenecen a un torneo y no pueden quedar accesibles de forma pública.
+      match /teams/{teamId} {
+        allow read: if canManageTournament(tournamentId) || tournamentMember(tournamentId);
+        allow create, update, delete: if canManageTournament(tournamentId);
+      }
+    }
+
+    // Mantiene compatibilidad con la colección raíz creada en Firebase Console.
+    match /teams/{teamId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // Un partido solo se puede consultar por participantes, árbitros o administradores.
+    match /matches/{matchId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.participantIds.hasAny([request.auth.uid]))
+        || (signedIn() && resource.data.refereeId == request.auth.uid);
+      allow create: if isAdmin()
+        || (signedIn() && request.resource.data.refereeId == request.auth.uid);
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.refereeId == request.auth.uid);
+      allow delete: if isAdmin();
     }
   }
 }

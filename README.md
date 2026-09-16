@@ -88,6 +88,22 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
 
 ### ⬜ Sprint 2 — Torneos y equipos
+
+#### Modelo de datos Firestore
+Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
+
+- `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
+- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`, `favoriteUserIds`.
+- `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
+- `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
+- `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.
+
+Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarlas desde la raíz del proyecto:
+
+```powershell
+firebase deploy --only "firestore:rules" --project handplaydemo
+```
+
 ### ⬜ Sprint 3 — Calendario y árbitros
 ### ⬜ Sprint 4 — Partido en vivo
 ### ⬜ Sprint 5 — Estadísticas
