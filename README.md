@@ -33,7 +33,7 @@ lib/
 │   ├── constants/        # Constantes de negocio (RF/RN), colecciones Firestore
 │   ├── theme/             # Colores y tipografías de marca
 │   ├── routing/          # go_router
-│   ├── errors/            # Failure / Exception
+│   ├── error/             # Failure / Exception
 │   └── di/                 # Service locator (get_it)
 ├── features/
 │   ├── auth/              # Login, registro, recuperar contraseña (RF-24, RF-25)
@@ -63,16 +63,23 @@ Cada feature sigue tres capas internas:
 ## Puesta en marcha local
 
 ```bash
-git clone https://github.com/tatiana1104/handplay
-cd handplay
+git clone https://github.com/tatiana1104/handplay_demo
+cd handplay_demo
 flutter pub get
-flutterfire configure   # genera lib/firebase_options.dart
+flutterfire configure   # regenera lib/firebase_options.dart si hace falta
 firebase deploy --only "firestore:rules" --project handplaydemo
 flutter run
 ```
 
-Después de correr `flutterfire configure`, descomenta las líneas marcadas
-con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
+`lib/firebase_options.dart` y `android/app/google-services.json` ya están
+en el repo (proyecto `handplaydemo`), así que normalmente no hace falta
+correr `flutterfire configure` de nuevo — solo si cambian las apps
+registradas en Firebase.
+
+**Google Sign-In:** `lib/main.dart` llama a `GoogleSignIn.instance.initialize()`
+con un `serverClientId` fijo (`AppConstants.googleServerClientId`, el "Web
+client" tipo 3 de `google-services.json`). Si se regenera ese archivo con
+un client_id distinto, hay que actualizar la constante a mano.
 
 ## Estado de avance
 
@@ -84,8 +91,9 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Configuración real de Firebase (`flutterfire configure` — proyecto `handplaydemo`)
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
-- [x] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
-- [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
+- [x] Navegación protegida por sesión (`redirect` de go_router según el estado de `AuthBloc`: sin sesión no se puede ver `/torneos`, con sesión no se puede volver a login/registro/splash)
+- [ ] Verificado end-to-end en Moto G34 5G con Firebase Auth real (pendiente de confirmar tras esta migración de `AuthService` a `AuthBloc`)
+- [ ] Protección de rutas por **rol** (jugador/entrenador/árbitro/admin) — depende de modelar el perfil de usuario en Firestore (`USUARIO_ROL`); por ahora el gating es solo "¿hay sesión o no?"
 
 ### ⬜ Sprint 2 — Torneos y equipos
 - [ ] Listado de torneos del usuario desde Firestore (participantIds)
@@ -124,6 +132,13 @@ para clasificar en valla menos vencida (RF-20).
 
 ## Pendientes técnicos conocidos
 
+- **Migración de auth a `AuthBloc` sin verificar en dispositivo aún**: la
+  rama `v0/leer-documentos` había conectado la autenticación con una
+  clase `AuthService` directa (sin BLoC). Se migró esa lógica a
+  `AuthBloc` (Clean Architecture, consistente con el resto del
+  proyecto) reusando la misma configuración real de Firebase, pero
+  falta volver a probar el flujo completo (correo, registro, Google,
+  recuperar contraseña) en un dispositivo físico tras la migración.
 - **Google Sign-In en Android** requiere el SHA-1 (y SHA-256) del
   certificado de firma registrado en Firebase Console → Configuración
   del proyecto → tu app Android → "Agregar huella digital" (ya hecho
