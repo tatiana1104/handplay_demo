@@ -10,6 +10,7 @@ import 'core/routing/route_names.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/presentation/screens/profile_screen.dart';
 import 'features/auth/presentation/screens/recover_password_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
@@ -93,6 +94,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
         GoRoute(
           path: RouteNames.home,
           builder: (context, state) => const TorneosScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.profile,
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: RouteNames.login,
