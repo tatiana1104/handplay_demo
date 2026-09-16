@@ -47,10 +47,7 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.participantIds.hasAny([request.auth.uid]);
-      allow update: if canManageTournament(tournamentId)
-        || (tournamentMember(tournamentId)
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['favoriteUserIds']));
+      allow update: if canManageTournament(tournamentId);
       allow delete: if canManageTournament(tournamentId);
 
       // Los equipos pertenecen a un torneo y no pueden quedar accesibles de forma pública.

@@ -37,7 +37,7 @@ lib/
 │   └── di/                 # Service locator (get_it)
 ├── features/
 │   ├── auth/              # Login, registro, recuperar contraseña (RF-24, RF-25)
-│   ├── tournaments/       # Torneos, favoritos (RF-01–RF-04)
+  │   ├── tournaments/       # Torneos (RF-01–RF-03)
 │   ├── teams/              # Inscripción y planilla de equipos (RF-05–RF-08)
 │   ├── matches/            # Calendario, oficiales, partido en vivo (RF-09–RF-17)
 │   ├── statistics/         # Posiciones, goleadores, valla menos vencida (RF-18–RF-20)
@@ -93,7 +93,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
 
 - `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
-- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`, `favoriteUserIds`.
+- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`.
 - `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
 - `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
 - `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.
