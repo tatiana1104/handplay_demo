@@ -84,10 +84,17 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Configuración real de Firebase (`flutterfire configure` — proyecto `handplaydemo`)
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
-- [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
-- [ ] Navegación protegida por rol (pendiente: `redirect` de go_router según `AuthBloc`)
+- [x] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
+- [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
 
 ### ⬜ Sprint 2 — Torneos y equipos
+- [ ] Listado de torneos del usuario desde Firestore (participantIds)
+- [ ] Filtro de torneos activos y finalizados
+- [ ] Favoritos por usuario
+- [ ] Detalle de torneo con progreso de jornada
+- [ ] Consulta y creación de equipos en tournaments/{id}/teams
+- [ ] Modelo y repositorio documentados con comentarios explicativos
+
 ### ⬜ Sprint 3 — Calendario y árbitros
 ### ⬜ Sprint 4 — Partido en vivo
 ### ⬜ Sprint 5 — Estadísticas
