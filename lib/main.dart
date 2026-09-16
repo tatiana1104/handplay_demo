@@ -59,8 +59,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
       refreshListenable: GoRouterRefreshStream(_authBloc.stream),
       redirect: (context, state) {
         final authState = _authBloc.state;
+        // Home es una vista pública: permite conocer la app sin iniciar sesión.
         final isPublicRoute = <String>{
           RouteNames.splash,
+          RouteNames.home,
           RouteNames.login,
           RouteNames.register,
           RouteNames.recoverPassword,
