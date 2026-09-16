@@ -1,0 +1,2178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cancha — Todas las vistas</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Inter, -apple-system, sans-serif; background:#EAEAE4; margin:0; padding:32px; }
+  h1.page-title { font-family: Manrope, sans-serif; text-align:center; margin:0 0 8px; color:#1A1C18; }
+  p.page-sub { text-align:center; color:#5C5F57; margin:0 0 32px; font-size:13px; }
+  .section-title { text-align:center; font-family: Manrope, sans-serif; font-size:15px; color:#3A3D38; margin:40px 0 14px; text-transform:uppercase; letter-spacing:.04em; }
+  .row { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:8px; }
+  .phone { width:320px; border-radius:20px; overflow:hidden; border:0.5px solid; }
+  .phone.light { background:#FFFFFF; border-color:#D3D5CC; --surface:#E4E6DE; --border:#D3D5CC; --text:#0B0B0B; --text-sec:#5C5F57; --text-muted:#8B8F86; --brand:#0D8932; --brand-soft:rgba(13,137,50,0.12); --amber:#B07D00; --amber-soft:rgba(217,155,0,0.12); --on-brand:#FFFFFF; --bg:#FFFFFF; }
+  .phone.dark { background:#161815; border-color:#2A2D28; --surface:#1C1F1C; --border:#2A2D28; --text:#EDEFEA; --text-sec:#8B8F86; --text-muted:#8B8F86; --brand:#4AA765; --brand-soft:rgba(74,167,101,0.18); --amber:#E0AA33; --amber-soft:rgba(224,170,51,0.18); --on-brand:#0F1210; --bg:#161815; }
+
+  .hd { padding:16px 16px 10px; }
+  .eyebrow { font-size:11px; color:var(--text-muted); margin:0 0 2px; }
+  h2.title { margin:0; font-size:18px; color:var(--text); font-family: Manrope, sans-serif; font-weight:500; }
+  .row-between { display:flex; justify-content:space-between; align-items:flex-start; padding:0 16px 12px; }
+  .btn { font-size:13px; display:flex; align-items:center; gap:6px; background:var(--brand); color:var(--on-brand); border:none; padding:7px 12px; border-radius:8px; font-weight:500; white-space:nowrap; }
+  .btn-sm { font-size:11px; padding:5px 10px; background:var(--brand); color:var(--on-brand); border:none; border-radius:6px; }
+  .chips { padding:0 16px 12px; display:flex; gap:8px; overflow-x:auto; }
+  .chip { font-size:12px; padding:5px 12px; border-radius:999px; white-space:nowrap; }
+  .chip-active { background:var(--brand-soft); color:var(--brand); font-weight:500; }
+  .chip-inactive { background:var(--surface); color:var(--text-sec); }
+  .chip-solid { background:var(--brand); color:var(--on-brand); font-weight:500; }
+
+  .cards { padding:0 16px 16px; display:flex; flex-direction:column; gap:10px; }
+  .card { background:var(--surface); border-radius:12px; padding:0.85rem; display:flex; flex-direction:column; gap:8px; }
+  .card-top { display:flex; justify-content:space-between; align-items:flex-start; }
+  .card-name-wrap { display:flex; align-items:flex-start; gap:6px; }
+  h3.card-title { margin:0; font-size:14px; color:var(--text); font-family: Manrope, sans-serif; font-weight:500; }
+  .card-meta { font-size:11px; color:var(--text-sec); margin:2px 0 0; }
+  .badge { font-size:10px; padding:2px 7px; border-radius:6px; white-space:nowrap; }
+  .badge-green { background:var(--brand-soft); color:var(--brand); }
+  .badge-amber { background:var(--amber-soft); color:var(--amber); }
+  .progress-row { display:flex; align-items:center; gap:6px; }
+  .progress-track { flex:1; height:4px; border-radius:3px; background:var(--border); overflow:hidden; }
+  .progress-fill { height:100%; background:var(--brand); }
+  .progress-label { font-size:10px; color:var(--text-sec); }
+  .next-match { font-size:11px; color:var(--text-sec); margin:0; }
+
+  .nav { display:flex; justify-content:space-around; padding:10px 0; border-top:0.5px solid var(--border); }
+  .nav-icon { font-size:20px; color:var(--text-sec); }
+  .nav-icon.active { color:var(--text); }
+
+  .back-row { padding:14px 16px 6px; display:flex; align-items:center; gap:6px; color:var(--text-sec); font-size:12px; }
+
+  .stats-2col { padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .stat-box { background:var(--surface); border-radius:8px; padding:10px; }
+  .stat-label { font-size:11px; color:var(--text-sec); margin:0 0 3px; }
+  .stat-value { font-size:18px; font-weight:500; margin:0; color:var(--text); }
+
+  .list-title { padding:0 16px; margin:0 0 8px; font-size:14px; color:var(--text); font-family: Manrope, sans-serif; font-weight:500; }
+  .rank-row { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border-radius:8px; padding:7px 10px; font-size:12px; color:var(--text); }
+  .rank-list { padding:0 16px; display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+  .rank-num { color:var(--brand); }
+  .pts { font-weight:500; }
+
+  .featured-row { display:flex; align-items:center; gap:8px; background:var(--surface); border-radius:8px; padding:8px 10px; }
+  .featured-icon { font-size:16px; color:var(--brand); }
+  .featured-label { font-size:12px; margin:0; color:var(--text); font-weight:500; }
+  .featured-sub { font-size:11px; color:var(--text-sec); margin:0; }
+  .featured-val { font-size:12px; font-weight:500; color:var(--text); white-space:nowrap; }
+
+  .date-label { padding:6px 16px 4px; font-size:11px; color:var(--text-muted); }
+  .match-card { background:var(--surface); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+  .match-row { display:flex; justify-content:space-between; align-items:center; }
+  .team { font-size:12px; font-weight:500; color:var(--text); }
+  .score { font-size:15px; font-weight:500; color:var(--text); }
+  .time-row { display:flex; align-items:center; gap:4px; color:var(--text-sec); font-size:11px; }
+
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--brand-soft); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:500; color:var(--brand); flex-shrink:0; }
+  .avatar-lg { width:56px; height:56px; border-radius:50%; background:var(--brand-soft); display:flex; align-items:center; justify-content:center; font-size:19px; font-weight:500; color:var(--brand); flex-shrink:0; }
+  .player-header { padding:0 16px 14px; display:flex; align-items:center; gap:12px; }
+  .player-name { margin:0; font-size:16px; color:var(--text); font-family:Manrope, sans-serif; font-weight:500; }
+  .player-sub { font-size:11px; color:var(--text-sec); margin:3px 0 0; }
+
+  @media print {
+    .section-title { page-break-before: always; margin-top:0; padding-top:24px; }
+    .section-title:first-of-type { page-break-before: avoid; }
+    .row { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Cancha — Todas las vistas</h1>
+<p class="page-sub">Liga de Balonmano del Caquetá · tema claro y oscuro, con selector de categorías donde aplica</p>
+
+<!-- ============ MIS TORNEOS (HOME) ============ -->
+<div class="section-title">Mis torneos</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="row-between">
+    <div><p class="eyebrow">Liga de Balonmano del Caquetá</p><h2 class="title">Mis torneos</h2></div>
+    <button class="btn">＋ Nuevo torneo</button>
+  </div>
+  <div class="chips">
+    <span class="chip chip-active">Activos (3)</span>
+    <span class="chip chip-inactive">Finalizados</span>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Interclubes 2026</h3><p class="card-meta">Mayores masc. · 10 equipos</p></div></div>
+        <span class="badge badge-green">en curso</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:78%"></div></div><span class="progress-label">J7/9</span></div>
+      <p class="next-match">Próximo: Sáb 1 ago · 8:00 a. m.</p>
+    </div>
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Copa Femenina Caquetá</h3><p class="card-meta">Mayores fem. · 8 equipos</p></div></div>
+        <span class="badge badge-green">en curso</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div><span class="progress-label">J3/7</span></div>
+      <p class="next-match">Próximo: Dom 2 ago · 10:00 a. m.</p>
+    </div>
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Sub-18 Florencia</h3><p class="card-meta">Juvenil · 6 equipos</p></div></div>
+        <span class="badge badge-amber">por iniciar</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:0%"></div></div><span class="progress-label">J0/6</span></div>
+      <p class="next-match">Inicia: Sáb 8 ago</p>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon active">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="row-between">
+    <div><p class="eyebrow">Liga de Balonmano del Caquetá</p><h2 class="title">Mis torneos</h2></div>
+    <button class="btn">＋ Nuevo torneo</button>
+  </div>
+  <div class="chips">
+    <span class="chip chip-active">Activos (3)</span>
+    <span class="chip chip-inactive">Finalizados</span>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Interclubes 2026</h3><p class="card-meta">Mayores masc. · 10 equipos</p></div></div>
+        <span class="badge badge-green">en curso</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:78%"></div></div><span class="progress-label">J7/9</span></div>
+      <p class="next-match">Próximo: Sáb 1 ago · 8:00 a. m.</p>
+    </div>
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Copa Femenina Caquetá</h3><p class="card-meta">Mayores fem. · 8 equipos</p></div></div>
+        <span class="badge badge-green">en curso</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div><span class="progress-label">J3/7</span></div>
+      <p class="next-match">Próximo: Dom 2 ago · 10:00 a. m.</p>
+    </div>
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap"><div><h3 class="card-title">Sub-18 Florencia</h3><p class="card-meta">Juvenil · 6 equipos</p></div></div>
+        <span class="badge badge-amber">por iniciar</span>
+      </div>
+      <div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:0%"></div></div><span class="progress-label">J0/6</span></div>
+      <p class="next-match">Inicia: Sáb 8 ago</p>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon active">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ EXPLORAR TORNEOS ============ -->
+<div class="section-title">Explorar torneos</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Mis torneos</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Liga de Balonmano del Caquetá</p><h2 class="title">Explorar torneos</h2></div>
+  <div class="chips" style="padding-bottom:4px; border-bottom:0.5px solid var(--border);">
+    <span class="chip chip-active">Todos</span><span class="chip chip-inactive">En curso</span><span class="chip chip-inactive">Por iniciar</span><span class="chip chip-inactive">Finalizados</span>
+  </div>
+  <div class="cards" style="padding-top:12px;">
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Interclubes 2026</h3><p class="card-meta">Mayores masc. · 10 equipos</p></div><span class="badge badge-green">en curso</span></div><div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:78%"></div></div><span class="progress-label">J7/9</span></div><p class="next-match">Próximo: Sáb 1 ago · 8:00 a. m.</p></div>
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Sub-18 Florencia</h3><p class="card-meta">Juvenil · 6 equipos</p></div><span class="badge badge-amber">por iniciar</span></div><div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:0%"></div></div><span class="progress-label">J0/6</span></div><p class="next-match">Inicia: Sáb 8 ago</p></div>
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Copa Regional 2025</h3><p class="card-meta">Mayores fem. · 8 equipos</p></div><span class="badge" style="background:var(--surface);color:var(--text-sec);">finalizado</span></div><p class="next-match">Finalizó: 12 jul 2025 · Ver resultados</p></div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon active">🏆</span><span class="nav-icon">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Mis torneos</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Liga de Balonmano del Caquetá</p><h2 class="title">Explorar torneos</h2></div>
+  <div class="chips" style="padding-bottom:4px; border-bottom:0.5px solid var(--border);">
+    <span class="chip chip-active">Todos</span><span class="chip chip-inactive">En curso</span><span class="chip chip-inactive">Por iniciar</span><span class="chip chip-inactive">Finalizados</span>
+  </div>
+  <div class="cards" style="padding-top:12px;">
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Interclubes 2026</h3><p class="card-meta">Mayores masc. · 10 equipos</p></div><span class="badge badge-green">en curso</span></div><div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:78%"></div></div><span class="progress-label">J7/9</span></div><p class="next-match">Próximo: Sáb 1 ago · 8:00 a. m.</p></div>
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Sub-18 Florencia</h3><p class="card-meta">Juvenil · 6 equipos</p></div><span class="badge badge-amber">por iniciar</span></div><div class="progress-row"><div class="progress-track"><div class="progress-fill" style="width:0%"></div></div><span class="progress-label">J0/6</span></div><p class="next-match">Inicia: Sáb 8 ago</p></div>
+    <div class="card"><div class="card-top"><div><h3 class="card-title">Copa Regional 2025</h3><p class="card-meta">Mayores fem. · 8 equipos</p></div><span class="badge" style="background:var(--surface);color:var(--text-sec);">finalizado</span></div><p class="next-match">Finalizó: 12 jul 2025 · Ver resultados</p></div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon active">🏆</span><span class="nav-icon">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ CREAR TORNEO ============ -->
+<div class="section-title">Crear torneo</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Mis torneos</div>
+  <div class="hd" style="padding-top:0;"><h2 class="title">Nuevo torneo</h2></div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del torneo *</label>
+      <input type="text" placeholder="Interclubes 2026" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">Categorías incluidas *</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span class="chip chip-solid">✓ Mayores M</span>
+        <span class="chip chip-solid">✓ Mayores F</span>
+        <span class="chip chip-inactive">Sub-18</span>
+        <span class="chip chip-inactive">Sub-14</span>
+        <span class="chip chip-inactive">＋ Otra</span>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Puedes seleccionar varias categorías para el mismo evento.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha inicio *</label>
+        <input type="text" placeholder="dd/mm/aaaa" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha fin</label>
+        <input type="text" placeholder="dd/mm/aaaa" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Formato *</label>
+      <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+        <option>Todos contra todos</option>
+        <option>Grupos + eliminación</option>
+        <option>Eliminación directa</option>
+      </select>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Sede principal</label>
+        <input type="text" placeholder="Coliseo Julio Lozano" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Cupo de equipos</label>
+        <input type="text" placeholder="10" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">Inscripción pública</p>
+        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 0;">Los equipos podrán inscribirse ellos mismos con el formulario</p>
+      </div>
+      <div style="width:36px; height:20px; border-radius:999px; background:var(--brand); position:relative; flex-shrink:0;">
+        <div style="width:16px; height:16px; border-radius:50%; background:#fff; position:absolute; top:2px; right:2px;"></div>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin:6px 0 24px;">Crear torneo</button>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Mis torneos</div>
+  <div class="hd" style="padding-top:0;"><h2 class="title">Nuevo torneo</h2></div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del torneo *</label>
+      <input type="text" placeholder="Interclubes 2026" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">Categorías incluidas *</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span class="chip chip-solid">✓ Mayores M</span>
+        <span class="chip chip-solid">✓ Mayores F</span>
+        <span class="chip chip-inactive">Sub-18</span>
+        <span class="chip chip-inactive">Sub-14</span>
+        <span class="chip chip-inactive">＋ Otra</span>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Puedes seleccionar varias categorías para el mismo evento.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha inicio *</label>
+        <input type="text" placeholder="dd/mm/aaaa" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha fin</label>
+        <input type="text" placeholder="dd/mm/aaaa" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Formato *</label>
+      <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+        <option>Todos contra todos</option>
+        <option>Grupos + eliminación</option>
+        <option>Eliminación directa</option>
+      </select>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Sede principal</label>
+        <input type="text" placeholder="Coliseo Julio Lozano" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Cupo de equipos</label>
+        <input type="text" placeholder="10" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">Inscripción pública</p>
+        <p style="font-size:10px; color:var(--text-muted); margin:2px 0 0;">Los equipos podrán inscribirse ellos mismos con el formulario</p>
+      </div>
+      <div style="width:36px; height:20px; border-radius:999px; background:var(--brand); position:relative; flex-shrink:0;">
+        <div style="width:16px; height:16px; border-radius:50%; background:#fff; position:absolute; top:2px; right:2px;"></div>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin:6px 0 24px;">Crear torneo</button>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ CALENDARIO ============ -->
+<div class="section-title">Calendario (con categorías)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="hd"><p class="eyebrow">Interclubes 2026</p><h2 class="title">Calendario</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+    <span class="chip chip-inactive">Sub-14</span>
+  </div>
+  <div style="padding:0 16px 6px; display:flex; justify-content:flex-end;"><span class="badge" style="background:var(--surface); color:var(--text); border:0.5px solid var(--border); padding:4px 8px;">Jornada 7</span></div>
+  <p class="date-label">Sábado 25 de julio</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:4px;vertical-align:middle;"></span>Halcones FC</span><span class="score">28 — 22</span><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:4px;vertical-align:middle;"></span>Amazonas HC</span></div><span class="badge badge-green" style="width:fit-content">finalizado</span></div>
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-right:4px;vertical-align:middle;"></span>Cóndor Balonmano</span><span class="score">31 — 19</span><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#9333EA;margin-right:4px;vertical-align:middle;"></span>Selva Norte</span></div><span class="badge badge-green" style="width:fit-content">finalizado</span></div>
+  </div>
+  <p class="date-label">Sábado 1 de agosto</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:4px;vertical-align:middle;"></span>Amazonas HC</span><div class="time-row">🕐 8:00 a. m.</div><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:4px;vertical-align:middle;"></span>Halcones FC</span></div><button class="btn-sm" style="width:fit-content">Cargar resultado</button></div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon active">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="hd"><p class="eyebrow">Interclubes 2026</p><h2 class="title">Calendario</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+    <span class="chip chip-inactive">Sub-14</span>
+  </div>
+  <div style="padding:0 16px 6px; display:flex; justify-content:flex-end;"><span class="badge" style="background:var(--surface); color:var(--text); border:0.5px solid var(--border); padding:4px 8px;">Jornada 7</span></div>
+  <p class="date-label">Sábado 25 de julio</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:4px;vertical-align:middle;"></span>Halcones FC</span><span class="score">28 — 22</span><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:4px;vertical-align:middle;"></span>Amazonas HC</span></div><span class="badge badge-green" style="width:fit-content">finalizado</span></div>
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-right:4px;vertical-align:middle;"></span>Cóndor Balonmano</span><span class="score">31 — 19</span><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#9333EA;margin-right:4px;vertical-align:middle;"></span>Selva Norte</span></div><span class="badge badge-green" style="width:fit-content">finalizado</span></div>
+  </div>
+  <p class="date-label">Sábado 1 de agosto</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="match-card"><div class="match-row"><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:4px;vertical-align:middle;"></span>Amazonas HC</span><div class="time-row">🕐 8:00 a. m.</div><span class="team"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:4px;vertical-align:middle;"></span>Halcones FC</span></div><button class="btn-sm" style="width:fit-content">Cargar resultado</button></div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon active">📅</span><span class="nav-icon">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ EQUIPOS (con categorías) ============ -->
+<div class="section-title">Equipos</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="row-between"><div><p class="eyebrow">Interclubes 2026</p><h2 class="title">Equipos</h2></div><button class="btn">＋ Inscribir</button></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+  <div class="cards" style="padding-top:4px;">
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #0D8932;">HF</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0D8932;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Halcones FC</h3><p class="card-meta">16 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #2563EB;">CB</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2563EB;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Cóndor Balonmano</h3><p class="card-meta">15 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #EA580C;">AH</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EA580C;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Amazonas HC</h3><p class="card-meta">14 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="row-between"><div><p class="eyebrow">Interclubes 2026</p><h2 class="title">Equipos</h2></div><button class="btn">＋ Inscribir</button></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+  <div class="cards" style="padding-top:4px;">
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #0D8932;">HF</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0D8932;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Halcones FC</h3><p class="card-meta">16 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #2563EB;">CB</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2563EB;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Cóndor Balonmano</h3><p class="card-meta">15 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="border:2.5px solid #EA580C;">AH</div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EA580C;margin-left:-4px;margin-top:20px;border:1.5px solid var(--bg);"></span><div><h3 class="card-title">Amazonas HC</h3><p class="card-meta">14 jugadores</p></div></div>
+      <span style="color:var(--text-sec);">›</span>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ DETALLE DE EQUIPO (PLANTILLA) ============ -->
+<div class="section-title">Detalle de equipo (plantilla)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Equipos</div>
+  <div class="row-between" style="align-items:center; padding-top:0;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="avatar-lg">HF</div>
+      <div>
+        <p class="player-name"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0D8932;margin-right:5px;vertical-align:middle;"></span>Halcones FC</p>
+        <p class="player-sub">Mayores masculino · DT. Carlos Herrera</p>
+      </div>
+    </div>
+    <span style="color:var(--text-sec); font-size:18px;">✎</span>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-box"><p class="stat-label">Jugadores</p><p class="stat-value">16</p></div>
+    <div class="stat-box"><p class="stat-label">Posición</p><p class="stat-value">1°</p></div>
+    <div class="stat-box"><p class="stat-label">Puntos</p><p class="stat-value">19</p></div>
+  </div>
+  <p class="list-title">Plantilla (16)</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#7</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Juan Ríos</h3><p class="card-meta">Extremo izquierdo</p></div>
+      <span class="pts" style="font-size:12px;">31 goles</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#4</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Andrés Muñoz</h3><p class="card-meta">Portero</p></div>
+      <span class="pts" style="font-size:12px;">62 goles rec.</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#11</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Pedro Salazar</h3><p class="card-meta">Central</p></div>
+      <span class="pts" style="font-size:12px;">14 goles</span>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Equipos</div>
+  <div class="row-between" style="align-items:center; padding-top:0;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="avatar-lg">HF</div>
+      <div>
+        <p class="player-name"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0D8932;margin-right:5px;vertical-align:middle;"></span>Halcones FC</p>
+        <p class="player-sub">Mayores masculino · DT. Carlos Herrera</p>
+      </div>
+    </div>
+    <span style="color:var(--text-sec); font-size:18px;">✎</span>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-box"><p class="stat-label">Jugadores</p><p class="stat-value">16</p></div>
+    <div class="stat-box"><p class="stat-label">Posición</p><p class="stat-value">1°</p></div>
+    <div class="stat-box"><p class="stat-label">Puntos</p><p class="stat-value">19</p></div>
+  </div>
+  <p class="list-title">Plantilla (16)</p>
+  <div class="cards" style="padding-top:0;">
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#7</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Juan Ríos</h3><p class="card-meta">Extremo izquierdo</p></div>
+      <span class="pts" style="font-size:12px;">31 goles</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#4</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Andrés Muñoz</h3><p class="card-meta">Portero</p></div>
+      <span class="pts" style="font-size:12px;">62 goles rec.</span>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:10px; padding:0.6rem 0.85rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px;">#11</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:13px;">Pedro Salazar</h3><p class="card-meta">Central</p></div>
+      <span class="pts" style="font-size:12px;">14 goles</span>
+    </div>
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ INICIO DE SESIÓN ============ -->
+<div class="section-title">Iniciar sesión</div>
+<div class="row">
+
+<div class="phone light">
+  <div style="padding:40px 24px 24px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+    <div style="width:64px; height:64px; border-radius:16px; background:var(--brand); display:flex; align-items:center; justify-content:center;">
+      <svg width="34" height="34" viewBox="0 0 42 42" fill="none">
+        <circle cx="21" cy="21" r="18" fill="#fff"/>
+        <g stroke="var(--brand)" stroke-width="1.8" fill="none" stroke-linejoin="round">
+          <polygon points="21,7 27,11 25,18 17,18 15,11"/>
+          <polygon points="21,25 27,28.5 25,35 17,35 15,28.5"/>
+          <polygon points="6,15 12,13 15,18 12,24 6,23"/>
+          <polygon points="36,15 30,13 27,18 30,24 36,23"/>
+          <line x1="17" y1="18" x2="15" y2="18"/><line x1="25" y1="18" x2="27" y2="18"/>
+          <line x1="17" y1="18" x2="17" y2="25"/><line x1="25" y1="18" x2="25" y2="25"/>
+        </g>
+      </svg>
+    </div>
+    <div style="text-align:center;">
+      <h2 class="title" style="font-size:20px;">Bienvenido a Cancha</h2>
+      <p style="font-size:12px; color:var(--text-sec); margin:4px 0 0;">Liga de Balonmano del Caquetá</p>
+    </div>
+  </div>
+
+  <div style="padding:0 24px; display:flex; flex-direction:column; gap:12px;">
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo electrónico</label>
+      <input type="text" placeholder="tucorreo@ejemplo.com" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Contraseña</label>
+      <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+    <p style="font-size:12px; color:var(--brand); margin:0; text-align:right;">¿Olvidaste tu contraseña?</p>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:11px; font-size:13px; margin-top:6px;">Iniciar sesión</button>
+
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+      <span style="font-size:11px; color:var(--text-muted);">o</span>
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+    </div>
+
+    <button style="width:100%; justify-content:center; padding:10px; font-size:13px; background:var(--surface); color:var(--text); border:0.5px solid var(--border); border-radius:8px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:15px;">G</span> Continuar con Google
+    </button>
+
+    <p style="font-size:12px; color:var(--text-sec); text-align:center; margin:16px 0 24px;">¿No tienes cuenta? <span style="color:var(--brand); font-weight:500;">Regístrate</span></p>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div style="padding:40px 24px 24px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+    <div style="width:64px; height:64px; border-radius:16px; background:var(--brand); display:flex; align-items:center; justify-content:center;">
+      <svg width="34" height="34" viewBox="0 0 42 42" fill="none">
+        <circle cx="21" cy="21" r="18" fill="#161815"/>
+        <g stroke="var(--brand)" stroke-width="1.8" fill="none" stroke-linejoin="round">
+          <polygon points="21,7 27,11 25,18 17,18 15,11"/>
+          <polygon points="21,25 27,28.5 25,35 17,35 15,28.5"/>
+          <polygon points="6,15 12,13 15,18 12,24 6,23"/>
+          <polygon points="36,15 30,13 27,18 30,24 36,23"/>
+          <line x1="17" y1="18" x2="15" y2="18"/><line x1="25" y1="18" x2="27" y2="18"/>
+          <line x1="17" y1="18" x2="17" y2="25"/><line x1="25" y1="18" x2="25" y2="25"/>
+        </g>
+      </svg>
+    </div>
+    <div style="text-align:center;">
+      <h2 class="title" style="font-size:20px;">Bienvenido a Cancha</h2>
+      <p style="font-size:12px; color:var(--text-sec); margin:4px 0 0;">Liga de Balonmano del Caquetá</p>
+    </div>
+  </div>
+
+  <div style="padding:0 24px; display:flex; flex-direction:column; gap:12px;">
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo electrónico</label>
+      <input type="text" placeholder="tucorreo@ejemplo.com" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Contraseña</label>
+      <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+    <p style="font-size:12px; color:var(--brand); margin:0; text-align:right;">¿Olvidaste tu contraseña?</p>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:11px; font-size:13px; margin-top:6px;">Iniciar sesión</button>
+
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+      <span style="font-size:11px; color:var(--text-muted);">o</span>
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+    </div>
+
+    <button style="width:100%; justify-content:center; padding:10px; font-size:13px; background:var(--surface); color:var(--text); border:0.5px solid var(--border); border-radius:8px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:15px;">G</span> Continuar con Google
+    </button>
+
+    <p style="font-size:12px; color:var(--text-sec); text-align:center; margin:16px 0 24px;">¿No tienes cuenta? <span style="color:var(--brand); font-weight:500;">Regístrate</span></p>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ FORMULARIO DE AUTO-INSCRIPCIÓN ============ -->
+<!-- ============ REGISTRO DE CUENTA ============ -->
+<div class="section-title">Registrarse</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Iniciar sesión</div>
+  <div class="hd" style="padding-top:0;">
+    <h2 class="title" style="font-size:20px;">Crea tu cuenta</h2>
+    <p style="font-size:12px; color:var(--text-sec); margin:4px 0 0;">Únete a Cancha para gestionar o seguir torneos</p>
+  </div>
+
+  <div style="padding:0 24px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre completo *</label>
+      <input type="text" placeholder="Carlos Herrera" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo electrónico *</label>
+      <input type="text" placeholder="tucorreo@ejemplo.com" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Teléfono</label>
+      <input type="text" placeholder="300 123 4567" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Contraseña *</label>
+        <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Confirmar *</label>
+        <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">¿Cuál es tu rol principal? *</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span class="chip chip-solid">Entrenador</span>
+        <span class="chip chip-inactive">Aficionado</span>
+        <span class="chip chip-inactive">Árbitro</span>
+        <span class="chip chip-inactive">Admin. de Liga</span>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Esto define qué opciones verás en la app. Un administrador de la Liga deberá validar los roles de entrenador y árbitro.</p>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--text-sec); margin-top:2px;">
+      <input type="checkbox" style="margin-top:2px;"/>
+      Acepto los términos de uso y la política de privacidad de Cancha.
+    </label>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:11px; font-size:13px; margin-top:4px;">Crear cuenta</button>
+
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+      <span style="font-size:11px; color:var(--text-muted);">o</span>
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+    </div>
+
+    <button style="width:100%; justify-content:center; padding:10px; font-size:13px; background:var(--surface); color:var(--text); border:0.5px solid var(--border); border-radius:8px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:15px;">G</span> Continuar con Google
+    </button>
+
+    <p style="font-size:12px; color:var(--text-sec); text-align:center; margin:16px 0 24px;">¿Ya tienes cuenta? <span style="color:var(--brand); font-weight:500;">Inicia sesión</span></p>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Iniciar sesión</div>
+  <div class="hd" style="padding-top:0;">
+    <h2 class="title" style="font-size:20px;">Crea tu cuenta</h2>
+    <p style="font-size:12px; color:var(--text-sec); margin:4px 0 0;">Únete a Cancha para gestionar o seguir torneos</p>
+  </div>
+
+  <div style="padding:0 24px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre completo *</label>
+      <input type="text" placeholder="Carlos Herrera" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo electrónico *</label>
+      <input type="text" placeholder="tucorreo@ejemplo.com" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Teléfono</label>
+      <input type="text" placeholder="300 123 4567" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Contraseña *</label>
+        <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Confirmar *</label>
+        <input type="password" placeholder="••••••••" style="width:100%; padding:10px 12px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">¿Cuál es tu rol principal? *</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span class="chip chip-solid">Entrenador</span>
+        <span class="chip chip-inactive">Aficionado</span>
+        <span class="chip chip-inactive">Árbitro</span>
+        <span class="chip chip-inactive">Admin. de Liga</span>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Esto define qué opciones verás en la app. Un administrador de la Liga deberá validar los roles de entrenador y árbitro.</p>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--text-sec); margin-top:2px;">
+      <input type="checkbox" style="margin-top:2px;"/>
+      Acepto los términos de uso y la política de privacidad de Cancha.
+    </label>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:11px; font-size:13px; margin-top:4px;">Crear cuenta</button>
+
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+      <span style="font-size:11px; color:var(--text-muted);">o</span>
+      <div style="flex:1; height:0.5px; background:var(--border);"></div>
+    </div>
+
+    <button style="width:100%; justify-content:center; padding:10px; font-size:13px; background:var(--surface); color:var(--text); border:0.5px solid var(--border); border-radius:8px; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:15px;">G</span> Continuar con Google
+    </button>
+
+    <p style="font-size:12px; color:var(--text-sec); text-align:center; margin:16px 0 24px;">¿Ya tienes cuenta? <span style="color:var(--brand); font-weight:500;">Inicia sesión</span></p>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ INSCRIPCIÓN DE EQUIPO (FORMULARIO PÚBLICO) ============ -->
+<div class="section-title">Inscripción de equipo (formulario público)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="hd">
+    <p class="eyebrow">Interclubes 2026 · Liga de Balonmano del Caquetá</p>
+    <h2 class="title">Inscribe tu equipo</h2>
+  </div>
+  <div style="padding:0 16px 14px;">
+    <p style="font-size:11px; color:var(--text-sec); margin:0;">Completa este formulario para postular tu equipo al torneo. La Liga revisará tu solicitud antes de confirmarla.</p>
+  </div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del equipo *</label>
+      <input type="text" placeholder="Halcones FC" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Logo del equipo *</label>
+      <div style="display:flex; align-items:center; gap:10px; padding:10px; border:1.5px dashed var(--border); border-radius:8px;">
+        <div style="width:44px; height:44px; border-radius:8px; background:var(--surface); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:16px; flex-shrink:0;">🖼</div>
+        <div style="flex:1;">
+          <p style="font-size:12px; color:var(--text); margin:0; font-weight:500;">Subir logo</p>
+          <p style="font-size:10px; color:var(--text-muted); margin:2px 0 0;">PNG o JPG, fondo transparente recomendado</p>
+        </div>
+        <span style="font-size:11px; color:var(--brand); font-weight:500; white-space:nowrap;">Elegir</span>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">Color del uniforme *</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="width:30px; height:30px; border-radius:50%; background:#0D8932; border:2px solid var(--text); cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#1D4ED8; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#DC2626; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#EA580C; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#FACC15; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#0B0B0B; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#FFFFFF; border:2px solid var(--border); cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red); display:flex; align-items:center; justify-content:center; cursor:pointer;"><span style="font-size:12px;">＋</span></div>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Evita repetir el mismo color de otro equipo ya inscrito en la categoría.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Categoría *</label>
+        <select style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Mayores masculino</option>
+          <option>Mayores femenino</option>
+          <option>Sub-18</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Club</label>
+        <input type="text" placeholder="Club Amazonas" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del entrenador *</label>
+      <input type="text" placeholder="Carlos Herrera" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Teléfono de contacto *</label>
+        <input type="text" placeholder="300 123 4567" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo</label>
+        <input type="text" placeholder="equipo@correo.com" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="font-size:12px; color:var(--text); font-weight:500;">Jugadores inscritos (0)</label>
+        <span style="font-size:12px; color:var(--brand); cursor:pointer;">＋ Agregar</span>
+      </div>
+      <div style="display:grid; grid-template-columns:44px 1fr 70px; gap:8px;">
+        <input type="text" placeholder="#" style="padding:8px 6px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+        <input type="text" placeholder="Nombre completo" style="padding:8px 8px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+        <input type="text" placeholder="Posición" style="padding:8px 6px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Mínimo 10 jugadores para completar la inscripción.</p>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--text-sec); margin-top:2px;">
+      <input type="checkbox" style="margin-top:2px;"/>
+      Acepto el reglamento del torneo y confirmo que la información es correcta.
+    </label>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin-bottom:20px;">Enviar solicitud de inscripción</button>
+  </div>
+
+</div>
+
+<div class="phone dark">
+  <div class="hd">
+    <p class="eyebrow">Interclubes 2026 · Liga de Balonmano del Caquetá</p>
+    <h2 class="title">Inscribe tu equipo</h2>
+  </div>
+  <div style="padding:0 16px 14px;">
+    <p style="font-size:11px; color:var(--text-sec); margin:0;">Completa este formulario para postular tu equipo al torneo. La Liga revisará tu solicitud antes de confirmarla.</p>
+  </div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del equipo *</label>
+      <input type="text" placeholder="Halcones FC" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Logo del equipo *</label>
+      <div style="display:flex; align-items:center; gap:10px; padding:10px; border:1.5px dashed var(--border); border-radius:8px;">
+        <div style="width:44px; height:44px; border-radius:8px; background:var(--surface); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:16px; flex-shrink:0;">🖼</div>
+        <div style="flex:1;">
+          <p style="font-size:12px; color:var(--text); margin:0; font-weight:500;">Subir logo</p>
+          <p style="font-size:10px; color:var(--text-muted); margin:2px 0 0;">PNG o JPG, fondo transparente recomendado</p>
+        </div>
+        <span style="font-size:11px; color:var(--brand); font-weight:500; white-space:nowrap;">Elegir</span>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:6px;">Color del uniforme *</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="width:30px; height:30px; border-radius:50%; background:#4AA765; border:2px solid var(--text); cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#3B82F6; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#EF4444; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#F97316; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#FACC15; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#EDEFEA; border:2px solid transparent; cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:#0F1210; border:2px solid var(--border); cursor:pointer;"></div>
+        <div style="width:30px; height:30px; border-radius:50%; background:conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red); display:flex; align-items:center; justify-content:center; cursor:pointer;"><span style="font-size:12px;">＋</span></div>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Evita repetir el mismo color de otro equipo ya inscrito en la categoría.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Categoría *</label>
+        <select style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Mayores masculino</option>
+          <option>Mayores femenino</option>
+          <option>Sub-18</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Club</label>
+        <input type="text" placeholder="Club Amazonas" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Nombre del entrenador *</label>
+      <input type="text" placeholder="Carlos Herrera" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Teléfono de contacto *</label>
+        <input type="text" placeholder="300 123 4567" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Correo</label>
+        <input type="text" placeholder="equipo@correo.com" style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="font-size:12px; color:var(--text); font-weight:500;">Jugadores inscritos (0)</label>
+        <span style="font-size:12px; color:var(--brand); cursor:pointer;">＋ Agregar</span>
+      </div>
+      <div style="display:grid; grid-template-columns:44px 1fr 70px; gap:8px;">
+        <input type="text" placeholder="#" style="padding:8px 6px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+        <input type="text" placeholder="Nombre completo" style="padding:8px 8px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+        <input type="text" placeholder="Posición" style="padding:8px 6px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:12px;"/>
+      </div>
+      <p style="font-size:10px; color:var(--text-muted); margin:6px 0 0;">Mínimo 10 jugadores para completar la inscripción.</p>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--text-sec); margin-top:2px;">
+      <input type="checkbox" style="margin-top:2px;"/>
+      Acepto el reglamento del torneo y confirmo que la información es correcta.
+    </label>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin-bottom:20px;">Enviar solicitud de inscripción</button>
+  </div>
+
+</div>
+
+</div>
+
+<!-- ============ SOLICITUDES PENDIENTES ============ -->
+<div class="section-title">Solicitudes pendientes</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="row-between"><div><p class="eyebrow">Interclubes 2026</p><h2 class="title">Solicitudes pendientes</h2></div></div>
+  <div class="chips">
+    <span class="chip chip-active">Pendientes (3)</span>
+    <span class="chip chip-inactive">Aprobadas</span>
+    <span class="chip chip-inactive">Rechazadas</span>
+  </div>
+
+  <div class="cards" style="padding-top:4px;">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Titanes del Sur</h3>
+            <p class="card-meta">Mayores masculino · Club Titanes</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#DC2626;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Manuel Ríos</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">14 jugadores registrados · Enviado hace 2 días</p>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#C0392B; border:1px solid #C0392B; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Rayos del Caquetá</h3>
+            <p class="card-meta">Sub-18 · Club Independiente</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#FACC15;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Laura Peña</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">9 jugadores registrados · Enviado hace 5 horas</p>
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:6px 8px; margin-top:2px;">
+        <span style="font-size:12px;">⚠️</span>
+        <span style="font-size:10.5px; color:var(--amber);">Solo 9 jugadores — falta 1 para el mínimo de 10.</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#C0392B; border:1px solid #C0392B; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Águilas Doradas</h3>
+            <p class="card-meta">Mayores femenino · Club Águilas</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#EA580C;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Jorge Nieto</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:6px 8px; margin-top:2px;">
+        <span style="font-size:12px;">⚠️</span>
+        <span style="font-size:10.5px; color:var(--amber);">El color naranja ya está en uso por Amazonas HC en esta categoría.</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">12 jugadoras registradas · Enviado hace 1 día</p>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#C0392B; border:1px solid #C0392B; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="row-between"><div><p class="eyebrow">Interclubes 2026</p><h2 class="title">Solicitudes pendientes</h2></div></div>
+  <div class="chips">
+    <span class="chip chip-active">Pendientes (3)</span>
+    <span class="chip chip-inactive">Aprobadas</span>
+    <span class="chip chip-inactive">Rechazadas</span>
+  </div>
+
+  <div class="cards" style="padding-top:4px;">
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Titanes del Sur</h3>
+            <p class="card-meta">Mayores masculino · Club Titanes</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#EF4444;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Manuel Ríos</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">14 jugadores registrados · Enviado hace 2 días</p>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#F08A7C; border:1px solid #F08A7C; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Rayos del Caquetá</h3>
+            <p class="card-meta">Sub-18 · Club Independiente</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#FACC15;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Laura Peña</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">9 jugadores registrados · Enviado hace 5 horas</p>
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:6px 8px; margin-top:2px;">
+        <span style="font-size:12px;">⚠️</span>
+        <span style="font-size:10.5px; color:var(--amber);">Solo 9 jugadores — falta 1 para el mínimo de 10.</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#F08A7C; border:1px solid #F08A7C; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-top">
+        <div class="card-name-wrap">
+          <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">🖼</div>
+          <div>
+            <h3 class="card-title">Águilas Doradas</h3>
+            <p class="card-meta">Mayores femenino · Club Águilas</p>
+          </div>
+        </div>
+        <span class="badge badge-amber">pendiente</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; padding:2px 0;">
+        <span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#F97316;border:1.5px solid var(--border);"></span>
+        <span style="font-size:11px; color:var(--text-sec);">Color de uniforme · Entrenador: Jorge Nieto</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:6px 8px; margin-top:2px;">
+        <span style="font-size:12px;">⚠️</span>
+        <span style="font-size:10.5px; color:var(--amber);">El color naranja ya está en uso por Amazonas HC en esta categoría.</span>
+      </div>
+      <p class="next-match" style="margin:2px 0 0;">12 jugadoras registradas · Enviado hace 1 día</p>
+      <div style="display:flex; gap:8px; margin-top:4px;">
+        <button style="flex:1; font-size:12px; padding:7px; background:var(--brand); color:var(--on-brand); border:none; border-radius:8px; font-weight:500;">✓ Aprobar</button>
+        <button style="flex:1; font-size:12px; padding:7px; background:transparent; color:#F08A7C; border:1px solid #F08A7C; border-radius:8px; font-weight:500;">✕ Rechazar</button>
+        <button style="width:34px; font-size:12px; padding:7px; background:var(--surface); color:var(--text-sec); border:none; border-radius:8px;">👁</button>
+      </div>
+    </div>
+
+  </div>
+  <div class="nav"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ PARTIDO EN VIVO ============ -->
+<div class="section-title">Partido en vivo (registrar eventos)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Calendario</div>
+  <div style="padding:0 16px 10px; text-align:center;">
+    <p style="font-size:10px; color:var(--brand); font-weight:500; margin:0 0 4px; display:flex; align-items:center; justify-content:center; gap:5px;">
+      <span style="width:6px; height:6px; border-radius:50%; background:var(--brand); display:inline-block;"></span> EN VIVO · 24:18
+    </p>
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="text-align:center; flex:1;"><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:5px;vertical-align:middle;"></span>Halcones FC</p></div>
+      <p style="font-size:28px; font-weight:500; color:var(--text); margin:0 8px;">14 – 11</p>
+      <div style="text-align:center; flex:1;"><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:5px;vertical-align:middle;"></span>Amazonas HC</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:4px 0 0;">2° tiempo</p>
+  </div>
+
+  <div style="padding:0 16px 10px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:10px; padding:8px 10px;">
+      <div style="width:30px; height:30px; border-radius:50%; background:var(--amber); color:#0F1210; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">1:24</div>
+      <div style="flex:1;">
+        <p style="font-size:11.5px; color:var(--text); margin:0; font-weight:500;">Pedro Salazar · #11 <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#0D8932;margin-left:4px;"></span></p>
+        <p style="font-size:10px; color:var(--text-sec); margin:0;">Exclusión de 2 minutos · Halcones FC</p>
+      </div>
+      <span style="font-size:10px; color:var(--amber); font-weight:500;">Excluido</span>
+    </div>
+  </div>
+
+  <p class="list-title" style="margin-top:2px;">Oficiales del partido</p>
+  <div class="rank-list" style="margin-bottom:10px; gap:6px;">
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Árb. campo 1</span><span>Luis Fernández</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Árb. campo 2</span><span>Diana Castro</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Mesa (cronom.)</span><span>Ricardo Pinzón</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Mesa (anotador)</span><span>Sofía Vargas</span></div>
+  </div>
+
+  <div style="padding:0 16px 8px; display:flex; gap:6px;">
+    <span class="chip chip-solid" style="flex:1; text-align:center;">Halcones FC</span>
+    <span class="chip chip-inactive" style="flex:1; text-align:center;">Amazonas HC</span>
+  </div>
+
+  <div class="cards" style="padding-top:4px; gap:6px;">
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#7</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Juan Ríos</h3></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">6 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber-soft); color:var(--amber); border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5E2A0; color:#8A6A00; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5C9C4; color:#A32B22; border:none; font-size:10px;">🟥</button>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem; border:1.5px solid var(--amber);">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#11</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Pedro Salazar</h3><p style="font-size:9.5px; color:var(--amber); margin:0; font-weight:500;">Excluido · 1:24</p></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">4 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber); color:#fff; border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5E2A0; color:#8A6A00; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5C9C4; color:#A32B22; border:none; font-size:10px;">🟥</button>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#4</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Andrés Muñoz (GK)</h3></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">0 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber-soft); color:var(--amber); border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5E2A0; color:#8A6A00; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#F5C9C4; color:#A32B22; border:none; font-size:10px;">🟥</button>
+    </div>
+  </div>
+
+  <p class="list-title" style="margin-top:4px;">Cronología</p>
+  <div class="rank-list" style="margin-bottom:16px;">
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">24'</span><span>⚽ Gol de Juan Ríos (Halcones)</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">21'</span><span>🟨 Amarilla a Pedro Salazar</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">18'</span><span>2' Exclusión a #9 Amazonas</span></div>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Calendario</div>
+  <div style="padding:0 16px 10px; text-align:center;">
+    <p style="font-size:10px; color:var(--brand); font-weight:500; margin:0 0 4px; display:flex; align-items:center; justify-content:center; gap:5px;">
+      <span style="width:6px; height:6px; border-radius:50%; background:var(--brand); display:inline-block;"></span> EN VIVO · 24:18
+    </p>
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="text-align:center; flex:1;"><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:5px;vertical-align:middle;"></span>Halcones FC</p></div>
+      <p style="font-size:28px; font-weight:500; color:var(--text); margin:0 8px;">14 – 11</p>
+      <div style="text-align:center; flex:1;"><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:5px;vertical-align:middle;"></span>Amazonas HC</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:4px 0 0;">2° tiempo</p>
+  </div>
+
+  <div style="padding:0 16px 10px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:10px; padding:8px 10px;">
+      <div style="width:30px; height:30px; border-radius:50%; background:var(--amber); color:#0F1210; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">1:24</div>
+      <div style="flex:1;">
+        <p style="font-size:11.5px; color:var(--text); margin:0; font-weight:500;">Pedro Salazar · #11 <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4AA765;margin-left:4px;"></span></p>
+        <p style="font-size:10px; color:var(--text-sec); margin:0;">Exclusión de 2 minutos · Halcones FC</p>
+      </div>
+      <span style="font-size:10px; color:var(--amber); font-weight:500;">Excluido</span>
+    </div>
+  </div>
+
+  <p class="list-title" style="margin-top:2px;">Oficiales del partido</p>
+  <div class="rank-list" style="margin-bottom:10px; gap:6px;">
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Árb. campo 1</span><span>Luis Fernández</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Árb. campo 2</span><span>Diana Castro</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Mesa (cronom.)</span><span>Ricardo Pinzón</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-sec); width:78px; font-size:11px;">Mesa (anotador)</span><span>Sofía Vargas</span></div>
+  </div>
+
+  <div style="padding:0 16px 8px; display:flex; gap:6px;">
+    <span class="chip chip-solid" style="flex:1; text-align:center;">Halcones FC</span>
+    <span class="chip chip-inactive" style="flex:1; text-align:center;">Amazonas HC</span>
+  </div>
+
+  <div class="cards" style="padding-top:4px; gap:6px;">
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#7</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Juan Ríos</h3></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">6 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber-soft); color:var(--amber); border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a3f14; color:#F5D766; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a1f1a; color:#F08A7C; border:none; font-size:10px;">🟥</button>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem; border:1.5px solid var(--amber);">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#11</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Pedro Salazar</h3><p style="font-size:9.5px; color:var(--amber); margin:0; font-weight:500;">Excluido · 1:24</p></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">4 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber); color:#0F1210; border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a3f14; color:#F5D766; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a1f1a; color:#F08A7C; border:none; font-size:10px;">🟥</button>
+    </div>
+    <div class="card" style="flex-direction:row; align-items:center; gap:8px; padding:0.55rem 0.75rem;">
+      <div class="avatar" style="background:var(--surface); color:var(--text-sec); font-size:11px; border:0.5px solid var(--border);">#4</div>
+      <div style="flex:1;"><h3 class="card-title" style="font-size:12.5px;">Andrés Muñoz (GK)</h3></div>
+      <span style="font-size:11px; color:var(--text-sec); margin-right:2px;">0 goles</span>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--brand-soft); color:var(--brand); border:none; font-size:13px;">⚽</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:var(--amber-soft); color:var(--amber); border:none; font-size:9px; font-weight:600;">2'</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a3f14; color:#F5D766; border:none; font-size:10px;">🟨</button>
+      <button style="width:26px; height:26px; border-radius:6px; background:#4a1f1a; color:#F08A7C; border:none; font-size:10px;">🟥</button>
+    </div>
+  </div>
+
+  <p class="list-title" style="margin-top:4px;">Cronología</p>
+  <div class="rank-list" style="margin-bottom:16px;">
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">24'</span><span>⚽ Gol de Juan Ríos (Halcones)</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">21'</span><span>🟨 Amarilla a Pedro Salazar</span></div>
+    <div class="rank-row" style="justify-content:flex-start; gap:8px;"><span style="color:var(--text-muted); width:32px;">18'</span><span>2' Exclusión a #9 Amazonas</span></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ FICHA DE JUGADOR ============ -->
+<div class="section-title">Ficha de jugador</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Halcones FC</div>
+  <div class="player-header">
+    <div class="avatar-lg">JR</div>
+    <div><p class="player-name">Juan Ríos</p><p class="player-sub">Extremo izquierdo · #7 · Mayores M</p></div>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(4,1fr);">
+    <div class="stat-box"><p class="stat-label">Goles</p><p class="stat-value">31</p></div>
+    <div class="stat-box"><p class="stat-label">PJ</p><p class="stat-value">7</p></div>
+    <div class="stat-box"><p class="stat-label">Prom.</p><p class="stat-value">4.4</p></div>
+    <div class="stat-box"><p class="stat-label">Tarj.</p><p class="stat-value">2</p></div>
+  </div>
+  <p class="list-title">Historial de partidos</p>
+  <div class="rank-list">
+    <div class="rank-row"><span>J7 · vs Amazonas HC</span><span class="pts">6 goles</span></div>
+    <div class="rank-row"><span>J6 · vs Selva Norte</span><span class="pts">5 goles</span></div>
+    <div class="rank-row"><span>J5 · vs Cóndor</span><span class="pts">4 goles</span></div>
+  </div>
+  <div style="padding:0 16px; margin-top:4px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--brand-soft); border-radius:8px; padding:8px 10px;">
+      <span style="font-size:14px;">🟨</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500; flex:1;">También está habilitado como árbitro</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500;">Ver ficha ›</span>
+    </div>
+  </div>
+  <div class="nav" style="margin-top:8px;"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Halcones FC</div>
+  <div class="player-header">
+    <div class="avatar-lg">JR</div>
+    <div><p class="player-name">Juan Ríos</p><p class="player-sub">Extremo izquierdo · #7 · Mayores M</p></div>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(4,1fr);">
+    <div class="stat-box"><p class="stat-label">Goles</p><p class="stat-value">31</p></div>
+    <div class="stat-box"><p class="stat-label">PJ</p><p class="stat-value">7</p></div>
+    <div class="stat-box"><p class="stat-label">Prom.</p><p class="stat-value">4.4</p></div>
+    <div class="stat-box"><p class="stat-label">Tarj.</p><p class="stat-value">2</p></div>
+  </div>
+  <p class="list-title">Historial de partidos</p>
+  <div class="rank-list">
+    <div class="rank-row"><span>J7 · vs Amazonas HC</span><span class="pts">6 goles</span></div>
+    <div class="rank-row"><span>J6 · vs Selva Norte</span><span class="pts">5 goles</span></div>
+    <div class="rank-row"><span>J5 · vs Cóndor</span><span class="pts">4 goles</span></div>
+  </div>
+  <div style="padding:0 16px; margin-top:4px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--brand-soft); border-radius:8px; padding:8px 10px;">
+      <span style="font-size:14px;">🟨</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500; flex:1;">También está habilitado como árbitro</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500;">Ver ficha ›</span>
+    </div>
+  </div>
+  <div class="nav" style="margin-top:8px;"><span class="nav-icon">⌂</span><span class="nav-icon">🏆</span><span class="nav-icon">📅</span><span class="nav-icon active">👥</span></div>
+</div>
+
+</div>
+
+<!-- ============ TABLA DE POSICIONES DETALLADA ============ -->
+<div class="section-title">Tabla de posiciones completa</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Tabla de posiciones</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px; overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:11px; min-width:460px;">
+      <thead>
+        <tr style="color:var(--text-sec); text-align:center; border-bottom:1px solid var(--border);">
+          <th style="text-align:left; padding:6px 4px; font-weight:400;">#</th>
+          <th style="text-align:left; padding:6px 4px; font-weight:400;">Equipo</th>
+          <th style="padding:6px 4px; font-weight:400;">PJ</th>
+          <th style="padding:6px 4px; font-weight:400;">PG</th>
+          <th style="padding:6px 4px; font-weight:400;">PE</th>
+          <th style="padding:6px 4px; font-weight:400;">PP</th>
+          <th style="padding:6px 4px; font-weight:400;">GF</th>
+          <th style="padding:6px 4px; font-weight:400;">GC</th>
+          <th style="padding:6px 4px; font-weight:400;">DG</th>
+          <th style="padding:6px 4px; font-weight:400; color:var(--text);">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--border); background:var(--brand-soft);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">1</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0D8932;margin-right:5px;"></span>Halcones FC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">6</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">0</td>
+          <td style="text-align:center; color:var(--text);">198</td><td style="text-align:center; color:var(--text);">184</td><td style="text-align:center; color:var(--text);">+14</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">19</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">2</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-right:5px;"></span>Cóndor Balonmano</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">5</td><td style="text-align:center; color:var(--text);">2</td><td style="text-align:center; color:var(--text);">0</td>
+          <td style="text-align:center; color:var(--text);">187</td><td style="text-align:center; color:var(--text);">178</td><td style="text-align:center; color:var(--text);">+9</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">17</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">3</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EA580C;margin-right:5px;"></span>Amazonas HC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">4</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">2</td>
+          <td style="text-align:center; color:var(--text);">176</td><td style="text-align:center; color:var(--text);">173</td><td style="text-align:center; color:var(--text);">+3</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">14</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--text-sec);">4</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#9333EA;margin-right:5px;"></span>Selva Norte HC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">3</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">3</td>
+          <td style="text-align:center; color:var(--text);">165</td><td style="text-align:center; color:var(--text);">168</td><td style="text-align:center; color:var(--text);">-3</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">10</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 4px; color:var(--text-sec);">5</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#DC2626;margin-right:5px;"></span>Titanes Florencia</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">0</td><td style="text-align:center; color:var(--text);">6</td>
+          <td style="text-align:center; color:var(--text);">142</td><td style="text-align:center; color:var(--text);">169</td><td style="text-align:center; color:var(--text);">-27</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">3</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles</p>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Tabla de posiciones</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px; overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:11px; min-width:460px;">
+      <thead>
+        <tr style="color:var(--text-sec); text-align:center; border-bottom:1px solid var(--border);">
+          <th style="text-align:left; padding:6px 4px; font-weight:400;">#</th>
+          <th style="text-align:left; padding:6px 4px; font-weight:400;">Equipo</th>
+          <th style="padding:6px 4px; font-weight:400;">PJ</th>
+          <th style="padding:6px 4px; font-weight:400;">PG</th>
+          <th style="padding:6px 4px; font-weight:400;">PE</th>
+          <th style="padding:6px 4px; font-weight:400;">PP</th>
+          <th style="padding:6px 4px; font-weight:400;">GF</th>
+          <th style="padding:6px 4px; font-weight:400;">GC</th>
+          <th style="padding:6px 4px; font-weight:400;">DG</th>
+          <th style="padding:6px 4px; font-weight:400; color:var(--text);">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--border); background:var(--brand-soft);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">1</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4AA765;margin-right:5px;"></span>Halcones FC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">6</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">0</td>
+          <td style="text-align:center; color:var(--text);">198</td><td style="text-align:center; color:var(--text);">184</td><td style="text-align:center; color:var(--text);">+14</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">19</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">2</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3B82F6;margin-right:5px;"></span>Cóndor Balonmano</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">5</td><td style="text-align:center; color:var(--text);">2</td><td style="text-align:center; color:var(--text);">0</td>
+          <td style="text-align:center; color:var(--text);">187</td><td style="text-align:center; color:var(--text);">178</td><td style="text-align:center; color:var(--text);">+9</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">17</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--brand); font-weight:600;">3</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F97316;margin-right:5px;"></span>Amazonas HC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">4</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">2</td>
+          <td style="text-align:center; color:var(--text);">176</td><td style="text-align:center; color:var(--text);">173</td><td style="text-align:center; color:var(--text);">+3</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">14</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <td style="padding:7px 4px; color:var(--text-sec);">4</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#A855F7;margin-right:5px;"></span>Selva Norte HC</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">3</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">3</td>
+          <td style="text-align:center; color:var(--text);">165</td><td style="text-align:center; color:var(--text);">168</td><td style="text-align:center; color:var(--text);">-3</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">10</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 4px; color:var(--text-sec);">5</td>
+          <td style="padding:7px 4px; color:var(--text); white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F87171;margin-right:5px;"></span>Titanes Florencia</td>
+          <td style="text-align:center; color:var(--text);">7</td><td style="text-align:center; color:var(--text);">1</td><td style="text-align:center; color:var(--text);">0</td><td style="text-align:center; color:var(--text);">6</td>
+          <td style="text-align:center; color:var(--text);">142</td><td style="text-align:center; color:var(--text);">169</td><td style="text-align:center; color:var(--text);">-27</td>
+          <td style="text-align:center; color:var(--text); font-weight:600;">3</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles</p>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ TABLA DE VALLA MENOS VENCIDA ============ -->
+<div class="section-title">Valla menos vencida (tabla completa)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Valla menos vencida</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--brand-soft); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--brand); width:16px;">1</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #0D8932;">AM</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Andrés Muñoz</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#0D8932;margin-right:4px;"></span>Halcones FC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">62%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">2</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #2563EB;">RT</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Ricardo Torres</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2563EB;margin-right:4px;"></span>Cóndor Balonmano</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">58%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">3</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #EA580C;">DC</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Diego Camacho</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#EA580C;margin-right:4px;"></span>Amazonas HC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">54%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">4</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #9333EA;">JG</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Javier Gómez</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#9333EA;margin-right:4px;"></span>Selva Norte HC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">49%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">5</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #DC2626;">MH</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Manuel Herrera</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#DC2626;margin-right:4px;"></span>Titanes Florencia</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">41%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; justify-content:space-around; margin-top:14px; padding:10px 0; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border);">
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Líder</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">A. Muñoz</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Tiros recibidos</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">163</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Atajadas</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">101</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">% rec. eficaces = atajadas ÷ tiros recibidos. Se requiere un mínimo de partidos jugados como portero titular para calificar.</p>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Valla menos vencida</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--brand-soft); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--brand); width:16px;">1</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #4AA765;">AM</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Andrés Muñoz</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4AA765;margin-right:4px;"></span>Halcones FC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">62%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">2</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #3B82F6;">RT</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Ricardo Torres</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6;margin-right:4px;"></span>Cóndor Balonmano</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">58%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">3</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #F97316;">DC</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Diego Camacho</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F97316;margin-right:4px;"></span>Amazonas HC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">54%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">4</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #A855F7;">JG</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Javier Gómez</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#A855F7;margin-right:4px;"></span>Selva Norte HC</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">49%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">5</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #F87171;">MH</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Manuel Herrera</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F87171;margin-right:4px;"></span>Titanes Florencia</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">41%</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">rec. eficaces</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; justify-content:space-around; margin-top:14px; padding:10px 0; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border);">
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Líder</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">A. Muñoz</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Tiros recibidos</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">163</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Atajadas</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">101</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">% rec. eficaces = atajadas ÷ tiros recibidos. Se requiere un mínimo de partidos jugados como portero titular para calificar.</p>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ TABLA DE GOLEADORES ============ -->
+<div class="section-title">Goleadores (tabla completa)</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Goleadores</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--brand-soft); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--brand); width:16px;">1</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #0D8932;">JR</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Juan Ríos</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#0D8932;margin-right:4px;"></span>Halcones FC · Extremo izq.</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">31</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">4.4 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">2</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #DC2626;">CV</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Camilo Vargas</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#DC2626;margin-right:4px;"></span>Titanes Florencia · Central</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">29</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">4.1 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">3</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #2563EB;">PS</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Pedro Salazar</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2563EB;margin-right:4px;"></span>Cóndor Balonmano · Pivote</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">26</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">3.7 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">4</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #EA580C;">LF</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Luis Fajardo</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#EA580C;margin-right:4px;"></span>Amazonas HC · Extremo der.</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">22</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">3.1 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">5</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #9333EA;">ST</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Santiago Torres</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#9333EA;margin-right:4px;"></span>Selva Norte HC · Lateral</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">19</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">2.7 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">6</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #0D8932;">RA</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Ramiro Acosta</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#0D8932;margin-right:4px;"></span>Halcones FC · Lateral</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">15</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">2.1 / partido</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; justify-content:space-around; margin-top:14px; padding:10px 0; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border);">
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Líder</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">J. Ríos</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Goles totales</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">1,340</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Prom. liga</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">28.7 / equipo</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">Ordenado por goles totales. En caso de empate, se prioriza el mejor promedio de goles por partido.</p>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Interclubes 2026</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Jornada 7 de 9</p><h2 class="title">Goleadores</h2></div>
+  <div class="chips">
+    <span class="chip chip-solid">Mayores M</span>
+    <span class="chip chip-inactive">Mayores F</span>
+    <span class="chip chip-inactive">Sub-18</span>
+  </div>
+
+  <div style="padding:8px 16px 16px;">
+    <div style="display:flex; flex-direction:column; gap:6px;">
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--brand-soft); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--brand); width:16px;">1</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #4AA765;">JR</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Juan Ríos</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4AA765;margin-right:4px;"></span>Halcones FC · Extremo izq.</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">31</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">4.4 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">2</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #F87171;">CV</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Camilo Vargas</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F87171;margin-right:4px;"></span>Titanes Florencia · Central</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">29</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">4.1 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">3</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #3B82F6;">PS</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Pedro Salazar</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3B82F6;margin-right:4px;"></span>Cóndor Balonmano · Pivote</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">26</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">3.7 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">4</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #F97316;">LF</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Luis Fajardo</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#F97316;margin-right:4px;"></span>Amazonas HC · Extremo der.</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">22</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">3.1 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">5</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #A855F7;">ST</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Santiago Torres</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#A855F7;margin-right:4px;"></span>Selva Norte HC · Lateral</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">19</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">2.7 / partido</p>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:9px 10px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-sec); width:16px;">6</span>
+        <div class="avatar" style="background:var(--bg); color:var(--text-sec); font-size:11px; border:2px solid #4AA765;">RA</div>
+        <div style="flex:1;">
+          <p style="font-size:12.5px; color:var(--text); margin:0; font-weight:500;">Ramiro Acosta</p>
+          <p style="font-size:10.5px; color:var(--text-sec); margin:1px 0 0;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4AA765;margin-right:4px;"></span>Halcones FC · Lateral</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:14px; color:var(--text); margin:0; font-weight:600;">15</p>
+          <p style="font-size:10px; color:var(--text-sec); margin:0;">2.1 / partido</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; justify-content:space-around; margin-top:14px; padding:10px 0; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border);">
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Líder</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">J. Ríos</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Goles totales</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">1,340</p></div>
+      <div style="text-align:center;"><p style="font-size:10px; color:var(--text-muted); margin:0 0 2px;">Prom. liga</p><p style="font-size:12px; color:var(--text); font-weight:500; margin:0;">28.7 / equipo</p></div>
+    </div>
+    <p style="font-size:10px; color:var(--text-muted); margin:10px 0 0;">Ordenado por goles totales. En caso de empate, se prioriza el mejor promedio de goles por partido.</p>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ CREAR PARTIDO Y ASIGNAR JUECES ============ -->
+<div class="section-title">Crear partido y asignar jueces</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Calendario</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Mayores M</p><h2 class="title">Nuevo partido</h2></div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Equipo local *</label>
+        <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Halcones FC</option>
+          <option>Cóndor Balonmano</option>
+          <option>Amazonas HC</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Equipo visitante *</label>
+        <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Amazonas HC</option>
+          <option>Halcones FC</option>
+          <option>Selva Norte HC</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha *</label>
+        <input type="text" placeholder="01/08/2026" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Hora *</label>
+        <input type="text" placeholder="8:00 a. m." style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Sede / cancha</label>
+      <input type="text" placeholder="Coliseo Julio Lozano" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px;">
+      <p style="font-size:12px; color:var(--text); font-weight:500; margin:0 0 10px;">Asignación de jueces</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Árbitro de campo 1 *</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Luis Fernández</option>
+            <option>Andrés Muñoz · 🤾 también jugador</option>
+            <option>Diana Castro</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Árbitro de campo 2 *</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Diana Castro</option>
+            <option>Luis Fernández</option>
+            <option>Andrés Muñoz · 🤾 también jugador</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Mesa · Cronometrista</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Ricardo Pinzón</option>
+            <option>Sofía Vargas</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Mesa · Anotador</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Sofía Vargas</option>
+            <option>Ricardo Pinzón</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:8px 10px; margin-top:10px;">
+        <span style="font-size:13px;">⚠️</span>
+        <p style="font-size:10.5px; color:var(--amber); margin:0; flex:1;">Andrés Muñoz también está inscrito como jugador de Halcones FC. Verifica que no esté asignado a un partido de su propio equipo.</p>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin:6px 0 24px;">Guardar partido</button>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Calendario</div>
+  <div class="hd" style="padding-top:0;"><p class="eyebrow">Interclubes 2026 · Mayores M</p><h2 class="title">Nuevo partido</h2></div>
+
+  <div style="padding:0 16px; display:flex; flex-direction:column; gap:12px;">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Equipo local *</label>
+        <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Halcones FC</option>
+          <option>Cóndor Balonmano</option>
+          <option>Amazonas HC</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Equipo visitante *</label>
+        <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+          <option>Amazonas HC</option>
+          <option>Halcones FC</option>
+          <option>Selva Norte HC</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Fecha *</label>
+        <input type="text" placeholder="01/08/2026" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Hora *</label>
+        <input type="text" placeholder="8:00 a. m." style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Sede / cancha</label>
+      <input type="text" placeholder="Coliseo Julio Lozano" style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;"/>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border); padding-top:12px;">
+      <p style="font-size:12px; color:var(--text); font-weight:500; margin:0 0 10px;">Asignación de jueces</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Árbitro de campo 1 *</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Luis Fernández</option>
+            <option>Andrés Muñoz · 🤾 también jugador</option>
+            <option>Diana Castro</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Árbitro de campo 2 *</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Diana Castro</option>
+            <option>Luis Fernández</option>
+            <option>Andrés Muñoz · 🤾 también jugador</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Mesa · Cronometrista</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Ricardo Pinzón</option>
+            <option>Sofía Vargas</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:11px; color:var(--text-sec); display:block; margin-bottom:4px;">Mesa · Anotador</label>
+          <select style="width:100%; padding:9px 10px; border-radius:8px; border:0.5px solid var(--border); background:var(--surface); color:var(--text); font-size:13px;">
+            <option>Sofía Vargas</option>
+            <option>Ricardo Pinzón</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:8px 10px; margin-top:10px;">
+        <span style="font-size:13px;">⚠️</span>
+        <p style="font-size:10.5px; color:var(--amber); margin:0; flex:1;">Andrés Muñoz también está inscrito como jugador de Halcones FC. Verifica que no esté asignado a un partido de su propio equipo.</p>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%; justify-content:center; padding:10px; font-size:13px; margin:6px 0 24px;">Guardar partido</button>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ FICHA DE ÁRBITRO ============ -->
+<div class="section-title">Ficha de árbitro</div>
+<div class="row">
+
+<div class="phone light">
+  <div class="back-row">← Árbitros</div>
+  <div class="player-header">
+    <div class="avatar-lg">AM</div>
+    <div>
+      <p class="player-name">Andrés Muñoz</p>
+      <p class="player-sub">Árbitro de campo · Nivel Regional</p>
+    </div>
+  </div>
+  <div style="padding:0 16px; margin-bottom:12px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--brand-soft); border-radius:8px; padding:8px 10px;">
+      <span style="font-size:14px;">🤾</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500; flex:1;">También es jugador · Portero, Halcones FC</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500;">Ver ficha ›</span>
+    </div>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-box"><p class="stat-label">Partidos</p><p class="stat-value">18</p></div>
+    <div class="stat-box"><p class="stat-label">Amarillas</p><p class="stat-value">22</p></div>
+    <div class="stat-box"><p class="stat-label">Rojas</p><p class="stat-value">3</p></div>
+  </div>
+  <p class="list-title">Certificaciones</p>
+  <div class="rank-list">
+    <div class="rank-row"><span>Curso Liga Caquetá 2024</span><span class="pts" style="color:var(--brand);">Vigente</span></div>
+    <div class="rank-row"><span>Reglas de juego IHF</span><span class="pts" style="color:var(--brand);">Vigente</span></div>
+  </div>
+  <p class="list-title">Próximas asignaciones</p>
+  <div class="rank-list" style="margin-bottom:16px;">
+    <div class="rank-row"><span>Sáb 1 ago · Amazonas vs Halcones</span><span class="pts" style="font-size:11px;">Árb. campo 1</span></div>
+    <div class="rank-row"><span>Dom 2 ago · Cóndor vs Selva Norte</span><span class="pts" style="font-size:11px;">Mesa (anotador)</span></div>
+  </div>
+</div>
+
+<div class="phone dark">
+  <div class="back-row">← Árbitros</div>
+  <div class="player-header">
+    <div class="avatar-lg">AM</div>
+    <div>
+      <p class="player-name">Andrés Muñoz</p>
+      <p class="player-sub">Árbitro de campo · Nivel Regional</p>
+    </div>
+  </div>
+  <div style="padding:0 16px; margin-bottom:12px;">
+    <div style="display:flex; align-items:center; gap:8px; background:var(--brand-soft); border-radius:8px; padding:8px 10px;">
+      <span style="font-size:14px;">🤾</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500; flex:1;">También es jugador · Portero, Halcones FC</span>
+      <span style="font-size:11px; color:var(--brand); font-weight:500;">Ver ficha ›</span>
+    </div>
+  </div>
+  <div class="stats-2col" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-box"><p class="stat-label">Partidos</p><p class="stat-value">18</p></div>
+    <div class="stat-box"><p class="stat-label">Amarillas</p><p class="stat-value">22</p></div>
+    <div class="stat-box"><p class="stat-label">Rojas</p><p class="stat-value">3</p></div>
+  </div>
+  <p class="list-title">Certificaciones</p>
+  <div class="rank-list">
+    <div class="rank-row"><span>Curso Liga Caquetá 2024</span><span class="pts" style="color:var(--brand);">Vigente</span></div>
+    <div class="rank-row"><span>Reglas de juego IHF</span><span class="pts" style="color:var(--brand);">Vigente</span></div>
+  </div>
+  <p class="list-title">Próximas asignaciones</p>
+  <div class="rank-list" style="margin-bottom:16px;">
+    <div class="rank-row"><span>Sáb 1 ago · Amazonas vs Halcones</span><span class="pts" style="font-size:11px;">Árb. campo 1</span></div>
+    <div class="rank-row"><span>Dom 2 ago · Cóndor vs Selva Norte</span><span class="pts" style="font-size:11px;">Mesa (anotador)</span></div>
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
