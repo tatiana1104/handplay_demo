@@ -8,6 +8,8 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
+import 'create_tournament_screen.dart';
+import 'pending_registrations_screen.dart';
 import 'tournament_detail_screen.dart';
 
 /// Home público y panel de torneos de la liga de balonmano.
@@ -35,7 +37,14 @@ class TorneosScreen extends StatelessWidget {
         selectedIndex: 0,
         isAuthenticated: user != null,
       ),
-      body: const _PublicTournamentList(),
+      body: FutureBuilder<IdTokenResult?>(
+        future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
+        builder: (context, snapshot) {
+          final role = snapshot.data?.claims?['rol'];
+          final isAdmin = user != null && (role == 'admin' || role == 'admin_liga');
+          return _PublicTournamentList(isAdmin: isAdmin, adminId: user?.uid);
+        },
+      ),
     );
   }
 }
@@ -68,7 +77,10 @@ class _CreateTournamentAction extends StatelessWidget {
 enum _TournamentFilter { all, upcoming, playing, finished }
 
 class _PublicTournamentList extends StatefulWidget {
-  const _PublicTournamentList();
+  const _PublicTournamentList({required this.isAdmin, this.adminId});
+
+  final bool isAdmin;
+  final String? adminId;
 
   @override
   State<_PublicTournamentList> createState() => _PublicTournamentListState();
@@ -113,6 +125,7 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) => _TournamentCard(
                         tournament: visibleTournaments[index],
+                        isAdmin: widget.isAdmin && widget.adminId == visibleTournaments[index].adminId,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => TournamentDetailScreen(
@@ -120,6 +133,9 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                             ),
                           ),
                         ),
+                        onEdit: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateTournamentScreen(adminId: widget.adminId!, tournament: visibleTournaments[index]))),
+                        onRequests: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name))),
+                        onDelete: () => _deleteTournament(context, visibleTournaments[index]),
                       ),
                     ),
             ),
@@ -127,6 +143,21 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
         );
       },
     );
+  }
+
+  Future<void> _deleteTournament(BuildContext context, Tournament tournament) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar torneo'),
+        content: Text('¿Eliminar "${tournament.name}"? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar')),
+        ],
+      ),
+    );
+    if (confirmed == true) await TournamentRepository().deleteTournament(tournament.id);
   }
 
   bool _matchesFilter(Tournament tournament, _TournamentFilter filter) {
@@ -246,10 +277,14 @@ class _EmptyFilteredTournaments extends StatelessWidget {
 }
 
 class _TournamentCard extends StatelessWidget {
-  const _TournamentCard({required this.tournament, required this.onTap});
+  const _TournamentCard({required this.tournament, required this.onTap, required this.isAdmin, required this.onEdit, required this.onRequests, required this.onDelete});
 
   final Tournament tournament;
   final VoidCallback onTap;
+  final bool isAdmin;
+  final VoidCallback onEdit;
+  final VoidCallback onRequests;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +318,18 @@ class _TournamentCard extends StatelessWidget {
             LinearProgressIndicator(value: progress),
             const SizedBox(height: 8),
             Text(dateLabel, style: Theme.of(context).textTheme.bodySmall),
+            if (isAdmin) ...[
+              const Divider(height: 20),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  TextButton.icon(onPressed: onEdit, icon: const Icon(Icons.edit_outlined, size: 17), label: const Text('Editar')),
+                  TextButton.icon(onPressed: onRequests, icon: const Icon(Icons.fact_check_outlined, size: 17), label: const Text('Solicitudes')),
+                  TextButton.icon(onPressed: onDelete, icon: const Icon(Icons.delete_outline, size: 17), label: const Text('Eliminar')),
+                ],
+              ),
+            ],
           ],
         ),
         ),
