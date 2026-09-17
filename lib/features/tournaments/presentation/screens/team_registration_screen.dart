@@ -1,9 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../domain/models/tournament_models.dart';
 
@@ -141,12 +137,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   final _coach = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
-  final _picker = ImagePicker();
   final _players = <Map<String, String>>[];
   String? _category;
   String _color = 'Verde';
-  Uint8List? _logoBytes;
-  String? _logoName;
   bool _accepted = false;
   bool _saving = false;
 
@@ -154,17 +147,6 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   void dispose() {
     for (final controller in [_team, _club, _coach, _phone, _email]) controller.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickLogo() async {
-    final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1200);
-    if (file == null) return;
-    setState(() {
-      _logoBytes = null;
-      _logoName = file.name;
-    });
-    _logoBytes = await file.readAsBytes();
-    if (mounted) setState(() {});
   }
 
   Future<void> _addPlayer() async {
@@ -189,25 +171,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     setState(() => _saving = true);
     try {
       final registration = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').doc();
-      String? logoPath;
-      if (_logoBytes != null && _logoBytes!.isNotEmpty) {
-        final safeName = (_logoName ?? 'logo').replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('team-logos')
-            .child(widget.tournament.id)
-            .child(registration.id)
-            .child(safeName);
-        final upload = await ref.putData(
-          _logoBytes!,
-          SettableMetadata(contentType: _contentTypeFor(safeName)),
-        );
-        logoPath = await upload.ref.getDownloadURL();
-      }
       await registration.set({
         'teamName': _team.text.trim(), 'clubName': _club.text.trim(), 'coachName': _coach.text.trim(),
         'coachPhone': _phone.text.trim(), 'coachEmail': _email.text.trim().toLowerCase(), 'category': _category,
-        'uniformColor': _color, 'logoUrl': logoPath, 'players': _players, 'status': 'pending',
+        'uniformColor': _color, 'logoUrl': null, 'players': _players, 'status': 'pending',
         'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
         'termsAccepted': true, 'createdAt': FieldValue.serverTimestamp(),
       });
@@ -217,24 +184,13 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       }
     } on FirebaseException catch (error) {
       final message = switch (error.code) {
-        'object-not-found' => 'No se pudo confirmar el logo en Firebase Storage. Selecciónalo nuevamente o envía la solicitud sin logo.',
-        'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y storage.rules, y verifica que el torneo tenga inscripción pública.',
+        'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y verifica que el torneo tenga inscripción pública.',
         _ => error.message ?? 'No se pudo enviar la solicitud.',
       };
       _show(message);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-
-  String _contentTypeFor(String filename) {
-    final extension = filename.split('.').last.toLowerCase();
-    return switch (extension) {
-      'png' => 'image/png',
-      'webp' => 'image/webp',
-      'gif' => 'image/gif',
-      _ => 'image/jpeg',
-    };
   }
 
   void _show(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -252,60 +208,20 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         const SizedBox(height: 14),
         _field(_team, 'Nombre del equipo *', 'Halcones FC'),
         _field(_club, 'Club', 'Club Amazonas', required: false),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _pickLogo,
-                icon: Icon(_logoName == null ? Icons.upload_file_rounded : Icons.check_circle_rounded),
-                label: Text(_logoName == null ? 'Subir logo del equipo' : 'Cambiar logo'),
-              ),
-            ),
-            if (_logoName != null) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'Eliminar logo',
-                onPressed: () => setState(() {
-                  _logoBytes = null;
-                  _logoName = null;
-                }),
-                icon: const Icon(Icons.delete_outline_rounded),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 6),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
-            color: _logoName == null
-                ? theme.colorScheme.surfaceContainerHighest
-                : theme.colorScheme.primaryContainer,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: _logoName == null
-                  ? theme.colorScheme.outline
-                  : theme.colorScheme.primary,
-            ),
+            border: Border.all(color: theme.colorScheme.outline),
           ),
           child: Row(
             children: [
-              Icon(
-                _logoName == null ? Icons.info_outline_rounded : Icons.verified_rounded,
-                size: 18,
-                color: _logoName == null
-                    ? theme.colorScheme.onSurfaceVariant
-                    : theme.colorScheme.primary,
-              ),
+              Icon(Icons.image_not_supported_outlined, size: 18, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _logoName == null
-                      ? 'Logo opcional. Selecciona una imagen PNG o JPG.'
-                      : 'Imagen seleccionada: $_logoName',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  'Logo del equipo deshabilitado temporalmente. Puedes continuar sin logo.',
                   style: theme.textTheme.bodySmall,
                 ),
               ),
