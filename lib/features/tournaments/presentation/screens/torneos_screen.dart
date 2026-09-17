@@ -21,9 +21,12 @@ class TorneosScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('HandPlay')),
-      bottomNavigationBar: user == null
-          ? null
-          : const AppBottomNavigationBar(selectedIndex: 0),
+      // El banner inferior también está disponible para visitantes: desde ahí
+      // pueden volver al inicio o abrir el acceso sin autenticarse primero.
+      bottomNavigationBar: AppBottomNavigationBar(
+        selectedIndex: 0,
+        isAuthenticated: user != null,
+      ),
       body: user == null
           ? const _PublicHomeContent()
           : StreamBuilder<List<Tournament>>(
@@ -72,7 +75,7 @@ class _PublicHomeContent extends StatelessWidget {
       children: [
         const Icon(Icons.sports_handball_rounded, size: 72),
         const SizedBox(height: 20),
-        Text('Gestiona tu liga de pádel', style: textTheme.headlineMedium),
+        Text('Gestiona tu liga de balonmano', style: textTheme.headlineMedium),
         const SizedBox(height: 12),
         Text(
           'Consulta torneos, equipos, partidos y resultados desde un solo lugar.',
