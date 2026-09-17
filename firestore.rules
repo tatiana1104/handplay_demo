@@ -70,7 +70,11 @@ service cloud.firestore {
           && (get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline == null
             || request.time <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline)
           && request.resource.data.teamName is string
+          && request.resource.data.coachName is string
+          && request.resource.data.coachName.size() > 0
           && request.resource.data.coachEmail is string
+          && request.resource.data.coachEmail.size() > 3
+          && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
           && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
           && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam;
         allow read, update, delete: if canManageTournament(tournamentId);

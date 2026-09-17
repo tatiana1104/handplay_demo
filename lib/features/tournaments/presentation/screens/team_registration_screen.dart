@@ -400,5 +400,20 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         ),
       );
 
-  Widget _field(TextEditingController controller, String label, String hint, {bool required = true, bool email = false}) => Padding(padding: const EdgeInsets.only(bottom: 8), child: TextFormField(controller: controller, keyboardType: email ? TextInputType.emailAddress : TextInputType.text, decoration: InputDecoration(labelText: label, hintText: hint), validator: required ? (value) => value == null || value.trim().isEmpty ? 'Campo obligatorio' : null : null));
+  Widget _field(TextEditingController controller, String label, String hint, {bool required = true, bool email = false}) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: TextFormField(
+          controller: controller,
+          keyboardType: email ? TextInputType.emailAddress : TextInputType.text,
+          decoration: InputDecoration(labelText: label, hintText: hint),
+          validator: (value) {
+            if (!required && (value == null || value.trim().isEmpty)) return null;
+            if (value == null || value.trim().isEmpty) return 'Campo obligatorio';
+            if (email && !RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(value.trim())) {
+              return 'Escribe un correo válido';
+            }
+            return null;
+          },
+        ),
+      );
 }
