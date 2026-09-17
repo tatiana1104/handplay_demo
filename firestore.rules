@@ -58,10 +58,11 @@ service cloud.firestore {
       allow delete: if canManageTournament(tournamentId);
 
       match /registrations/{registrationId} {
-        allow create: if resource == null
-          && get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.publicRegistration == true
+        allow create: if get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.publicRegistration == true
           && request.resource.data.status == 'pending'
-          && request.resource.data.termsAccepted == true;
+          && request.resource.data.termsAccepted == true
+          && request.resource.data.teamName is string
+          && request.resource.data.coachEmail is string;
         allow read, update, delete: if canManageTournament(tournamentId);
       }
 
