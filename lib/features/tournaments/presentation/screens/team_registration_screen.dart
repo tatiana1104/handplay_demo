@@ -156,10 +156,19 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     try {
       final registration = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').doc();
       String? logoPath;
-      if (_logoBytes != null) {
-        final ref = FirebaseStorage.instance.ref('team-logos/${registration.id}/${_logoName ?? 'logo'}');
-        await ref.putData(_logoBytes!, SettableMetadata(contentType: 'image/*'));
-        logoPath = await ref.getDownloadURL();
+      if (_logoBytes != null && _logoBytes!.isNotEmpty) {
+        final safeName = (_logoName ?? 'logo').replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('team-logos')
+            .child(widget.tournament.id)
+            .child(registration.id)
+            .child(safeName);
+        final upload = await ref.putData(
+          _logoBytes!,
+          SettableMetadata(contentType: _contentTypeFor(safeName)),
+        );
+        logoPath = await upload.ref.getDownloadURL();
       }
       await registration.set({
         'teamName': _team.text.trim(), 'clubName': _club.text.trim(), 'coachName': _coach.text.trim(),
@@ -173,10 +182,23 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         Navigator.of(context).pop();
       }
     } on FirebaseException catch (error) {
-      _show(error.message ?? 'No se pudo enviar la solicitud.');
+      final message = error.code == 'object-not-found'
+          ? 'No se pudo confirmar el logo en Firebase Storage. Selecciónalo nuevamente o envía la solicitud sin logo.'
+          : error.message ?? 'No se pudo enviar la solicitud.';
+      _show(message);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  String _contentTypeFor(String filename) {
+    final extension = filename.split('.').last.toLowerCase();
+    return switch (extension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/jpeg',
+    };
   }
 
   void _show(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
