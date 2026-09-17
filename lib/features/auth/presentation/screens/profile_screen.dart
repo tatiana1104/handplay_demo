@@ -18,6 +18,7 @@ class ProfileScreen extends StatelessWidget {
     final user = authState is AuthAuthenticated ? authState.user : null;
     final displayName = _displayName(user);
     final email = user?.email ?? 'Sin correo disponible';
+    final roleLabel = user?.role == 'admin' || user?.role == 'admin_liga' ? 'Administrador' : 'Usuario';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -53,6 +54,13 @@ class ProfileScreen extends StatelessWidget {
               leading: const Icon(Icons.person_outline),
               title: const Text('Nombre de la cuenta'),
               subtitle: Text(displayName),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.admin_panel_settings_outlined),
+              title: const Text('Tipo de cuenta'),
+              subtitle: Text(roleLabel),
             ),
           ),
           Card(

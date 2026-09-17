@@ -84,7 +84,7 @@ class _HandPlayAppState extends State<HandPlayApp> {
                 state.matchedLocation == RouteNames.register ||
                 state.matchedLocation == RouteNames.recoverPassword ||
                 state.matchedLocation == RouteNames.splash)) {
-          return RouteNames.home;
+          return RouteNames.profile;
         }
 
         return null;

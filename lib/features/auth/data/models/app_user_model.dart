@@ -12,6 +12,7 @@ class AppUserModel extends AppUser {
     super.email,
     super.displayName,
     super.photoUrl,
+    super.role = 'jugador',
   });
 
   factory AppUserModel.fromFirebaseUser(fb.User user) {
@@ -20,6 +21,7 @@ class AppUserModel extends AppUser {
       email: user.email,
       displayName: user.displayName,
       photoUrl: user.photoURL,
+      role: 'jugador',
     );
   }
 }
