@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 class PendingRegistrationsScreen extends StatefulWidget {
   const PendingRegistrationsScreen({super.key, required this.tournamentId, required this.tournamentName});
 
+  final String tournamentId;
+  final String tournamentName;
+
   @override
   State<PendingRegistrationsScreen> createState() => _PendingRegistrationsScreenState();
 }
