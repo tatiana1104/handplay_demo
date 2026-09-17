@@ -43,6 +43,8 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     super.dispose();
   }
 
+  static const positions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
+
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     final number = int.parse(_number.text.trim());
@@ -63,15 +65,36 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Agregar jugador'),
+        titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+        contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        title: const Row(
+          children: [
+            Icon(Icons.person_add_alt_1_rounded),
+            SizedBox(width: 10),
+            Text('Agregar jugador'),
+          ],
+        ),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nombre completo *')),
-              TextField(controller: _document, decoration: const InputDecoration(labelText: 'Número de documento *')),
+              Text('Datos del jugador', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Nombre completo *', prefixIcon: Icon(Icons.badge_outlined)),
+                validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre completo' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _document,
+                decoration: const InputDecoration(labelText: 'Número de documento *', prefixIcon: Icon(Icons.credit_card_outlined)),
+                validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _number,
                 keyboardType: TextInputType.number,
@@ -87,8 +110,19 @@ class _PlayerDialogState extends State<_PlayerDialog> {
                   return null;
                 },
               ),
-              TextField(controller: _position, decoration: const InputDecoration(labelText: 'Posición')),
-              TextField(controller: _club, decoration: const InputDecoration(labelText: 'Club al que pertenece')),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _position.text.isEmpty ? null : _position.text,
+                decoration: const InputDecoration(labelText: 'Posición *', prefixIcon: Icon(Icons.sports_handball_outlined)),
+                items: positions.map((position) => DropdownMenuItem(value: position, child: Text(position))).toList(),
+                onChanged: (value) => setState(() => _position.text = value ?? ''),
+                validator: (value) => value == null ? 'Selecciona una posición' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _club,
+                decoration: const InputDecoration(labelText: 'Club al que pertenece', prefixIcon: Icon(Icons.shield_outlined)),
+              ),
               ],
             ),
           ),
@@ -216,10 +250,27 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         const SizedBox(height: 14),
         _field(_team, 'Nombre del equipo *', 'Halcones FC'),
         _field(_club, 'Club', 'Club Amazonas', required: false),
-        OutlinedButton.icon(
-          onPressed: _pickLogo,
-          icon: Icon(_logoName == null ? Icons.upload_file_rounded : Icons.check_circle_rounded),
-          label: Text(_logoName == null ? 'Subir logo del equipo' : 'Cambiar logo'),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _pickLogo,
+                icon: Icon(_logoName == null ? Icons.upload_file_rounded : Icons.check_circle_rounded),
+                label: Text(_logoName == null ? 'Subir logo del equipo' : 'Cambiar logo'),
+              ),
+            ),
+            if (_logoName != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Eliminar logo',
+                onPressed: () => setState(() {
+                  _logoBytes = null;
+                  _logoName = null;
+                }),
+                icon: const Icon(Icons.delete_outline_rounded),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 6),
         AnimatedContainer(
