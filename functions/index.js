@@ -71,8 +71,33 @@ exports.createCoachFromRegistration = onDocumentCreated(
       createdAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 
+    const teamRef = db
+      .collection('tournaments')
+      .doc(event.params.tournamentId)
+      .collection('teams')
+      .doc(snapshot.id);
+
+    await teamRef.set({
+      id: snapshot.id,
+      tournamentId: event.params.tournamentId,
+      registrationId: snapshot.id,
+      name: String(registration.teamName || '').trim(),
+      clubName: String(registration.clubName || '').trim(),
+      category: registration.category || null,
+      uniformColor: registration.uniformColor || null,
+      coachUid: user.uid,
+      coachName,
+      coachEmail: email,
+      players: Array.isArray(registration.players) ? registration.players : [],
+      playerCount: Array.isArray(registration.players) ? registration.players.length : 0,
+      status: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
     await snapshot.ref.update({
       coachUid: user.uid,
+      teamId: snapshot.id,
       accountStatus: 'created',
       accountUpdatedAt: FieldValue.serverTimestamp(),
     });
