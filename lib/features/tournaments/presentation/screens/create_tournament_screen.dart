@@ -9,8 +9,11 @@ import '../../domain/tournament_constants.dart';
 
 /// Formulario exclusivo para administradores de liga.
 class CreateTournamentScreen extends StatefulWidget {
-  const CreateTournamentScreen({super.key, required this.adminId});
+  const CreateTournamentScreen({super.key, required this.adminId, this.tournament});
   final String adminId;
+  final Tournament? tournament;
+
+  bool get isEditing => tournament != null;
 
   @override
   State<CreateTournamentScreen> createState() => _CreateTournamentScreenState();
@@ -29,6 +32,22 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   DateTime? _registrationDeadline;
   bool _publicRegistration = true;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final tournament = widget.tournament;
+    if (tournament != null) {
+      _nameController.text = tournament.name;
+      _teamLimitController.text = tournament.teamLimit.toString();
+      _categories.addAll(tournament.categories);
+      _format = tournament.format;
+      _startDate = tournament.startDate;
+      _endDate = tournament.endDate;
+      _registrationDeadline = tournament.registrationDeadline;
+      _publicRegistration = tournament.publicRegistration;
+    }
+  }
 
   @override
   void dispose() {
@@ -76,8 +95,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         throw FirebaseException(plugin: 'firebase_auth', code: 'permission-denied', message: 'Tu cuenta no tiene permisos de administrador de liga.');
       }
 
-      await TournamentRepository().createTournament(Tournament(
-        id: '',
+      final tournament = Tournament(
+        id: widget.tournament?.id ?? '',
         adminId: user.uid,
         name: _nameController.text.trim(),
         status: TournamentConstants.statuses[1],
@@ -88,8 +107,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         teamLimit: int.parse(_teamLimitController.text),
         publicRegistration: _publicRegistration,
         registrationDeadline: _registrationDeadline,
-        phaseDurations: const {},
-      ));
+        phaseDurations: widget.tournament?.phaseDurations ?? const {},
+      );
+      if (widget.isEditing) {
+        await TournamentRepository().updateTournament(tournament);
+      } else {
+        await TournamentRepository().createTournament(tournament);
+      }
       if (mounted) context.pop();
     } on FirebaseException catch (error) {
       _showMessage(error.code == 'permission-denied' ? 'Firebase rechazó la operación. Despliega firestore.rules y renueva la sesión.' : error.message ?? 'No se pudo crear el torneo.');
@@ -124,7 +148,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo torneo')),
+      appBar: AppBar(title: Text(widget.isEditing ? 'Editar torneo' : 'Nuevo torneo')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -202,7 +226,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
               contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 8),
-            SizedBox(height: 48, child: FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Guardando...' : 'Crear torneo'))),
+            SizedBox(height: 48, child: FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Guardando...' : widget.isEditing ? 'Guardar cambios' : 'Crear torneo'))),
           ],
         ),
       ),

@@ -51,4 +51,8 @@ class TournamentRepository {
     await document.set(tournament.toFirestore());
     return document.id;
   }
+
+  Future<void> updateTournament(Tournament tournament) => _tournaments.doc(tournament.id).update(tournament.toFirestore());
+
+  Future<void> deleteTournament(String tournamentId) => _tournaments.doc(tournamentId).delete();
 }
