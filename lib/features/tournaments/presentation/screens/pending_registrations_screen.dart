@@ -1,12 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class PendingRegistrationsScreen extends StatelessWidget {
+class PendingRegistrationsScreen extends StatefulWidget {
   const PendingRegistrationsScreen({super.key, required this.tournamentId, required this.tournamentName});
+
+  @override
+  State<PendingRegistrationsScreen> createState() => _PendingRegistrationsScreenState();
+}
+
+class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen> {
   final String tournamentId;
   final String tournamentName;
+  String _selectedStatus = 'pending';
 
-  CollectionReference<Map<String, dynamic>> get _registrations => FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations');
+  CollectionReference<Map<String, dynamic>> get _registrations => FirebaseFirestore.instance.collection('tournaments').doc(widget.tournamentId).collection('registrations');
 
   Future<void> _setStatus(BuildContext context, String id, String status) async {
     await _registrations.doc(id).update({'status': status, 'reviewedAt': FieldValue.serverTimestamp()});
@@ -65,17 +72,26 @@ class PendingRegistrationsScreen extends StatelessWidget {
             if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
             final docs = snapshot.data!.docs;
             final pending = docs.where((doc) => doc.data()['status'] == 'pending').toList();
-            final approved = docs.where((doc) => doc.data()['status'] == 'approved').length;
-            final rejected = docs.where((doc) => doc.data()['status'] == 'rejected').length;
+            final approved = docs.where((doc) => doc.data()['status'] == 'approved').toList();
+            final rejected = docs.where((doc) => doc.data()['status'] == 'rejected').toList();
+            final visible = _selectedStatus == 'pending' ? pending : _selectedStatus == 'approved' ? approved : rejected;
             return ListView(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
               children: [
-                Text(tournamentName, style: Theme.of(context).textTheme.titleMedium),
+                Text(widget.tournamentName, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, children: [Chip(label: Text('Pendientes (${pending.length})')), Chip(label: Text('Aprobadas ($approved)')), Chip(label: Text('Rechazadas ($rejected)'))]),
-                const SizedBox(height: 8),
-                if (pending.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(20), child: Text('No hay solicitudes pendientes.'))),
-                ...pending.asMap().entries.map((entry) {
+                SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(value: 'pending', label: Text('Pendientes (${pending.length})')),
+                    ButtonSegment(value: 'approved', label: Text('Aprobadas (${approved.length})')),
+                    ButtonSegment(value: 'rejected', label: Text('Rechazadas (${rejected.length})')),
+                  ],
+                  selected: {_selectedStatus},
+                  onSelectionChanged: (selection) => setState(() => _selectedStatus = selection.first),
+                ),
+                const SizedBox(height: 12),
+                if (visible.isEmpty) Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(_selectedStatus == 'pending' ? 'No hay solicitudes pendientes.' : _selectedStatus == 'approved' ? 'No hay solicitudes aprobadas.' : 'No hay solicitudes rechazadas.'))),
+                ...visible.asMap().entries.map((entry) {
                   final doc = entry.value;
                   final data = doc.data();
                   final players = (data['players'] as List<dynamic>? ?? const []).length;
@@ -110,7 +126,10 @@ class PendingRegistrationsScreen extends StatelessWidget {
                           ),
                         ],
                         const SizedBox(height: 10),
-                        Row(children: [Expanded(child: FilledButton.icon(onPressed: () => _setStatus(context, doc.id, 'approved'), icon: const Icon(Icons.check), label: const Text('Aprobar'))), const SizedBox(width: 8), Expanded(child: OutlinedButton.icon(onPressed: () => _setStatus(context, doc.id, 'rejected'), icon: const Icon(Icons.close), label: const Text('Rechazar')))]),
+                        if (_selectedStatus == 'pending')
+                          Row(children: [Expanded(child: FilledButton.icon(onPressed: () => _setStatus(context, doc.id, 'approved'), icon: const Icon(Icons.check), label: const Text('Aprobar'))), const SizedBox(width: 8), Expanded(child: OutlinedButton.icon(onPressed: () => _setStatus(context, doc.id, 'rejected'), icon: const Icon(Icons.close), label: const Text('Rechazar')))])
+                        else
+                          Text(_selectedStatus == 'approved' ? 'Solicitud aprobada' : 'Solicitud rechazada', style: Theme.of(context).textTheme.labelLarge),
                       ]),
                     ),
                   );
