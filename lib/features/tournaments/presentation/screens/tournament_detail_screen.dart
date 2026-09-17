@@ -17,6 +17,7 @@ class TournamentDetailScreen extends StatelessWidget {
     final isFinished = status == 'finished' || status == 'finalizado';
     final isPlaying = status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso';
     final statusLabel = isFinished ? 'Finalizado' : isPlaying ? 'Jugando' : 'Por iniciar';
+    final registrationClosed = tournament.registrationDeadline != null && DateTime.now().isAfter(tournament.registrationDeadline!);
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -52,11 +53,22 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 18),
           if (tournament.publicRegistration)
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
+              onPressed: registrationClosed
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
+                      ),
+              icon: Icon(registrationClosed ? Icons.lock_clock_outlined : Icons.group_add_rounded),
+              label: Text(registrationClosed ? 'Inscripciones cerradas' : 'Inscribir mi equipo'),
+            ),
+          if (registrationClosed)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'La fecha límite de inscripción ya pasó. Las solicitudes enviadas todavía pueden modificarse.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-              icon: const Icon(Icons.group_add_rounded),
-              label: const Text('Inscribir mi equipo'),
             ),
         ],
       ),
