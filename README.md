@@ -110,7 +110,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 ### 🟨 Sprint 2 — Torneos y equipos (modelo iniciado)
 - [x] Modelos Dart para torneos, categorías, sedes, equipos, jugadores y partidos
 - [x] Repositorio Firestore con consultas reactivas de torneos, categorías y sedes
-- [ ] Vistas de torneos y equipos
+- [x] Home público y listado reactivo de torneos desde Firestore para usuarios autenticados
+- [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
 #### Modelo de datos Firestore
