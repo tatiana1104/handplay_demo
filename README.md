@@ -91,7 +91,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
-- [x] Navegación protegida por sesión y roles (`redirect` de go_router según `AuthBloc`; roles disponibles desde custom claims de Firebase). La ruta de creación valida `state.extra` y usa el UID autenticado como respaldo.
+- [x] Navegación protegida por sesión y roles (`redirect` de go_router según `AuthBloc`; roles disponibles desde custom claims de Firebase). La ruta de creación valida `state.extra` y usa el UID autenticado como respaldo; `main.dart` importa explícitamente `firebase_auth` para resolver ese UID.
 - [x] Arquitectura AuthBloc por capas importada desde `feature/auth-bloc-firebase`: eventos, estados, casos de uso, repositorio y datasource Firebase
 - [x] Vista de perfil conectada al botón inferior para todos los roles autenticados: muestra nombre, correo y cierre de sesión
 - [x] Banner inferior persistente en la vista de perfil para administrador de liga, jugador, entrenador y árbitro
