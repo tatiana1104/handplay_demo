@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../../domain/models/tournament_models.dart';
+import 'team_registration_screen.dart';
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
@@ -48,6 +49,15 @@ class TournamentDetailScreen extends StatelessWidget {
           const _SectionTitle(title: 'Información del torneo'),
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
+          const SizedBox(height: 18),
+          if (tournament.publicRegistration)
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
+              ),
+              icon: const Icon(Icons.group_add_rounded),
+              label: const Text('Inscribir mi equipo'),
+            ),
         ],
       ),
     );

@@ -126,6 +126,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Orden general: por iniciar primero, jugando después y terminados al final
 - [x] Tarjetas de torneo interactivas con detalle responsive, estadísticas, posiciones y destacados
 - [x] Detalle con desplazamiento vertical para pantallas pequeñas y contenido ampliable
+- [x] Inscripción pública de equipos desde el detalle del torneo, con categoría, entrenador, contacto y consentimiento
+- [x] Solicitudes guardadas en `tournaments/{id}/registrations` con estado `pending` para revisión administrativa
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
