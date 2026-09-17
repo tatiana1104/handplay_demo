@@ -86,8 +86,15 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _showMessage('Agrega al menos una categoría y rama.');
       return;
     }
+    final today = _dateOnly(DateTime.now());
     if (_startDate == null) {
       _showMessage('Selecciona la fecha de inicio.');
+      return;
+    }
+    if (_startDate!.isBefore(today) ||
+        (_endDate != null && _endDate!.isBefore(today)) ||
+        (_registrationDeadline != null && _registrationDeadline!.isBefore(today))) {
+      _showMessage('Las fechas del torneo no pueden ser anteriores a hoy.');
       return;
     }
     if (_registrationDeadline != null && _registrationDeadline!.isAfter(_startDate!)) {
@@ -139,11 +146,19 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 
   Future<void> _pickDate({required bool start, bool registration = false}) async {
+    final today = _dateOnly(DateTime.now());
+    final currentDate = registration
+        ? _registrationDeadline
+        : start
+            ? _startDate
+            : _endDate;
+    final candidateInitialDate = currentDate ?? _startDate ?? today;
+    final initialDate = candidateInitialDate.isBefore(today) ? today : candidateInitialDate;
     final selected = await showDatePicker(
       context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      firstDate: today,
       lastDate: DateTime(2035),
-      initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()),
+      initialDate: initialDate,
     );
     if (selected != null) {
       setState(() {
@@ -157,6 +172,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       });
     }
   }
+
+  static DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
   void _showMessage(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
