@@ -45,7 +45,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _minPlayersController.text = tournament.minPlayersPerTeam.toString();
       _maxPlayersController.text = tournament.maxPlayersPerTeam.toString();
       _categories.addAll(tournament.categories);
-      _format = tournament.format;
+      _format = TournamentConstants.formats.contains(tournament.format)
+          ? tournament.format
+          : TournamentConstants.formats.first;
       _startDate = tournament.startDate;
       _endDate = tournament.endDate;
       _registrationDeadline = tournament.registrationDeadline;
@@ -180,7 +182,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             Row(children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  value: TournamentConstants.categories.contains(_selectedCategory) ? _selectedCategory : null,
                   decoration: const InputDecoration(labelText: 'Categoría'),
                   items: TournamentConstants.categories
                       .map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value))))
@@ -194,7 +196,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedBranch,
+                  value: TournamentConstants.branches.contains(_selectedBranch) ? _selectedBranch : null,
                   decoration: const InputDecoration(labelText: 'Rama'),
                   items: TournamentConstants.branches
                       .map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value))))
@@ -226,7 +228,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             const SizedBox(height: 8),
             _DateButton(label: 'Límite de inscripción (opcional)', value: _registrationDeadline, onPressed: () => _pickDate(start: false, registration: true)),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
+            DropdownButtonFormField<String>(value: TournamentConstants.formats.contains(_format) ? _format : null, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
             const SizedBox(height: 10),
             TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos (opcional)', hintText: 'Déjalo en 0 si no hay límite'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 0 ? 'Indica 0 o un número positivo' : null),
             const SizedBox(height: 8),
