@@ -409,7 +409,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           validator: (value) {
             if (!required && (value == null || value.trim().isEmpty)) return null;
             if (value == null || value.trim().isEmpty) return 'Campo obligatorio';
-            if (email && !RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$').hasMatch(value.trim())) {
+            if (email && !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim())) {
               return 'Escribe un correo válido';
             }
             return null;
