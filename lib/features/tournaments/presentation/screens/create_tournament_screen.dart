@@ -36,11 +36,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     super.dispose();
   }
 
-  void _addCategoryBranch() {
-    if (_selectedCategory == null || _selectedBranch == null) {
-      _showMessage('Selecciona una categoría y una rama.');
-      return;
-    }
+  void _addCategoryBranchIfComplete() {
+    if (_selectedCategory == null || _selectedBranch == null) return;
+
     setState(() {
       _categories.add('$_selectedCategory|$_selectedBranch');
       _selectedCategory = null;
@@ -119,17 +117,55 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre del torneo *', hintText: 'Interclubes 2026'), validator: (v) => v == null || v.trim().isEmpty ? 'Escribe un nombre' : null),
             const SizedBox(height: 12),
             Text('Categorías y ramas *', style: theme.textTheme.bodySmall),
-            const SizedBox(height: 6),
-            Row(children: [
-              Expanded(child: DropdownButtonFormField<String>(value: _selectedCategory, decoration: const InputDecoration(labelText: 'Categoría'), items: TournamentConstants.categories.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _selectedCategory = value))),
-              const SizedBox(width: 8),
-              Expanded(child: DropdownButtonFormField<String>(value: _selectedBranch, decoration: const InputDecoration(labelText: 'Rama'), items: TournamentConstants.branches.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _selectedBranch = value))),
-            ]),
+            const SizedBox(height: 4),
+            Text(
+              'Selecciona una categoría y una rama. La combinación se agregará automáticamente; puedes repetirlo para crear varias.',
+              style: theme.textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
-            OutlinedButton.icon(onPressed: _addCategoryBranch, icon: const Icon(Icons.add), label: const Text('Agregar categoría')),
+            Row(children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(labelText: 'Categoría'),
+                  items: TournamentConstants.categories
+                      .map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value))))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedCategory = value);
+                    _addCategoryBranchIfComplete();
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedBranch,
+                  decoration: const InputDecoration(labelText: 'Rama'),
+                  items: TournamentConstants.branches
+                      .map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value))))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedBranch = value);
+                    _addCategoryBranchIfComplete();
+                  },
+                ),
+              ),
+            ]),
             if (_categories.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 6, runSpacing: 4, children: _categories.map((value) => InputChip(label: Text(value.split('|').map(titleCase).join(' · ')), onDeleted: () => setState(() => _categories.remove(value)))).toList()),
+              const SizedBox(height: 10),
+              Text('Combinaciones seleccionadas', style: theme.textTheme.labelMedium),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: _categories
+                    .map((value) => InputChip(
+                          label: Text(value.split('|').map(titleCase).join(' · ')),
+                          onDeleted: () => setState(() => _categories.remove(value)),
+                        ))
+                    .toList(),
+              ),
             ],
             const SizedBox(height: 14),
             Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin (opcional)', value: _endDate, onPressed: () => _pickDate(start: false)))]),

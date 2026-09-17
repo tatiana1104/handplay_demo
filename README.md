@@ -117,6 +117,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Categorías constantes: master, mayor, juvenil, cadete, infantil y libre; ramas femenino, masculino y mixto
 - [x] Formatos constantes: todos contra todos y por grupos, sin sede principal
 - [x] Fecha fin opcional y selección individual de categoría y rama mediante listas desplegables
+- [x] Varias combinaciones categoría-rama se agregan automáticamente sin botón adicional
 - [x] Reglas Firestore alineadas con `adminId` y custom claims de administración
 - [x] El formulario renueva el token y valida `rol` antes de crear un torneo
 - [x] Torneos creados permanecen en Firestore y se muestran de forma permanente al volver al home
