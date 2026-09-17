@@ -90,6 +90,16 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Vista de perfil conectada al botón inferior: muestra nombre, correo y cierre de sesión
 - [x] Home público después del splash: la información general no requiere iniciar sesión
 
+#### Usuarios de prueba Firebase
+El script `scripts/create-test-users.cjs` crea o actualiza cuentas de prueba y asigna custom claims (`admin_liga`, `jugador`, `entrenador`, `arbitro`). Requiere `serviceAccountKey.json` local, que nunca debe subirse al repositorio.
+
+```powershell
+npm install firebase-admin
+node scripts/create-test-users.cjs
+```
+
+El script muestra las contraseñas temporales una sola vez; guárdalas de forma segura y obliga al usuario a cerrar sesión y entrar de nuevo para refrescar sus claims.
+
 ### ⬜ Sprint 2 — Torneos y equipos
 
 #### Modelo de datos Firestore
