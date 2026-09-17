@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../../domain/entities/app_user.dart';
 
 /// Vista de la cuenta actualmente autenticada.
 /// Firebase Auth es la fuente de verdad para el correo y el nombre visible.
@@ -71,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _displayName(User? user) {
+  String _displayName(AppUser? user) {
     final name = user?.displayName?.trim();
     if (name != null && name.isNotEmpty) return name;
     final email = user?.email?.trim();
