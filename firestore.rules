@@ -44,7 +44,9 @@ service cloud.firestore {
 
     // Los torneos son visibles para administradores y participantes.
     match /tournaments/{tournamentId} {
-      allow read: if isAdmin() || tournamentMember(tournamentId);
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.adminId == request.auth.uid)
+        || tournamentMember(tournamentId);
       // Solo un administrador de liga puede crear torneos y debe quedar como dueño.
       allow create: if isAdmin()
         && request.resource.data.adminId == request.auth.uid;

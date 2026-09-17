@@ -106,7 +106,32 @@ class _TournamentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = tournament.status == 'active';
-    return Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [const Icon(Icons.star_border_rounded, size: 18), const SizedBox(width: 8), Expanded(child: Text(tournament.name.isEmpty ? 'Torneo sin nombre' : tournament.name, style: Theme.of(context).textTheme.titleMedium)), _StatusPill(label: isActive ? 'en curso' : 'por iniciar', active: isActive)]), const SizedBox(height: 6), Text('${tournament.format} · ${tournament.teamLimit} equipos', style: Theme.of(context).textTheme.bodySmall), const SizedBox(height: 12), LinearProgressIndicator(value: isActive ? .45 : .05), const SizedBox(height: 8), Text(tournament.startDate == null ? 'Fecha de inicio pendiente' : 'Inicia: ${tournament.startDate!.day}/${tournament.startDate!.month}/${tournament.startDate!.year}', style: Theme.of(context).textTheme.bodySmall)])));
+    final progress = isActive ? .45 : .05;
+    final dateLabel = tournament.startDate == null
+        ? 'Fecha de inicio pendiente'
+        : 'Inicia: ${tournament.startDate!.day.toString().padLeft(2, '0')}/${tournament.startDate!.month.toString().padLeft(2, '0')}/${tournament.startDate!.year}';
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(isActive ? Icons.star_rounded : Icons.star_border_rounded, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text(tournament.name.isEmpty ? 'Torneo sin nombre' : tournament.name, style: Theme.of(context).textTheme.titleMedium)),
+              _StatusPill(label: isActive ? 'en curso' : 'por iniciar', active: isActive),
+            ]),
+            const SizedBox(height: 6),
+            Text('${tournament.format} · ${tournament.teamLimit} equipos', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(value: progress),
+            const SizedBox(height: 8),
+            Text(dateLabel, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
+      ),
+    );
   }
 }
 
