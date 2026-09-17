@@ -90,7 +90,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            bottomNavigationBar: const AppBottomNavigationBar(selectedIndex: 2),
+            // Login sigue siendo una vista pública: muestra Home e Iniciar sesión,
+            // no las opciones de usuario autenticado.
+            bottomNavigationBar: const AppBottomNavigationBar(
+              selectedIndex: 1,
+              isAuthenticated: false,
+            ),
           );
         },
       ),
