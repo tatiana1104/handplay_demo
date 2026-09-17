@@ -87,7 +87,8 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
 - [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
 - [x] Arquitectura AuthBloc por capas importada desde `feature/auth-bloc-firebase`: eventos, estados, casos de uso, repositorio y datasource Firebase
-- [x] Vista de perfil conectada al botón inferior: muestra nombre, correo y cierre de sesión
+- [x] Vista de perfil conectada al botón inferior para todos los roles autenticados: muestra nombre, correo y cierre de sesión
+- [x] Banner inferior persistente en la vista de perfil para administrador de liga, jugador, entrenador y árbitro
 - [x] Home público después del splash: la información general no requiere iniciar sesión
 
 #### Usuarios de prueba Firebase

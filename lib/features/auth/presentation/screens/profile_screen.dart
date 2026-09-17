@@ -5,6 +5,7 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../../domain/entities/app_user.dart';
+import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
 /// Vista de la cuenta actualmente autenticada.
 /// Firebase Auth es la fuente de verdad para el correo y el nombre visible.
@@ -20,6 +21,9 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
+      // La barra inferior se mantiene también en el perfil para que todos
+      // los roles puedan regresar al home o consultar las demás secciones.
+      bottomNavigationBar: const AppBottomNavigationBar(selectedIndex: 2),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
