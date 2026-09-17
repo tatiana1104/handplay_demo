@@ -27,7 +27,7 @@ service cloud.firestore {
       return isAdmin()
         || (signedIn()
           && get(/databases/$(database)/documents/tournaments/$(tournamentId))
-            .data.ownerId == request.auth.uid);
+            .data.adminId == request.auth.uid);
     }
 
     // El usuario solo puede consultar y actualizar su propio perfil.
@@ -42,12 +42,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Los torneos son visibles para participantes y administradores.
+    // Los torneos son visibles para administradores y participantes.
     match /tournaments/{tournamentId} {
       allow read: if isAdmin() || tournamentMember(tournamentId);
-      allow create: if signedIn()
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.participantIds.hasAny([request.auth.uid]);
+      // Solo un administrador de liga puede crear torneos y debe quedar como dueño.
+      allow create: if isAdmin()
+        && request.resource.data.adminId == request.auth.uid;
       allow update: if canManageTournament(tournamentId);
       allow delete: if canManageTournament(tournamentId);
 
