@@ -201,13 +201,36 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     final categories = widget.tournament.categories.isEmpty ? const ['libre|mixto'] : widget.tournament.categories;
     return Scaffold(
       appBar: AppBar(title: const Text('Inscribir tu equipo')),
-      body: Form(key: _formKey, child: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 28), children: [
-        Text('${widget.tournament.name} · Liga de Balonmano del Caquetá', style: theme.textTheme.bodySmall),
-        Text('Inscribe tu equipo', style: theme.textTheme.headlineSmall),
-        Text('La información será revisada antes de confirmar la inscripción.', style: theme.textTheme.bodySmall),
-        const SizedBox(height: 14),
-        _field(_team, 'Nombre del equipo *', 'Halcones FC'),
-        _field(_club, 'Club', 'Club Amazonas', required: false),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+          children: [
+            Text('${widget.tournament.name} · Liga de Balonmano del Caquetá', style: theme.textTheme.bodySmall),
+            const SizedBox(height: 3),
+            Text('Inscribe tu equipo', style: theme.textTheme.headlineSmall),
+            Text('Completa la solicitud. El administrador verificará los datos antes de aprobarla.', style: theme.textTheme.bodySmall),
+            const SizedBox(height: 16),
+            _sectionCard(
+              theme,
+              icon: Icons.groups_rounded,
+              title: 'Datos del equipo',
+              children: [
+                _field(_team, 'Nombre del equipo *', 'Halcones FC'),
+                _field(_club, 'Club o clubes asociados', 'Puede quedar vacío si es independiente', required: false),
+              ],
+            ),
+        _sectionCard(
+          theme,
+          icon: Icons.tune_rounded,
+          title: 'Configuración del torneo',
+          children: [
+            DropdownButtonFormField<String>(value: _category, decoration: const InputDecoration(labelText: 'Categoría *'), items: categories.map((value) => DropdownMenuItem(value: value, child: Text(value.replaceAll('|', ' · ')))).toList(), onChanged: (value) => setState(() => _category = value)),
+            DropdownButtonFormField<String>(value: _color, decoration: const InputDecoration(labelText: 'Color del uniforme *'), items: const ['Verde', 'Azul', 'Rojo', 'Naranja', 'Amarillo', 'Blanco', 'Negro'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _color = value ?? _color)),
+          ],
+        ),
+        const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
@@ -229,12 +252,17 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(value: _category, decoration: const InputDecoration(labelText: 'Categoría *'), items: categories.map((value) => DropdownMenuItem(value: value, child: Text(value.replaceAll('|', ' · ')))).toList(), onChanged: (value) => setState(() => _category = value)),
-        DropdownButtonFormField<String>(value: _color, decoration: const InputDecoration(labelText: 'Color del uniforme *'), items: const ['Verde', 'Azul', 'Rojo', 'Naranja', 'Amarillo', 'Blanco', 'Negro'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _color = value ?? _color)),
-        const SizedBox(height: 12),
-        Text('Datos del entrenador', style: theme.textTheme.titleMedium),
-        _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
-        Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
+        _sectionCard(
+          theme,
+          icon: Icons.person_rounded,
+          title: 'Datos del entrenador',
+          children: [
+            _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
+            Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text('Jugadores inscritos (${_players.length})', style: theme.textTheme.titleSmall),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Jugadores inscritos (${_players.length})', style: theme.textTheme.titleSmall), TextButton.icon(onPressed: _addPlayer, icon: const Icon(Icons.add), label: const Text('Agregar'))]),
         ..._players.asMap().entries.map(
           (entry) => ListTile(
@@ -256,6 +284,32 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       ])),
     );
   }
+
+  Widget _sectionCard(
+    ThemeData theme, {
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) => Card(
+        margin: const EdgeInsets.only(bottom: 10),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 19, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(title, style: theme.textTheme.titleSmall),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ...children,
+            ],
+          ),
+        ),
+      );
 
   Widget _field(TextEditingController controller, String label, String hint, {bool required = true, bool email = false}) => Padding(padding: const EdgeInsets.only(bottom: 8), child: TextFormField(controller: controller, keyboardType: email ? TextInputType.emailAddress : TextInputType.text, decoration: InputDecoration(labelText: label, hintText: hint), validator: required ? (value) => value == null || value.trim().isEmpty ? 'Campo obligatorio' : null : null));
 }
