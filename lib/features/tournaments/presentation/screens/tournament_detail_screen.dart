@@ -79,7 +79,19 @@ class _StatCard extends StatelessWidget {
   final String value;
 
   @override
-  Widget build(BuildContext context) => Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: Theme.of(context).textTheme.bodySmall), const SizedBox(height: 3), Text(value, style: Theme.of(context).textTheme.titleLarge)])));
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
+              const SizedBox(width: 8),
+              Text(value, style: Theme.of(context).textTheme.titleLarge),
+            ],
+          ),
+        ),
+      );
 }
 
 class _SectionTitle extends StatelessWidget {
