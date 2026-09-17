@@ -40,9 +40,7 @@ class TorneosScreen extends StatelessWidget {
       body: FutureBuilder<IdTokenResult?>(
         future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
         builder: (context, snapshot) {
-          final role = snapshot.data?.claims?['rol'];
-          final isAdmin = user != null && (role == 'admin' || role == 'admin_liga');
-          return _PublicTournamentList(isAdmin: isAdmin, adminId: user?.uid);
+          return _PublicTournamentList(isAdmin: user != null, adminId: user?.uid);
         },
       ),
     );
