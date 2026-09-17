@@ -216,7 +216,49 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         const SizedBox(height: 14),
         _field(_team, 'Nombre del equipo *', 'Halcones FC'),
         _field(_club, 'Club', 'Club Amazonas', required: false),
-        OutlinedButton.icon(onPressed: _pickLogo, icon: const Icon(Icons.upload_file_rounded), label: Text(_logoName == null ? 'Subir logo del equipo' : 'Logo seleccionado')),
+        OutlinedButton.icon(
+          onPressed: _pickLogo,
+          icon: Icon(_logoName == null ? Icons.upload_file_rounded : Icons.check_circle_rounded),
+          label: Text(_logoName == null ? 'Subir logo del equipo' : 'Cambiar logo'),
+        ),
+        const SizedBox(height: 6),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: _logoName == null
+                ? theme.colorScheme.surfaceContainerHighest
+                : theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _logoName == null
+                  ? theme.colorScheme.outline
+                  : theme.colorScheme.primary,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                _logoName == null ? Icons.info_outline_rounded : Icons.verified_rounded,
+                size: 18,
+                color: _logoName == null
+                    ? theme.colorScheme.onSurfaceVariant
+                    : theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _logoName == null
+                      ? 'Logo opcional. Selecciona una imagen PNG o JPG.'
+                      : 'Imagen seleccionada: $_logoName',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(value: _category, decoration: const InputDecoration(labelText: 'Categoría *'), items: categories.map((value) => DropdownMenuItem(value: value, child: Text(value.replaceAll('|', ' · ')))).toList(), onChanged: (value) => setState(() => _category = value)),
         DropdownButtonFormField<String>(value: _color, decoration: const InputDecoration(labelText: 'Color del uniforme *'), items: const ['Verde', 'Azul', 'Rojo', 'Naranja', 'Amarillo', 'Blanco', 'Negro'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _color = value ?? _color)),
