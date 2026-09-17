@@ -26,6 +26,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   String _format = TournamentConstants.formats.first;
   DateTime? _startDate;
   DateTime? _endDate;
+  DateTime? _registrationDeadline;
   bool _publicRegistration = true;
   bool _saving = false;
 
@@ -56,6 +57,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _showMessage('Selecciona la fecha de inicio.');
       return;
     }
+    if (_registrationDeadline != null && _registrationDeadline!.isAfter(_startDate!)) {
+      _showMessage('La fecha límite debe ser anterior al inicio del torneo.');
+      return;
+    }
     if (_endDate != null && !_endDate!.isAfter(_startDate!)) {
       _showMessage('La fecha fin debe ser posterior a la fecha de inicio.');
       return;
@@ -82,6 +87,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         categories: _categories.toList()..sort(),
         teamLimit: int.parse(_teamLimitController.text),
         publicRegistration: _publicRegistration,
+        registrationDeadline: _registrationDeadline,
         phaseDurations: const {},
       ));
       if (mounted) context.pop();
@@ -92,14 +98,24 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
   }
 
-  Future<void> _pickDate({required bool start}) async {
+  Future<void> _pickDate({required bool start, bool registration = false}) async {
     final selected = await showDatePicker(
       context: context,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime(2035),
       initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()),
     );
-    if (selected != null) setState(() => start ? _startDate = selected : _endDate = selected);
+    if (selected != null) {
+      setState(() {
+        if (registration) {
+          _registrationDeadline = selected;
+        } else if (start) {
+          _startDate = selected;
+        } else {
+          _endDate = selected;
+        }
+      });
+    }
   }
 
   void _showMessage(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -169,6 +185,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             ],
             const SizedBox(height: 10),
             Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin (opcional)', value: _endDate, onPressed: () => _pickDate(start: false)))]),
+            const SizedBox(height: 8),
+            _DateButton(label: 'Límite de inscripción (opcional)', value: _registrationDeadline, onPressed: () => _pickDate(start: false, registration: true)),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
             const SizedBox(height: 10),

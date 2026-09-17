@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../../domain/models/tournament_models.dart';
+import 'pending_registrations_screen.dart';
 import 'team_registration_screen.dart';
 
 /// Resumen responsive del torneo seleccionado.
@@ -50,6 +52,12 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
+          if (FirebaseAuth.instance.currentUser?.uid == tournament.adminId)
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: tournament.id, tournamentName: tournament.name))),
+              icon: const Icon(Icons.fact_check_outlined),
+              label: const Text('Ver solicitudes pendientes'),
+            ),
           if (tournament.publicRegistration)
             FilledButton.icon(
               onPressed: () => Navigator.of(context).push(

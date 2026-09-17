@@ -13,6 +13,7 @@ class Tournament {
     required this.categories,
     required this.teamLimit,
     required this.publicRegistration,
+    required this.registrationDeadline,
     required this.phaseDurations,
   });
 
@@ -27,6 +28,7 @@ class Tournament {
   final List<String> categories;
   final int teamLimit;
   final bool publicRegistration;
+  final DateTime? registrationDeadline;
   final Map<String, int> phaseDurations;
 
   factory Tournament.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -42,6 +44,7 @@ class Tournament {
       categories: (data['categories'] as List<dynamic>? ?? const []).cast<String>(),
       teamLimit: (data['teamLimit'] as num?)?.toInt() ?? 0,
       publicRegistration: data['publicRegistration'] as bool? ?? false,
+      registrationDeadline: _date(data['registrationDeadline']),
       phaseDurations: _intMap(data['phaseDurations']),
     );
   }
@@ -56,6 +59,7 @@ class Tournament {
         'categories': categories,
         'teamLimit': teamLimit,
         'publicRegistration': publicRegistration,
+        'registrationDeadline': _timestamp(registrationDeadline),
         'phaseDurations': phaseDurations,
         'updatedAt': FieldValue.serverTimestamp(),
       };
