@@ -129,7 +129,18 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
         Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Jugadores inscritos (${_players.length})', style: theme.textTheme.titleSmall), TextButton.icon(onPressed: _addPlayer, icon: const Icon(Icons.add), label: const Text('Agregar'))]),
-        ..._players.asMap().entries.map((entry) => ListTile(dense: true, leading: Text('${entry.key + 1}'), title: Text(entry.value['name']!), subtitle: Text('${entry.value['position']} · #${entry.value['number']}'), trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _players.removeAt(entry.key)))),
+        ..._players.asMap().entries.map(
+          (entry) => ListTile(
+            dense: true,
+            leading: Text('${entry.key + 1}'),
+            title: Text(entry.value['name'] as String),
+            subtitle: Text('${entry.value['position']} · #${entry.value['number']}'),
+            trailing: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(() => _players.removeAt(entry.key)),
+            ),
+          ),
+        ),
         CheckboxListTile(dense: true, contentPadding: EdgeInsets.zero, value: _accepted, onChanged: (value) => setState(() => _accepted = value ?? false), title: const Text('Acepto el reglamento y confirmo que la información es correcta.')),
         FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Enviando...' : 'Enviar solicitud de inscripción')),
       ])),
