@@ -9,6 +9,7 @@ import 'core/routing/go_router_refresh_stream.dart';
 import 'core/routing/route_names.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/profile_screen.dart';
 import 'features/auth/presentation/screens/recover_password_screen.dart';
