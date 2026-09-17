@@ -1,12 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../../domain/models/tournament_models.dart';
-import 'pending_registrations_screen.dart';
-import 'create_tournament_screen.dart';
 import 'team_registration_screen.dart';
-import '../../data/tournament_repository.dart';
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
@@ -14,35 +9,6 @@ class TournamentDetailScreen extends StatelessWidget {
   const TournamentDetailScreen({required this.tournament, super.key});
 
   final Tournament tournament;
-
-  Future<bool> _isTournamentAdmin() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid != tournament.adminId) return false;
-    final claims = (await user.getIdTokenResult()).claims ?? {};
-    final role = claims['rol'];
-    return role == 'admin' || role == 'admin_liga';
-  }
-
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Eliminar torneo'),
-        content: const Text('Esta acción eliminará el torneo y no se puede deshacer.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
-    await TournamentRepository().deleteTournament(tournament.id);
-    if (context.mounted) Navigator.of(context).pop();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,53 +49,14 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
-          FutureBuilder<bool>(
-            future: _isTournamentAdmin(),
-            builder: (context, snapshot) {
-              if (snapshot.data != true) {
-                return tournament.publicRegistration
-                    ? FilledButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
-                        ),
-                        icon: const Icon(Icons.group_add_rounded),
-                        label: const Text('Inscribir mi equipo'),
-                      )
-                    : const SizedBox.shrink();
-              }
-              return Column(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CreateTournamentScreen(adminId: tournament.adminId, tournament: tournament),
-                      ),
-                    ),
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Editar torneo'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PendingRegistrationsScreen(
-                          tournamentId: tournament.id,
-                          tournamentName: tournament.name,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.fact_check_outlined),
-                    label: const Text('Ver solicitudes pendientes'),
-                  ),
-                  const SizedBox(height: 4),
-                  TextButton.icon(
-                    onPressed: () => _confirmDelete(context),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Eliminar torneo'),
-                  ),
-                ],
-              );
-            },
-          ),
+          if (tournament.publicRegistration)
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
+              ),
+              icon: const Icon(Icons.group_add_rounded),
+              label: const Text('Inscribir mi equipo'),
+            ),
         ],
       ),
     );
