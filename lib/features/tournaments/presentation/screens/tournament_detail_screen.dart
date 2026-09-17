@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/tournament_models.dart';
+import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
 
 /// Resumen responsive del torneo seleccionado.
