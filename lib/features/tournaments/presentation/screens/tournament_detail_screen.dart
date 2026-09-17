@@ -13,6 +13,14 @@ class TournamentDetailScreen extends StatelessWidget {
 
   final Tournament tournament;
 
+  Future<bool> _isTournamentAdmin() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.uid != tournament.adminId) return false;
+    final claims = (await user.getIdTokenResult()).claims ?? {};
+    final role = claims['rol'];
+    return role == 'admin' || role == 'admin_liga';
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = tournament.status.toLowerCase();
@@ -52,20 +60,34 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
-          if (FirebaseAuth.instance.currentUser?.uid == tournament.adminId)
-            OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: tournament.id, tournamentName: tournament.name))),
-              icon: const Icon(Icons.fact_check_outlined),
-              label: const Text('Ver solicitudes pendientes'),
-            ),
-          if (tournament.publicRegistration)
-            FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
-              ),
-              icon: const Icon(Icons.group_add_rounded),
-              label: const Text('Inscribir mi equipo'),
-            ),
+          FutureBuilder<bool>(
+            future: _isTournamentAdmin(),
+            builder: (context, snapshot) {
+              if (snapshot.data != true) {
+                return tournament.publicRegistration
+                    ? FilledButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => TeamRegistrationScreen(tournament: tournament)),
+                        ),
+                        icon: const Icon(Icons.group_add_rounded),
+                        label: const Text('Inscribir mi equipo'),
+                      )
+                    : const SizedBox.shrink();
+              }
+              return OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PendingRegistrationsScreen(
+                      tournamentId: tournament.id,
+                      tournamentName: tournament.name,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.fact_check_outlined),
+                label: const Text('Ver solicitudes pendientes'),
+              );
+            },
+          ),
         ],
       ),
     );
