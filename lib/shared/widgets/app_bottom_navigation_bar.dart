@@ -5,12 +5,14 @@ import '../../core/routing/route_names.dart'; // Importamos los nombres de ruta 
 
 class AppBottomNavigationBar extends StatelessWidget {
   final int selectedIndex; // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
+  final bool isAuthenticated; // Cambia las acciones disponibles para visitantes.
   final ValueChanged<int>? onTap; // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
 
   /// Constructor de la barra de navegación inferior, con parámetros opcionales `selectedIndex` y `onTap`.
   const AppBottomNavigationBar({
     super.key, 
     this.selectedIndex = 0, // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
+    this.isAuthenticated = true,
     this.onTap, // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
   });
 
@@ -42,10 +44,11 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el primer elemento (índice 0) de la barra de navegación inferior
                 break;
               case 1:
-                context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el segundo elemento (índice 1) de la barra de navegación inferior. TODO: reemplazar por la ruta del calendario cuando se implemente.
+                // Para visitantes, el segundo acceso visible es el login.
+                context.go(isAuthenticated ? RouteNames.home : RouteNames.login);
                 break;
               case 2:
-                context.go(RouteNames.profile); // El perfil solo está disponible después de iniciar sesión.
+                context.go(isAuthenticated ? RouteNames.profile : RouteNames.login);
                 break;
             }
           },
@@ -62,8 +65,8 @@ class AppBottomNavigationBar extends StatelessWidget {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month_rounded), // Ícono del segundo elemento (Calendario) de la barra de navegación inferior
-              label: 'Calendario',
+              icon: Icon(Icons.login_rounded),
+              label: 'Iniciar sesión',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_rounded), // Ícono del tercer elemento (Perfil) de la barra de navegación inferior
