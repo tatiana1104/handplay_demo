@@ -44,11 +44,12 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el primer elemento (índice 0) de la barra de navegación inferior
                 break;
               case 1:
-                // Para visitantes, el segundo acceso visible es el login.
+                // Visitantes ven el acceso a sesión; usuarios autenticados ven
+                // la sección secundaria de la app.
                 context.go(isAuthenticated ? RouteNames.home : RouteNames.login);
                 break;
               case 2:
-                context.go(isAuthenticated ? RouteNames.profile : RouteNames.login);
+                context.go(RouteNames.profile);
                 break;
             }
           },
@@ -59,20 +60,33 @@ class AppBottomNavigationBar extends StatelessWidget {
           unselectedItemColor: colorScheme.onSurfaceVariant, // Color del ícono y la etiqueta de los elementos no seleccionados en la barra de navegación inferior según el tema actual
           backgroundColor: colorScheme.surface, // Color de fondo de la barra de navegación inferior según el tema actual
           elevation: 0, // Elevación de la barra de navegación inferior (0 = sin sombra)
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded), // Ícono del primer elemento (Home) de la barra de navegación inferior    
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.login_rounded),
-              label: 'Iniciar sesión',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded), // Ícono del tercer elemento (Perfil) de la barra de navegación inferior
-              label: 'Perfil',
-            ),
-          ],
+          // La navegación pública no expone Perfil; después del login se
+          // reemplaza el acceso de sesión por Perfil.
+          items: isAuthenticated
+              ? const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_month_rounded),
+                    label: 'Calendario',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person_rounded),
+                    label: 'Perfil',
+                  ),
+                ]
+              : const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.login_rounded),
+                    label: 'Iniciar sesión',
+                  ),
+                ],
         ),
       ),
     );
