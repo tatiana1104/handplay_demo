@@ -17,13 +17,16 @@ class TeamRegistrationScreen extends StatefulWidget {
 }
 
 class _PlayerDialog extends StatefulWidget {
-  const _PlayerDialog();
+  const _PlayerDialog({required this.usedNumbers});
+
+  final Set<int> usedNumbers;
 
   @override
   State<_PlayerDialog> createState() => _PlayerDialogState();
 }
 
 class _PlayerDialogState extends State<_PlayerDialog> {
+  final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _document = TextEditingController();
   final _number = TextEditingController();
@@ -41,7 +44,14 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   }
 
   void _submit() {
-    if (_name.text.trim().isEmpty || _document.text.trim().isEmpty) return;
+    if (!_formKey.currentState!.validate()) return;
+    final number = int.parse(_number.text.trim());
+    if (widget.usedNumbers.contains(number)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ese número de camiseta ya está asignado.')),
+      );
+      return;
+    }
     Navigator.of(context).pop({
       'name': _name.text.trim(),
       'document': _document.text.trim(),
@@ -54,16 +64,33 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
         title: const Text('Agregar jugador'),
-        content: SingleChildScrollView(
-          child: Column(
+        content: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nombre completo *')),
               TextField(controller: _document, decoration: const InputDecoration(labelText: 'Número de documento *')),
-              TextField(controller: _number, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número de camiseta')),
+              TextFormField(
+                controller: _number,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Número de camiseta *', hintText: '1 al 99'),
+                validator: (value) {
+                  final number = int.tryParse(value?.trim() ?? '');
+                  if (number == null || number < 1 || number > 99) {
+                    return 'Usa un número entre 1 y 99';
+                  }
+                  if (widget.usedNumbers.contains(number)) {
+                    return 'Este número ya está asignado';
+                  }
+                  return null;
+                },
+              ),
               TextField(controller: _position, decoration: const InputDecoration(labelText: 'Posición')),
               TextField(controller: _club, decoration: const InputDecoration(labelText: 'Club al que pertenece')),
-            ],
+              ],
+            ),
           ),
         ),
         actions: [
@@ -109,7 +136,12 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   Future<void> _addPlayer() async {
     final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (dialogContext) => _PlayerDialog(),
+      builder: (_) => _PlayerDialog(
+        usedNumbers: _players
+            .map((player) => int.tryParse(player['number'] ?? ''))
+            .whereType<int>()
+            .toSet(),
+      ),
     );
     if (!mounted || result == null) return;
     setState(() => _players.add(result));
