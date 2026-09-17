@@ -171,8 +171,21 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     }
     final minPlayers = widget.tournament.minPlayersPerTeam;
     final maxPlayers = widget.tournament.maxPlayersPerTeam;
-    if (!_formKey.currentState!.validate() || !_accepted || _category == null || _players.length < minPlayers || _players.length > maxPlayers) {
-      _show('El equipo debe tener entre $minPlayers y $maxPlayers jugadores, además de completar los campos y aceptar el reglamento.');
+    final formIsValid = _formKey.currentState!.validate();
+    final issues = <String>[];
+
+    if (!formIsValid) issues.add('Completa correctamente los campos obligatorios del formulario.');
+    if (_category == null) issues.add('Selecciona una categoría del torneo.');
+    if (_players.length < minPlayers) {
+      issues.add('Faltan ${minPlayers - _players.length} jugador(es). El mínimo permitido es $minPlayers.');
+    }
+    if (_players.length > maxPlayers) {
+      issues.add('El equipo tiene ${_players.length} jugadores, pero el máximo permitido es $maxPlayers.');
+    }
+    if (!_accepted) issues.add('Debes aceptar el reglamento y confirmar que la información es correcta.');
+
+    if (issues.isNotEmpty) {
+      await _showValidationWarning(issues);
       return;
     }
     setState(() => _saving = true);
@@ -198,6 +211,52 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _showValidationWarning(List<String> issues) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded),
+            SizedBox(width: 10),
+            Text('No se puede enviar todavía'),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 280),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Revisa los siguientes puntos:'),
+                const SizedBox(height: 10),
+                ...issues.map(
+                  (issue) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('•  '),
+                        Expanded(child: Text(issue)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
   }
 
   String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
