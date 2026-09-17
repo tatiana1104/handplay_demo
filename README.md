@@ -117,6 +117,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Reglas Firestore alineadas con `adminId` y custom claims de administración
 - [x] El formulario renueva el token y valida `rol` antes de crear un torneo
 - [x] Torneos creados permanecen en Firestore y se muestran de forma permanente al volver al home
+- [x] Todos los usuarios, incluidos visitantes, consultan los torneos en tiempo real
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 

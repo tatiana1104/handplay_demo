@@ -31,7 +31,9 @@ class TorneosScreen extends StatelessWidget {
         actions: [if (user != null) _CreateTournamentAction(userId: user.uid)],
       ),
       bottomNavigationBar: AppBottomNavigationBar(selectedIndex: 0, isAuthenticated: user != null),
-      body: user == null ? const _PublicHomeContent() : _AuthenticatedTournaments(userId: user.uid),
+      // Todos pueden consultar los torneos; el usuario autenticado conserva
+      // además el botón de creación si tiene el rol administrativo.
+      body: _PublicTournamentList(),
     );
   }
 }
@@ -61,20 +63,18 @@ class _CreateTournamentAction extends StatelessWidget {
   }
 }
 
-class _AuthenticatedTournaments extends StatelessWidget {
-  const _AuthenticatedTournaments({required this.userId});
-
-  final String userId;
+class _PublicTournamentList extends StatelessWidget {
+  const _PublicTournamentList();
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Tournament>>(
-      stream: TournamentRepository().watchTournamentsForAdmin(userId),
+      stream: TournamentRepository().watchPublicTournaments(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const _MessageCard(icon: Icons.lock_outline_rounded, message: 'No se pudieron cargar tus torneos.');
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
         final tournaments = snapshot.data ?? const <Tournament>[];
-        if (tournaments.isEmpty) return const _EmptyTournaments();
+        if (tournaments.isEmpty) return const _PublicHomeContent();
         return ListView.separated(padding: const EdgeInsets.fromLTRB(12, 12, 12, 24), itemCount: tournaments.length, separatorBuilder: (_, __) => const SizedBox(height: 10), itemBuilder: (context, index) => _TournamentCard(tournament: tournaments[index]));
       },
     );
