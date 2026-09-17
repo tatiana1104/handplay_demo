@@ -14,6 +14,7 @@ class AppUser extends Equatable {
   final String? email;
   final String? displayName;
   final String? photoUrl;
+  final String role;
 
   const AppUser({
     required this.uid,
@@ -23,5 +24,5 @@ class AppUser extends Equatable {
   });
 
   @override
-  List<Object?> get props => [uid, email, displayName, photoUrl];
+  List<Object?> get props => [uid, email, displayName, photoUrl, role];
 }
