@@ -16,6 +16,63 @@ class TeamRegistrationScreen extends StatefulWidget {
   State<TeamRegistrationScreen> createState() => _TeamRegistrationScreenState();
 }
 
+class _PlayerDialog extends StatefulWidget {
+  const _PlayerDialog();
+
+  @override
+  State<_PlayerDialog> createState() => _PlayerDialogState();
+}
+
+class _PlayerDialogState extends State<_PlayerDialog> {
+  final _name = TextEditingController();
+  final _document = TextEditingController();
+  final _number = TextEditingController();
+  final _position = TextEditingController();
+  final _club = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _document.dispose();
+    _number.dispose();
+    _position.dispose();
+    _club.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_name.text.trim().isEmpty || _document.text.trim().isEmpty) return;
+    Navigator.of(context).pop({
+      'name': _name.text.trim(),
+      'document': _document.text.trim(),
+      'number': _number.text.trim(),
+      'position': _position.text.trim(),
+      'club': _club.text.trim(),
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Agregar jugador'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nombre completo *')),
+              TextField(controller: _document, decoration: const InputDecoration(labelText: 'Número de documento *')),
+              TextField(controller: _number, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número de camiseta')),
+              TextField(controller: _position, decoration: const InputDecoration(labelText: 'Posición')),
+              TextField(controller: _club, decoration: const InputDecoration(labelText: 'Club al que pertenece')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+          FilledButton(onPressed: _submit, child: const Text('Agregar')),
+        ],
+      );
+}
+
 class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _team = TextEditingController();
@@ -50,28 +107,12 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   }
 
   Future<void> _addPlayer() async {
-    final name = TextEditingController();
-    final number = TextEditingController();
-    final position = TextEditingController();
-    final added = await showDialog<bool>(
+    final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Agregar jugador'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Nombre completo')),
-          TextField(controller: number, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número')),
-          TextField(controller: position, decoration: const InputDecoration(labelText: 'Posición')),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, name.text.trim().isNotEmpty), child: const Text('Agregar')),
-        ],
-      ),
+      builder: (dialogContext) => _PlayerDialog(),
     );
-    if (added == true) setState(() => _players.add({'name': name.text.trim(), 'number': number.text.trim(), 'position': position.text.trim()}));
-    name.dispose();
-    number.dispose();
-    position.dispose();
+    if (!mounted || result == null) return;
+    setState(() => _players.add(result));
   }
 
   Future<void> _submit() async {
@@ -92,6 +133,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'teamName': _team.text.trim(), 'clubName': _club.text.trim(), 'coachName': _coach.text.trim(),
         'coachPhone': _phone.text.trim(), 'coachEmail': _email.text.trim().toLowerCase(), 'category': _category,
         'uniformColor': _color, 'logoUrl': logoPath, 'players': _players, 'status': 'pending',
+        'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
         'termsAccepted': true, 'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) {
@@ -134,7 +176,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             dense: true,
             leading: Text('${entry.key + 1}'),
             title: Text(entry.value['name'] as String),
-            subtitle: Text('${entry.value['position']} · #${entry.value['number']}'),
+            subtitle: Text(
+              '${entry.value['position']} · #${entry.value['number']} · Doc. ${entry.value['document']}\n'
+              '${entry.value['club']!.isEmpty ? 'Club independiente' : entry.value['club']}',
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => setState(() => _players.removeAt(entry.key)),
