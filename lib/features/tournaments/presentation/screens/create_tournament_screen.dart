@@ -21,6 +21,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   final _nameController = TextEditingController();
   final _teamLimitController = TextEditingController(text: '10');
   final Set<String> _categories = {};
+  String? _selectedCategory;
+  String? _selectedBranch;
   String _format = TournamentConstants.formats.first;
   DateTime? _startDate;
   DateTime? _endDate;
@@ -34,14 +36,30 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     super.dispose();
   }
 
+  void _addCategoryBranch() {
+    if (_selectedCategory == null || _selectedBranch == null) {
+      _showMessage('Selecciona una categoría y una rama.');
+      return;
+    }
+    setState(() {
+      _categories.add('$_selectedCategory|$_selectedBranch');
+      _selectedCategory = null;
+      _selectedBranch = null;
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_categories.isEmpty) {
-      _showMessage('Selecciona al menos una categoría y rama.');
+      _showMessage('Agrega al menos una categoría y rama.');
       return;
     }
-    if (_startDate == null || _endDate == null || !_endDate!.isAfter(_startDate!)) {
-      _showMessage('Selecciona fechas válidas para el torneo.');
+    if (_startDate == null) {
+      _showMessage('Selecciona la fecha de inicio.');
+      return;
+    }
+    if (_endDate != null && !_endDate!.isAfter(_startDate!)) {
+      _showMessage('La fecha fin debe ser posterior a la fecha de inicio.');
       return;
     }
 
@@ -59,7 +77,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         id: '',
         adminId: user.uid,
         name: _nameController.text.trim(),
-        status: 'upcoming',
+        status: TournamentConstants.statuses[1],
         startDate: _startDate,
         endDate: _endDate,
         format: _format,
@@ -77,7 +95,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 
   Future<void> _pickDate({required bool start}) async {
-    final selected = await showDatePicker(context: context, firstDate: DateTime.now().subtract(const Duration(days: 1)), lastDate: DateTime(2035), initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()));
+    final selected = await showDatePicker(
+      context: context,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime(2035),
+      initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()),
+    );
     if (selected != null) setState(() => start ? _startDate = selected : _endDate = selected);
   }
 
@@ -95,15 +118,23 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           children: [
             TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre del torneo *', hintText: 'Interclubes 2026'), validator: (v) => v == null || v.trim().isEmpty ? 'Escribe un nombre' : null),
             const SizedBox(height: 12),
-            Text('Categorías incluidas *', style: theme.textTheme.bodySmall),
+            Text('Categorías y ramas *', style: theme.textTheme.bodySmall),
             const SizedBox(height: 6),
-            ...TournamentConstants.categories.map((category) => _CategoryGroup(category: category, selected: _categories, onChanged: () => setState(() {}))),
+            Row(children: [
+              Expanded(child: DropdownButtonFormField<String>(value: _selectedCategory, decoration: const InputDecoration(labelText: 'Categoría'), items: TournamentConstants.categories.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _selectedCategory = value))),
+              const SizedBox(width: 8),
+              Expanded(child: DropdownButtonFormField<String>(value: _selectedBranch, decoration: const InputDecoration(labelText: 'Rama'), items: TournamentConstants.branches.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _selectedBranch = value))),
+            ]),
             const SizedBox(height: 8),
-            Text('Puedes seleccionar varias categorías y ramas para el mismo evento.', style: theme.textTheme.bodySmall),
+            OutlinedButton.icon(onPressed: _addCategoryBranch, icon: const Icon(Icons.add), label: const Text('Agregar categoría')),
+            if (_categories.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(spacing: 6, runSpacing: 4, children: _categories.map((value) => InputChip(label: Text(value.split('|').map(titleCase).join(' · ')), onDeleted: () => setState(() => _categories.remove(value)))).toList()),
+            ],
             const SizedBox(height: 14),
-            Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin *', value: _endDate, onPressed: () => _pickDate(start: false)))]),
+            Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin (opcional)', value: _endDate, onPressed: () => _pickDate(start: false)))]),
             const SizedBox(height: 14),
-            DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!),),
+            DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
             const SizedBox(height: 14),
             TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) <= 0 ? 'Indica un cupo válido' : null),
             const SizedBox(height: 8),
@@ -117,24 +148,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 }
 
-class _CategoryGroup extends StatelessWidget {
-  const _CategoryGroup({required this.category, required this.selected, required this.onChanged});
-  final String category;
-  final Set<String> selected;
-  final VoidCallback onChanged;
-
-  @override
-  Widget build(BuildContext context) => Wrap(spacing: 6, runSpacing: 4, children: TournamentConstants.branches.map((branch) {
-    final key = '$category|$branch';
-    return FilterChip(label: Text('${titleCase(category)} ${titleCase(branch)[0]}'), selected: selected.contains(key), onSelected: (value) { value ? selected.add(key) : selected.remove(key); onChanged(); });
-  }).toList());
-}
-
 class _DateButton extends StatelessWidget {
   const _DateButton({required this.label, required this.value, required this.onPressed});
   final String label;
   final DateTime? value;
   final VoidCallback onPressed;
+
   @override
   Widget build(BuildContext context) => OutlinedButton(onPressed: onPressed, child: Align(alignment: Alignment.centerLeft, child: Text(value == null ? label : '$label: ${value!.day.toString().padLeft(2, '0')}/${value!.month.toString().padLeft(2, '0')}/${value!.year}')));
 }
