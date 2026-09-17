@@ -114,6 +114,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Splash usa la paleta de marca y login conserva el banner público sin mostrar Perfil
 - [x] Listado reactivo de torneos desde Firestore para usuarios autenticados
 - [x] Botón y formulario de creación de torneo exclusivo para `admin_liga`
+- [x] Categorías constantes: master, mayor, juvenil, cadete, infantil y libre; ramas femenino, masculino y mixto
+- [x] Formatos constantes: todos contra todos y por grupos, sin sede principal
 - [x] Reglas Firestore alineadas con `adminId` y custom claims de administración
 - [x] El formulario renueva el token y valida `rol` antes de crear un torneo
 - [x] Torneos creados permanecen en Firestore y se muestran de forma permanente al volver al home
@@ -127,7 +129,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
 
 - `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
-- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`.
+- `tournaments/{tournamentId}`: `adminId`, `name`, `status`, `categories` (`categoria|rama`), `format`, `teamLimit`, `publicRegistration`, `startDate`, `endDate`, `updatedAt`.
 - `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
 - `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
 - `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.

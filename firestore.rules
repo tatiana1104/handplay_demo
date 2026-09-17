@@ -49,7 +49,11 @@ service cloud.firestore {
       allow read: if true;
       // Solo un administrador de liga puede crear torneos y debe quedar como dueño.
       allow create: if isAdmin()
-        && request.resource.data.adminId == request.auth.uid;
+        && request.resource.data.adminId == request.auth.uid
+        && request.resource.data.categories is list
+        && request.resource.data.categories.size() > 0
+        && request.resource.data.format in ['todos_contra_todos', 'por_grupos']
+        && request.resource.data.status == 'upcoming';
       allow update: if canManageTournament(tournamentId);
       allow delete: if canManageTournament(tournamentId);
 

@@ -5,12 +5,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
+import '../../domain/tournament_constants.dart';
 
 /// Formulario exclusivo para administradores de liga.
-/// La autorización real se valida de nuevo con las reglas de Firestore.
 class CreateTournamentScreen extends StatefulWidget {
   const CreateTournamentScreen({super.key, required this.adminId});
-
   final String adminId;
 
   @override
@@ -20,8 +19,9 @@ class CreateTournamentScreen extends StatefulWidget {
 class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _formatController = TextEditingController(text: 'Liga');
   final _teamLimitController = TextEditingController(text: '10');
+  final Set<String> _categories = {};
+  String _format = TournamentConstants.formats.first;
   DateTime? _startDate;
   DateTime? _endDate;
   bool _publicRegistration = true;
@@ -30,13 +30,16 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _formatController.dispose();
     _teamLimitController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_categories.isEmpty) {
+      _showMessage('Selecciona al menos una categoría y rama.');
+      return;
+    }
     if (_startDate == null || _endDate == null || !_endDate!.isAfter(_startDate!)) {
       _showMessage('Selecciona fechas válidas para el torneo.');
       return;
@@ -44,94 +47,69 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
     setState(() => _saving = true);
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw FirebaseException(
-          plugin: 'firebase_auth',
-          code: 'unauthenticated',
-          message: 'Inicia sesión para crear un torneo.',
-        );
-      }
-
-      // Los custom claims llegan al token, por eso se fuerza su renovación
-      // antes de escribir y se evita usar un UID distinto al de la sesión.
-      final token = await currentUser.getIdTokenResult(true);
-      final role = token.claims?['rol'];
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw FirebaseException(plugin: 'firebase_auth', code: 'unauthenticated', message: 'Inicia sesión para crear un torneo.');
+      final claims = (await user.getIdTokenResult(true)).claims ?? {};
+      final role = claims['rol'];
       if (role != 'admin' && role != 'admin_liga') {
-        throw FirebaseException(
-          plugin: 'firebase_auth',
-          code: 'permission-denied',
-          message: 'Tu cuenta no tiene permisos de administrador de liga.',
-        );
+        throw FirebaseException(plugin: 'firebase_auth', code: 'permission-denied', message: 'Tu cuenta no tiene permisos de administrador de liga.');
       }
 
-      final tournament = Tournament(
+      await TournamentRepository().createTournament(Tournament(
         id: '',
-        adminId: currentUser.uid,
+        adminId: user.uid,
         name: _nameController.text.trim(),
-        status: 'draft',
+        status: 'upcoming',
         startDate: _startDate,
         endDate: _endDate,
-        format: _formatController.text.trim(),
-        mainVenueId: '',
+        format: _format,
+        categories: _categories.toList()..sort(),
         teamLimit: int.parse(_teamLimitController.text),
         publicRegistration: _publicRegistration,
         phaseDurations: const {},
-      );
-      await TournamentRepository().createTournament(tournament);
+      ));
       if (mounted) context.pop();
     } on FirebaseException catch (error) {
-      final message = error.code == 'permission-denied'
-          ? 'Firebase rechazó la operación. Verifica el claim rol y despliega firestore.rules.'
-          : error.message ?? 'No se pudo crear el torneo.';
-      _showMessage(message);
+      _showMessage(error.code == 'permission-denied' ? 'Firebase rechazó la operación. Despliega firestore.rules y renueva la sesión.' : error.message ?? 'No se pudo crear el torneo.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   Future<void> _pickDate({required bool start}) async {
-    final selected = await showDatePicker(
-      context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime(2035),
-      initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()),
-    );
-    if (selected == null) return;
-    setState(() => start ? _startDate = selected : _endDate = selected);
+    final selected = await showDatePicker(context: context, firstDate: DateTime.now().subtract(const Duration(days: 1)), lastDate: DateTime(2035), initialDate: start ? (_startDate ?? DateTime.now()) : (_endDate ?? _startDate ?? DateTime.now()));
+    if (selected != null) setState(() => start ? _startDate = selected : _endDate = selected);
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
+  void _showMessage(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Nuevo torneo')),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 28),
           children: [
-            Text('Crea una nueva liga de balonmano', style: Theme.of(context).textTheme.headlineSmall),
+            TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre del torneo *', hintText: 'Interclubes 2026'), validator: (v) => v == null || v.trim().isEmpty ? 'Escribe un nombre' : null),
+            const SizedBox(height: 12),
+            Text('Categorías incluidas *', style: theme.textTheme.bodySmall),
+            const SizedBox(height: 6),
+            ...TournamentConstants.categories.map((category) => _CategoryGroup(category: category, selected: _categories, onChanged: () => setState(() {}))),
             const SizedBox(height: 8),
-            Text('Completa la información básica para publicar el torneo.', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 24),
-            TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre del torneo', hintText: 'Interclubes 2026'), validator: (value) => value == null || value.trim().isEmpty ? 'Escribe un nombre' : null),
+            Text('Puedes seleccionar varias categorías y ramas para el mismo evento.', style: theme.textTheme.bodySmall),
             const SizedBox(height: 14),
-            TextFormField(controller: _formatController, decoration: const InputDecoration(labelText: 'Formato'), validator: (value) => value == null || value.trim().isEmpty ? 'Escribe un formato' : null),
+            Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin *', value: _endDate, onPressed: () => _pickDate(start: false)))]),
             const SizedBox(height: 14),
-            TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos'), validator: (value) => int.tryParse(value ?? '') == null || int.parse(value!) <= 0 ? 'Indica un cupo válido' : null),
-            const SizedBox(height: 18),
-            _DateButton(label: 'Inicio', value: _startDate, onPressed: () => _pickDate(start: true)),
-            const SizedBox(height: 10),
-            _DateButton(label: 'Finalización', value: _endDate, onPressed: () => _pickDate(start: false)),
-            const SizedBox(height: 10),
-            SwitchListTile.adaptive(value: _publicRegistration, onChanged: (value) => setState(() => _publicRegistration = value), title: const Text('Inscripción pública'), subtitle: const Text('Permite que los equipos soliciten participar.'), contentPadding: EdgeInsets.zero),
-            const SizedBox(height: 22),
-            FilledButton.icon(onPressed: _saving ? null : _submit, icon: _saving ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(Icons.add_circle_outline, color: colors.onPrimary), label: Text(_saving ? 'Guardando...' : 'Crear torneo')),
+            DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!),),
+            const SizedBox(height: 14),
+            TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) <= 0 ? 'Indica un cupo válido' : null),
+            const SizedBox(height: 8),
+            SwitchListTile.adaptive(value: _publicRegistration, onChanged: (v) => setState(() => _publicRegistration = v), title: const Text('Inscripción pública', style: TextStyle(fontWeight: FontWeight.bold)), subtitle: const Text('Los equipos podrán inscribirse ellos mismos con el formulario'), contentPadding: EdgeInsets.zero),
+            const SizedBox(height: 14),
+            SizedBox(height: 48, child: FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Guardando...' : 'Crear torneo'))),
           ],
         ),
       ),
@@ -139,16 +117,24 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 }
 
+class _CategoryGroup extends StatelessWidget {
+  const _CategoryGroup({required this.category, required this.selected, required this.onChanged});
+  final String category;
+  final Set<String> selected;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) => Wrap(spacing: 6, runSpacing: 4, children: TournamentConstants.branches.map((branch) {
+    final key = '$category|$branch';
+    return FilterChip(label: Text('${titleCase(category)} ${titleCase(branch)[0]}'), selected: selected.contains(key), onSelected: (value) { value ? selected.add(key) : selected.remove(key); onChanged(); });
+  }).toList());
+}
+
 class _DateButton extends StatelessWidget {
   const _DateButton({required this.label, required this.value, required this.onPressed});
-
   final String label;
   final DateTime? value;
   final VoidCallback onPressed;
-
   @override
-  Widget build(BuildContext context) {
-    final formatted = value == null ? 'Seleccionar fecha' : '${value!.day.toString().padLeft(2, '0')}/${value!.month.toString().padLeft(2, '0')}/${value!.year}';
-    return OutlinedButton.icon(onPressed: onPressed, icon: const Icon(Icons.calendar_today_outlined), label: Align(alignment: Alignment.centerLeft, child: Text('$label: $formatted')));
-  }
+  Widget build(BuildContext context) => OutlinedButton(onPressed: onPressed, child: Align(alignment: Alignment.centerLeft, child: Text(value == null ? label : '$label: ${value!.day.toString().padLeft(2, '0')}/${value!.month.toString().padLeft(2, '0')}/${value!.year}')));
 }
