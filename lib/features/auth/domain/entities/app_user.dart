@@ -21,6 +21,7 @@ class AppUser extends Equatable {
     this.email,
     this.displayName,
     this.photoUrl,
+    this.role = 'jugador',
   });
 
   @override
