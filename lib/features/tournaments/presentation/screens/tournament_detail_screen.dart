@@ -20,7 +20,7 @@ class TournamentDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(tournament.name.isEmpty ? 'Detalle del torneo' : tournament.name)),
-      bottomNavigationBar: const AppBottomNavigationBar(selectedIndex: 0),
+      bottomNavigationBar: AppBottomNavigationBar(selectedIndex: 0),
       body: ListView(
         padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom),
         children: [
