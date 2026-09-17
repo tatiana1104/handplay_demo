@@ -107,7 +107,11 @@ node scripts/create-test-users.cjs
 
 El script muestra las contraseñas temporales una sola vez; guárdalas de forma segura y obliga al usuario a cerrar sesión y entrar de nuevo para refrescar sus claims.
 
-### ⬜ Sprint 2 — Torneos y equipos
+### 🟨 Sprint 2 — Torneos y equipos (modelo iniciado)
+- [x] Modelos Dart para torneos, categorías, sedes, equipos, jugadores y partidos
+- [x] Repositorio Firestore con consultas reactivas de torneos, categorías y sedes
+- [ ] Vistas de torneos y equipos
+- [ ] Escrituras completas y validación de formularios
 
 #### Modelo de datos Firestore
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
