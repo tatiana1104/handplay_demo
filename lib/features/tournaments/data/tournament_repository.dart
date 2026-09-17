@@ -11,18 +11,26 @@ class TournamentRepository {
 
   CollectionReference<Map<String, dynamic>> get _tournaments => _firestore.collection('tournaments');
 
+  Stream<List<Tournament>> watchPublicTournaments() => _tournaments
+      .snapshots()
+      .map(_sortedTournaments);
+
   Stream<List<Tournament>> watchTournamentsForAdmin(String adminId) => _tournaments
       .where('adminId', isEqualTo: adminId)
       .snapshots()
-      .map((snapshot) {
-        final tournaments = snapshot.docs.map(Tournament.fromDocument).toList();
-        tournaments.sort((a, b) {
-          final aDate = a.startDate ?? DateTime(9999);
-          final bDate = b.startDate ?? DateTime(9999);
-          return aDate.compareTo(bDate);
-        });
-        return tournaments;
-      });
+      .map((snapshot) => _sortDocuments(snapshot));
+
+  List<Tournament> _sortDocuments(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    final tournaments = snapshot.docs.map(Tournament.fromDocument).toList();
+    tournaments.sort((a, b) {
+      final aDate = a.startDate ?? DateTime(9999);
+      final bDate = b.startDate ?? DateTime(9999);
+      return aDate.compareTo(bDate);
+    });
+    return tournaments;
+  }
+
+  List<Tournament> _sortedTournaments(QuerySnapshot<Map<String, dynamic>> snapshot) => _sortDocuments(snapshot);
 
   Stream<List<TournamentCategory>> watchCategories(String tournamentId) => _tournaments
       .doc(tournamentId)
