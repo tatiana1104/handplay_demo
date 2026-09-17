@@ -9,8 +9,6 @@ class PendingRegistrationsScreen extends StatefulWidget {
 }
 
 class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen> {
-  final String tournamentId;
-  final String tournamentName;
   String _selectedStatus = 'pending';
 
   CollectionReference<Map<String, dynamic>> get _registrations => FirebaseFirestore.instance.collection('tournaments').doc(widget.tournamentId).collection('registrations');
@@ -95,7 +93,7 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
                   final doc = entry.value;
                   final data = doc.data();
                   final players = (data['players'] as List<dynamic>? ?? const []).length;
-                  final warnings = _similarityWarnings(data, docs.where((other) => other.id != doc.id && _createdAt(other) < _createdAt(doc)).toList());
+                  final warnings = _similarityWarnings(data, docs.where((other) => other.id != doc.id && _createdAt(other).isBefore(_createdAt(doc))).toList());
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
                     child: Padding(

@@ -29,6 +29,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   final _number = TextEditingController();
   final _position = TextEditingController();
   final _club = TextEditingController();
+  String? _gender;
 
   @override
   void dispose() {
