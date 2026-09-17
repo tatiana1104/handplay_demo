@@ -12,6 +12,8 @@ class Tournament {
     required this.format,
     required this.categories,
     required this.teamLimit,
+    required this.minPlayersPerTeam,
+    required this.maxPlayersPerTeam,
     required this.publicRegistration,
     required this.registrationDeadline,
     required this.phaseDurations,
@@ -27,6 +29,8 @@ class Tournament {
   /// Categorías seleccionadas como pares `categoria|rama`.
   final List<String> categories;
   final int teamLimit;
+  final int minPlayersPerTeam;
+  final int maxPlayersPerTeam;
   final bool publicRegistration;
   final DateTime? registrationDeadline;
   final Map<String, int> phaseDurations;
@@ -43,6 +47,8 @@ class Tournament {
       format: data['format'] as String? ?? '',
       categories: (data['categories'] as List<dynamic>? ?? const []).cast<String>(),
       teamLimit: (data['teamLimit'] as num?)?.toInt() ?? 0,
+      minPlayersPerTeam: (data['minPlayersPerTeam'] as num?)?.toInt() ?? 1,
+      maxPlayersPerTeam: (data['maxPlayersPerTeam'] as num?)?.toInt() ?? 99,
       publicRegistration: data['publicRegistration'] as bool? ?? false,
       registrationDeadline: _date(data['registrationDeadline']),
       phaseDurations: _intMap(data['phaseDurations']),
@@ -58,6 +64,8 @@ class Tournament {
         'format': format,
         'categories': categories,
         'teamLimit': teamLimit,
+        'minPlayersPerTeam': minPlayersPerTeam,
+        'maxPlayersPerTeam': maxPlayersPerTeam,
         'publicRegistration': publicRegistration,
         'registrationDeadline': _timestamp(registrationDeadline),
         'phaseDurations': phaseDurations,

@@ -169,8 +169,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       _show('El periodo de inscripción terminó. Las solicitudes ya enviadas sí pueden modificarse.');
       return;
     }
-    if (!_formKey.currentState!.validate() || !_accepted || _category == null || _players.isEmpty) {
-      _show('Completa los campos, agrega al menos un jugador y acepta el reglamento.');
+    final minPlayers = widget.tournament.minPlayersPerTeam;
+    final maxPlayers = widget.tournament.maxPlayersPerTeam;
+    if (!_formKey.currentState!.validate() || !_accepted || _category == null || _players.length < minPlayers || _players.length > maxPlayers) {
+      _show('El equipo debe tener entre $minPlayers y $maxPlayers jugadores, además de completar los campos y aceptar el reglamento.');
       return;
     }
     setState(() => _saving = true);
@@ -218,6 +220,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             const SizedBox(height: 3),
             Text('Inscribe tu equipo', style: theme.textTheme.headlineSmall),
             Text('Completa la solicitud. El administrador verificará los datos antes de aprobarla.', style: theme.textTheme.bodySmall),
+            Text('Jugadores permitidos: ${widget.tournament.minPlayersPerTeam} a ${widget.tournament.maxPlayersPerTeam}', style: theme.textTheme.labelMedium),
             if (widget.tournament.registrationDeadline != null)
               Text('Inscripciones hasta: ${_formatDate(widget.tournament.registrationDeadline!)}', style: theme.textTheme.labelMedium),
             const SizedBox(height: 16),
