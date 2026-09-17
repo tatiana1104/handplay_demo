@@ -54,7 +54,8 @@ service cloud.firestore {
         && request.resource.data.categories.size() > 0
         && request.resource.data.format in ['todos_contra_todos', 'por_grupos']
         && request.resource.data.status == 'upcoming';
-      allow update: if canManageTournament(tournamentId);
+      allow update: if canManageTournament(tournamentId)
+        && request.resource.data.adminId == resource.data.adminId;
       allow delete: if canManageTournament(tournamentId);
 
       match /registrations/{registrationId} {
