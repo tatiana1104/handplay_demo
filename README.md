@@ -124,6 +124,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Todos los usuarios, incluidos visitantes, consultan los torneos en tiempo real
 - [x] Filtros de torneos por iniciar, jugando y terminados
 - [x] Orden general: por iniciar primero, jugando después y terminados al final
+- [x] Tarjetas de torneo interactivas con detalle responsive, estadísticas, posiciones y destacados
+- [x] Detalle con desplazamiento vertical para pantallas pequeñas y contenido ampliable
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
