@@ -123,7 +123,10 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) => _TournamentCard(
                         tournament: visibleTournaments[index],
-                        isAdmin: widget.isAdmin && widget.adminId == visibleTournaments[index].adminId,
+                        // Esta pantalla es la vista autenticada del administrador.
+                        // Los torneos antiguos pueden no tener adminId guardado, por eso
+                        // no se condiciona la visibilidad de las acciones a ese campo.
+                        isAdmin: widget.isAdmin,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => TournamentDetailScreen(
