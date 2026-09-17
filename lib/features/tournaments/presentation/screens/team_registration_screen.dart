@@ -13,9 +13,10 @@ class TeamRegistrationScreen extends StatefulWidget {
 }
 
 class _PlayerDialog extends StatefulWidget {
-  const _PlayerDialog({required this.usedNumbers});
+  const _PlayerDialog({required this.usedNumbers, required this.tournamentBranch});
 
   final Set<int> usedNumbers;
+  final String tournamentBranch;
 
   @override
   State<_PlayerDialog> createState() => _PlayerDialogState();
@@ -55,6 +56,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       'document': _document.text.trim(),
       'number': _number.text.trim(),
       'position': _position.text.trim(),
+      'gender': _gender!,
       'club': _club.text.trim(),
     });
   }
@@ -115,6 +117,20 @@ class _PlayerDialogState extends State<_PlayerDialog> {
                 validator: (value) => value == null ? 'Selecciona una posición' : null,
               ),
               const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _gender,
+                decoration: const InputDecoration(labelText: 'Género *', prefixIcon: Icon(Icons.wc_outlined)),
+                items: (widget.tournamentBranch == 'masculino'
+                        ? const ['masculino']
+                        : widget.tournamentBranch == 'femenino'
+                            ? const ['femenino']
+                            : const ['masculino', 'femenino'])
+                    .map((gender) => DropdownMenuItem(value: gender, child: Text(gender == 'masculino' ? 'Masculino' : 'Femenino')))
+                    .toList(),
+                onChanged: (value) => setState(() => _gender = value),
+                validator: (value) => value == null ? 'Selecciona el género' : null,
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _club,
                 decoration: const InputDecoration(labelText: 'Club al que pertenece', prefixIcon: Icon(Icons.shield_outlined)),
@@ -157,6 +173,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             .map((player) => int.tryParse(player['number'] ?? ''))
             .whereType<int>()
             .toSet(),
+        tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
       ),
     );
     if (!mounted || result == null) return;
