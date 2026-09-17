@@ -34,7 +34,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
+      // Usa la superficie de la paleta desde el primer frame de Flutter,
+      // evitando que el splash aparezca con un blanco distinto al resto.
+      backgroundColor: colors.surface,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

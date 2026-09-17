@@ -111,6 +111,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Modelos Dart para torneos, categorías, sedes, equipos, jugadores y partidos
 - [x] Repositorio Firestore con consultas reactivas de torneos, categorías y sedes
 - [x] Home público de liga de balonmano con banner inferior para consultar información e iniciar sesión
+- [x] Splash usa la paleta de marca y login conserva el banner público sin mostrar Perfil
 - [x] Listado reactivo de torneos desde Firestore para usuarios autenticados
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
