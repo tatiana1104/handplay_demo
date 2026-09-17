@@ -113,6 +113,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Home público de liga de balonmano con banner inferior para consultar información e iniciar sesión
 - [x] Splash usa la paleta de marca y login conserva el banner público sin mostrar Perfil
 - [x] Listado reactivo de torneos desde Firestore para usuarios autenticados
+- [x] Botón y formulario de creación de torneo exclusivo para `admin_liga`
+- [x] Reglas Firestore alineadas con `adminId` y custom claims de administración
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
