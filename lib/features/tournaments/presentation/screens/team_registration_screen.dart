@@ -216,9 +216,11 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         Navigator.of(context).pop();
       }
     } on FirebaseException catch (error) {
-      final message = error.code == 'object-not-found'
-          ? 'No se pudo confirmar el logo en Firebase Storage. Selecciónalo nuevamente o envía la solicitud sin logo.'
-          : error.message ?? 'No se pudo enviar la solicitud.';
+      final message = switch (error.code) {
+        'object-not-found' => 'No se pudo confirmar el logo en Firebase Storage. Selecciónalo nuevamente o envía la solicitud sin logo.',
+        'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y storage.rules, y verifica que el torneo tenga inscripción pública.',
+        _ => error.message ?? 'No se pudo enviar la solicitud.',
+      };
       _show(message);
     } finally {
       if (mounted) setState(() => _saving = false);

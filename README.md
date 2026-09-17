@@ -129,6 +129,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Detalle con desplazamiento vertical para pantallas pequeñas y contenido ampliable
 - [x] Inscripción pública de equipos desde el detalle del torneo, con categoría, entrenador, contacto y consentimiento
 - [x] Solicitudes guardadas en `tournaments/{id}/registrations` con estado `pending` para revisión administrativa
+- [x] Inscripción permitida desde la vista pública o con sesión de entrenador, incluyendo reglas de Storage para logos
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
