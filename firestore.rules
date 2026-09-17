@@ -65,7 +65,9 @@ service cloud.firestore {
           && (get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline == null
             || request.time <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline)
           && request.resource.data.teamName is string
-          && request.resource.data.coachEmail is string;
+          && request.resource.data.coachEmail is string
+          && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
+          && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam;
         allow read, update, delete: if canManageTournament(tournamentId);
       }
 

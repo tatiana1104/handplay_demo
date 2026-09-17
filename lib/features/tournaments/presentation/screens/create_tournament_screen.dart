@@ -22,7 +22,9 @@ class CreateTournamentScreen extends StatefulWidget {
 class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _teamLimitController = TextEditingController(text: '10');
+  final _teamLimitController = TextEditingController(text: '0');
+  final _minPlayersController = TextEditingController(text: '7');
+  final _maxPlayersController = TextEditingController(text: '16');
   final Set<String> _categories = {};
   String? _selectedCategory;
   String? _selectedBranch;
@@ -40,6 +42,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     if (tournament != null) {
       _nameController.text = tournament.name;
       _teamLimitController.text = tournament.teamLimit.toString();
+      _minPlayersController.text = tournament.minPlayersPerTeam.toString();
+      _maxPlayersController.text = tournament.maxPlayersPerTeam.toString();
       _categories.addAll(tournament.categories);
       _format = tournament.format;
       _startDate = tournament.startDate;
@@ -53,6 +57,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   void dispose() {
     _nameController.dispose();
     _teamLimitController.dispose();
+    _minPlayersController.dispose();
+    _maxPlayersController.dispose();
     super.dispose();
   }
 
@@ -68,6 +74,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final minPlayers = int.tryParse(_minPlayersController.text);
+    final maxPlayers = int.tryParse(_maxPlayersController.text);
+    if (minPlayers == null || maxPlayers == null || minPlayers < 1 || maxPlayers < minPlayers) {
+      _showMessage('Define un mínimo válido y un máximo mayor o igual.');
+      return;
+    }
     if (_categories.isEmpty) {
       _showMessage('Agrega al menos una categoría y rama.');
       return;
@@ -104,7 +116,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         endDate: _endDate,
         format: _format,
         categories: _categories.toList()..sort(),
-        teamLimit: int.parse(_teamLimitController.text),
+        teamLimit: int.tryParse(_teamLimitController.text) ?? 0,
+        minPlayersPerTeam: minPlayers,
+        maxPlayersPerTeam: maxPlayers,
         publicRegistration: _publicRegistration,
         registrationDeadline: _registrationDeadline,
         phaseDurations: widget.tournament?.phaseDurations ?? const {},
@@ -214,7 +228,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
             const SizedBox(height: 10),
-            TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) <= 0 ? 'Indica un cupo válido' : null),
+            TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos (opcional)', hintText: 'Déjalo en 0 si no hay límite'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 0 ? 'Indica 0 o un número positivo' : null),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: TextFormField(controller: _minPlayersController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Mínimo jugadores *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 1 ? 'Mínimo: 1' : null)),
+              const SizedBox(width: 8),
+              Expanded(child: TextFormField(controller: _maxPlayersController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Máximo jugadores *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 1 ? 'Indica un máximo' : null)),
+            ]),
             const SizedBox(height: 8),
             SwitchListTile.adaptive(
               dense: true,
