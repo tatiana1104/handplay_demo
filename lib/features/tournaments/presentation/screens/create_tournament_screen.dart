@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -43,9 +44,30 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
     setState(() => _saving = true);
     try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw FirebaseException(
+          plugin: 'firebase_auth',
+          code: 'unauthenticated',
+          message: 'Inicia sesión para crear un torneo.',
+        );
+      }
+
+      // Los custom claims llegan al token, por eso se fuerza su renovación
+      // antes de escribir y se evita usar un UID distinto al de la sesión.
+      final token = await currentUser.getIdTokenResult(true);
+      final role = token.claims?['rol'];
+      if (role != 'admin' && role != 'admin_liga') {
+        throw FirebaseException(
+          plugin: 'firebase_auth',
+          code: 'permission-denied',
+          message: 'Tu cuenta no tiene permisos de administrador de liga.',
+        );
+      }
+
       final tournament = Tournament(
         id: '',
-        adminId: widget.adminId,
+        adminId: currentUser.uid,
         name: _nameController.text.trim(),
         status: 'draft',
         startDate: _startDate,
@@ -59,7 +81,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       await TournamentRepository().createTournament(tournament);
       if (mounted) context.pop();
     } on FirebaseException catch (error) {
-      _showMessage(error.message ?? 'No se pudo crear el torneo.');
+      final message = error.code == 'permission-denied'
+          ? 'Firebase rechazó la operación. Verifica el claim rol y despliega firestore.rules.'
+          : error.message ?? 'No se pudo crear el torneo.';
+      _showMessage(message);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
