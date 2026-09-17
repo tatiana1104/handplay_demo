@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 /// Vista de la cuenta actualmente autenticada.
 /// Firebase Auth es la fuente de verdad para el correo y el nombre visible.
@@ -11,7 +13,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.select((AuthBloc bloc) => bloc.state.user);
+    final authState = context.watch<AuthBloc>().state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
     final displayName = _displayName(user);
     final email = user?.email ?? 'Sin correo disponible';
 
@@ -57,7 +60,9 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           OutlinedButton.icon(
-            onPressed: () => context.read<AuthBloc>().signOut(),
+            onPressed: () => context.read<AuthBloc>().add(
+              const AuthLogoutRequested(),
+            ),
             icon: const Icon(Icons.logout),
             label: const Text('Cerrar sesión'),
           ),
