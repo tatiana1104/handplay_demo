@@ -10,7 +10,7 @@ class Tournament {
     required this.startDate,
     required this.endDate,
     required this.format,
-    required this.mainVenueId,
+    required this.categories,
     required this.teamLimit,
     required this.publicRegistration,
     required this.phaseDurations,
@@ -23,7 +23,8 @@ class Tournament {
   final DateTime? startDate;
   final DateTime? endDate;
   final String format;
-  final String mainVenueId;
+  /// Categorías seleccionadas como pares `categoria|rama`.
+  final List<String> categories;
   final int teamLimit;
   final bool publicRegistration;
   final Map<String, int> phaseDurations;
@@ -38,7 +39,7 @@ class Tournament {
       startDate: _date(data['startDate']),
       endDate: _date(data['endDate']),
       format: data['format'] as String? ?? '',
-      mainVenueId: data['mainVenueId'] as String? ?? '',
+      categories: (data['categories'] as List<dynamic>? ?? const []).cast<String>(),
       teamLimit: (data['teamLimit'] as num?)?.toInt() ?? 0,
       publicRegistration: data['publicRegistration'] as bool? ?? false,
       phaseDurations: _intMap(data['phaseDurations']),
@@ -52,7 +53,7 @@ class Tournament {
         'startDate': _timestamp(startDate),
         'endDate': _timestamp(endDate),
         'format': format,
-        'mainVenueId': mainVenueId,
+        'categories': categories,
         'teamLimit': teamLimit,
         'publicRegistration': publicRegistration,
         'phaseDurations': phaseDurations,
