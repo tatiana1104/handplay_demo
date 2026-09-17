@@ -115,6 +115,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Listado reactivo de torneos desde Firestore para usuarios autenticados
 - [x] Botón y formulario de creación de torneo exclusivo para `admin_liga`
 - [x] Reglas Firestore alineadas con `adminId` y custom claims de administración
+- [x] El formulario renueva el token y valida `rol` antes de crear un torneo
 - [ ] Vistas de equipos
 - [ ] Escrituras completas y validación de formularios
 
