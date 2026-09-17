@@ -60,6 +60,12 @@ Cada feature sigue tres capas internas:
 | RN-05 | Color de uniforme único por categoría/torneo | Bloqueo al guardar inscripción |
 | RN-06 | Cuota mínima de género en categoría Mixto | Valor de referencia 2/7 — **pendiente de confirmación oficial de la Liga** |
 
+## Documentación
+
+La configuración completa de Sprint 1 está documentada paso a paso en [`docs/sprint-1-configuracion.md`](docs/sprint-1-configuracion.md).
+
+Incluye Firebase, FlutterFire, autenticación, AuthBloc, Firestore, reglas de seguridad, usuarios administradores, usuarios de prueba, App Check y verificación en dispositivo.
+
 ## Puesta en marcha local
 
 ```bash
