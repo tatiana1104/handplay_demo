@@ -164,6 +164,11 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   }
 
   Future<void> _submit() async {
+    final deadline = widget.tournament.registrationDeadline;
+    if (deadline != null && DateTime.now().isAfter(deadline)) {
+      _show('El periodo de inscripción terminó. Las solicitudes ya enviadas sí pueden modificarse.');
+      return;
+    }
     if (!_formKey.currentState!.validate() || !_accepted || _category == null || _players.isEmpty) {
       _show('Completa los campos, agrega al menos un jugador y acepta el reglamento.');
       return;
@@ -193,6 +198,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     }
   }
 
+  String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+
   void _show(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
   @override
@@ -211,6 +218,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             const SizedBox(height: 3),
             Text('Inscribe tu equipo', style: theme.textTheme.headlineSmall),
             Text('Completa la solicitud. El administrador verificará los datos antes de aprobarla.', style: theme.textTheme.bodySmall),
+            if (widget.tournament.registrationDeadline != null)
+              Text('Inscripciones hasta: ${_formatDate(widget.tournament.registrationDeadline!)}', style: theme.textTheme.labelMedium),
             const SizedBox(height: 16),
             _sectionCard(
               theme,
