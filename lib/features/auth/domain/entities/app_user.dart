@@ -14,16 +14,20 @@ class AppUser extends Equatable {
   final String? email;
   final String? displayName;
   final String? photoUrl;
-  final String role;
+  final List<String> roles;
 
   const AppUser({
     required this.uid,
     this.email,
     this.displayName,
     this.photoUrl,
-    this.role = 'jugador',
+    this.roles = const ['jugador'],
   });
 
+  bool hasRole(String role) => roles.contains(role);
+
+  bool get isAdmin => hasRole('admin') || hasRole('admin_liga');
+
   @override
-  List<Object?> get props => [uid, email, displayName, photoUrl, role];
+  List<Object?> get props => [uid, email, displayName, photoUrl, roles];
 }

@@ -12,13 +12,31 @@ import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  static String _roleLabel(String role) {
+    switch (role) {
+      case 'admin':
+      case 'admin_liga':
+        return 'Administrador';
+      case 'arbitro':
+        return 'Árbitro';
+      case 'entrenador':
+        return 'Entrenador';
+      case 'jugador':
+        return 'Jugador';
+      default:
+        return role;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final user = authState is AuthAuthenticated ? authState.user : null;
     final displayName = _displayName(user);
     final email = user?.email ?? 'Sin correo disponible';
-    final roleLabel = user?.role == 'admin' || user?.role == 'admin_liga' ? 'Administrador' : 'Usuario';
+    final roleLabel = user == null
+      ? 'Usuario'
+      : user.roles.map(_roleLabel).join(', ');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),

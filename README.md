@@ -91,14 +91,14 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Autenticación (`AuthBloc` + login/registro/recuperar contraseña, correo y Google)
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
 - [ ] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
-- [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
+- [x] Navegación protegida por sesión y roles (`redirect` de go_router según `AuthBloc`; roles disponibles desde custom claims de Firebase)
 - [x] Arquitectura AuthBloc por capas importada desde `feature/auth-bloc-firebase`: eventos, estados, casos de uso, repositorio y datasource Firebase
 - [x] Vista de perfil conectada al botón inferior para todos los roles autenticados: muestra nombre, correo y cierre de sesión
 - [x] Banner inferior persistente en la vista de perfil para administrador de liga, jugador, entrenador y árbitro
 - [x] Home público después del splash: la información general no requiere iniciar sesión
 
 #### Usuarios de prueba Firebase
-El script `scripts/create-test-users.cjs` crea o actualiza cuentas de prueba y asigna custom claims (`admin_liga`, `jugador`, `entrenador`, `arbitro`). Requiere `serviceAccountKey.json` local, que nunca debe subirse al repositorio.
+El script `scripts/create-test-users.cjs` crea o actualiza cuentas de prueba y asigna custom claims multi-rol mediante `roles: []` (por ejemplo, `['jugador', 'arbitro']`). El claim singular `rol` se conserva temporalmente por compatibilidad. Requiere `serviceAccountKey.json` local, que nunca debe subirse al repositorio.
 
 ```powershell
 npm install firebase-admin
@@ -139,7 +139,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 #### Modelo de datos Firestore
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
 
-- `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
+- `users/{uid}`: `uid`, `email`, `nombre`, `roles` (lista multi-rol: `jugador`, `arbitro`, `entrenador`, `admin_liga`), y `rol` legado. El perfil solo lo puede modificar su propietario; la asignación de roles se realiza desde un entorno seguro mediante Firebase Admin SDK y custom claims.
 - `tournaments/{tournamentId}`: `adminId`, `name`, `status`, `categories` (`categoria|rama`), `format`, `teamLimit`, `publicRegistration`, `startDate`, `endDate`, `updatedAt`.
 - `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
 - `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.

@@ -8,9 +8,14 @@ service cloud.firestore {
     }
 
     // Los administradores se gestionan mediante custom claims desde un entorno seguro.
-    function isAdmin() {
+    function hasRole(role) {
       return signedIn()
-        && request.auth.token.rol in ['admin', 'admin_liga'];
+        && ((request.auth.token.roles is list && role in request.auth.token.roles)
+          || request.auth.token.rol == role);
+    }
+
+    function isAdmin() {
+      return hasRole('admin') || hasRole('admin_liga');
     }
 
     function isSelf(userId) {

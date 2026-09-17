@@ -17,9 +17,22 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<AppUser?> watchAuthState() {
-    return remoteDataSource.authStateChanges.map(
-      (user) => user == null ? null : AppUserModel.fromFirebaseUser(user),
-    );
+    return remoteDataSource.authStateChanges.asyncMap((user) async {
+      if (user == null) return null;
+      final token = await user.getIdTokenResult();
+      final roles = _rolesFromClaims(token.claims);
+      return AppUserModel.fromFirebaseUser(user, roles: roles);
+    });
+  }
+
+  static List<String> _rolesFromClaims(Map<String, dynamic>? claims) {
+    final rawRoles = claims?['roles'];
+    if (rawRoles is List) {
+      final roles = rawRoles.whereType<String>().toSet().toList();
+      if (roles.isNotEmpty) return roles;
+    }
+    final legacyRole = claims?['rol'];
+    return legacyRole is String ? [legacyRole] : const ['jugador'];
   }
 
   @override

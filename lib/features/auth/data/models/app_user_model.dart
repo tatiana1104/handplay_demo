@@ -12,16 +12,19 @@ class AppUserModel extends AppUser {
     super.email,
     super.displayName,
     super.photoUrl,
-    super.role = 'jugador',
+    super.roles = const ['jugador'],
   });
 
-  factory AppUserModel.fromFirebaseUser(fb.User user) {
+  factory AppUserModel.fromFirebaseUser(
+    fb.User user, {
+    List<String> roles = const ['jugador'],
+  }) {
     return AppUserModel(
       uid: user.uid,
       email: user.email,
       displayName: user.displayName,
       photoUrl: user.photoURL,
-      role: 'jugador',
+      roles: roles,
     );
   }
 }

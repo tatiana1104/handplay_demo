@@ -57,8 +57,15 @@ class _CreateTournamentAction extends StatelessWidget {
     return FutureBuilder<IdTokenResult>(
       future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
       builder: (context, snapshot) {
-        final role = snapshot.data?.claims?['rol'];
-        if (role != 'admin_liga' && role != 'admin') return const SizedBox.shrink();
+        final claims = snapshot.data?.claims;
+        final roles = (claims?['roles'] as List?)?.whereType<String>().toSet() ??
+            <String>{};
+        final legacyRole = claims?['rol'];
+        final isAdmin = roles.contains('admin_liga') ||
+            roles.contains('admin') ||
+            legacyRole == 'admin_liga' ||
+            legacyRole == 'admin';
+        if (!isAdmin) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(right: 12),
           child: FilledButton.icon(

@@ -8,10 +8,10 @@ const auth = getAuth();
 const db = getFirestore();
 
 const testUsers = [
-  { email: 'admin.liga.test@handplaydemo.test', name: 'Administrador de liga', role: 'admin_liga' },
-  { email: 'jugador.test@handplaydemo.test', name: 'Jugador de prueba', role: 'jugador' },
-  { email: 'entrenador.test@handplaydemo.test', name: 'Entrenador de prueba', role: 'entrenador' },
-  { email: 'arbitro.test@handplaydemo.test', name: 'Árbitro de prueba', role: 'arbitro' },
+  { email: 'admin.liga.test@handplaydemo.test', name: 'Administrador de liga', roles: ['admin_liga'] },
+  { email: 'jugador.test@handplaydemo.test', name: 'Jugador de prueba', roles: ['jugador'] },
+  { email: 'entrenador.test@handplaydemo.test', name: 'Entrenador de prueba', roles: ['entrenador'] },
+  { email: 'arbitro.test@handplaydemo.test', name: 'Árbitro de prueba', roles: ['arbitro'] },
 ];
 
 function createTemporaryPassword() {
@@ -39,12 +39,17 @@ async function createOrUpdateUser(definition) {
     });
   }
 
-  await auth.setCustomUserClaims(user.uid, { rol: definition.role });
+  await auth.setCustomUserClaims(user.uid, {
+    roles: definition.roles,
+    // Compatibilidad temporal con clientes/reglas antiguas.
+    rol: definition.roles[0],
+  });
   await db.collection('users').doc(user.uid).set({
     uid: user.uid,
     nombre: definition.name,
     correo: definition.email,
-    rol: definition.role,
+    roles: definition.roles,
+    rol: definition.roles[0],
     estado: 'activo',
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
