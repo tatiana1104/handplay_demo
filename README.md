@@ -107,6 +107,7 @@ node scripts/create-test-users.cjs
 
 El script muestra las contraseñas temporales una sola vez; guárdalas de forma segura y obliga al usuario a cerrar sesión y entrar de nuevo para refrescar sus claims.
 
+<<<<<<< HEAD
 ### ⬜ Sprint 2 — Torneos y equipos
 - [ ] Listado de torneos del usuario desde Firestore (participantIds)
 - [ ] Filtro de torneos activos y finalizados
@@ -114,6 +115,28 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [ ] Detalle de torneo con progreso de jornada
 - [ ] Consulta y creación de equipos en tournaments/{id}/teams
 - [ ] Modelo y repositorio documentados con comentarios explicativos
+=======
+### 🟨 Sprint 2 — Torneos y equipos (modelo iniciado)
+- [x] Modelos Dart para torneos, categorías, sedes, equipos, jugadores y partidos
+- [x] Repositorio Firestore con consultas reactivas de torneos, categorías y sedes
+- [ ] Vistas de torneos y equipos
+- [ ] Escrituras completas y validación de formularios
+
+#### Modelo de datos Firestore
+Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
+
+- `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
+- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`.
+- `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
+- `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
+- `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.
+
+Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarlas desde la raíz del proyecto:
+
+```powershell
+firebase deploy --only "firestore:rules" --project handplaydemo
+```
+>>>>>>> a04894d ([RF-01|RF-03] crear modelos Firestore de torneos)
 
 ### ⬜ Sprint 3 — Calendario y árbitros
 ### ⬜ Sprint 4 — Partido en vivo
