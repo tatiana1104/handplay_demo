@@ -8,6 +8,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
+import 'tournament_detail_screen.dart';
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -132,6 +133,13 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
                       itemBuilder: (context, index) => _TournamentCard(
                         tournament: visibleTournaments[index],
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TournamentDetailScreen(
+                              tournament: visibleTournaments[index],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
             ),
@@ -258,9 +266,10 @@ class _EmptyFilteredTournaments extends StatelessWidget {
 }
 
 class _TournamentCard extends StatelessWidget {
-  const _TournamentCard({required this.tournament});
+  const _TournamentCard({required this.tournament, required this.onTap});
 
   final Tournament tournament;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +283,10 @@ class _TournamentCard extends StatelessWidget {
         : '${isFinished ? 'Finalizó' : 'Inicia'}: ${tournament.startDate!.day.toString().padLeft(2, '0')}/${tournament.startDate!.month.toString().padLeft(2, '0')}/${tournament.startDate!.year}';
 
     return Card(
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,6 +304,7 @@ class _TournamentCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(dateLabel, style: Theme.of(context).textTheme.bodySmall),
           ],
+        ),
         ),
       ),
     );
