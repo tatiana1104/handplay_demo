@@ -37,7 +37,7 @@ lib/
 │   └── di/                 # Service locator (get_it)
 ├── features/
 │   ├── auth/              # Login, registro, recuperar contraseña (RF-24, RF-25)
-│   ├── tournaments/       # Torneos, favoritos (RF-01–RF-04)
+  │   ├── tournaments/       # Torneos (RF-01–RF-03)
 │   ├── teams/              # Inscripción y planilla de equipos (RF-05–RF-08)
 │   ├── matches/            # Calendario, oficiales, partido en vivo (RF-09–RF-17)
 │   ├── statistics/         # Posiciones, goleadores, valla menos vencida (RF-18–RF-20)
@@ -86,6 +86,8 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [x] Firestore Security Rules configuradas para despliegue (`firebase deploy --only "firestore:rules"`) — reglas base: solo usuarios autenticados
 - [x] Verificado en Moto G34 5G: splash → login → Google Sign-In → Firestore → Mis torneos
 - [x] Navegación protegida por sesión y rol (`redirect` de go_router según `AuthBloc`; rol disponible desde custom claims de Firebase)
+- [x] Vista de perfil conectada al botón inferior: muestra nombre, correo y cierre de sesión
+- [x] Home público después del splash: la información general no requiere iniciar sesión
 
 ### ⬜ Sprint 2 — Torneos y equipos
 - [ ] Listado de torneos del usuario desde Firestore (participantIds)
@@ -122,6 +124,21 @@ Ver sección 13 del PRD consolidado — entre ellas, el número exacto de la
 cuota mínima de género en cancha (RN-06) y el mínimo de partidos jugados
 para clasificar en valla menos vencida (RF-20).
 
+## Modelo de datos Firestore
+Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
+
+- `users/{uid}`: `uid`, `email`, `nombre`, `rol` (`jugador`, `arbitro` o `admin`). El perfil solo lo puede modificar su propietario; el rol se conserva en actualizaciones.
+- `tournaments/{tournamentId}`: `ownerId`, `nombre`, `status`, `participantIds`, `currentRound`, `totalRounds`, `nextMatch`, `updatedAt`.
+- `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
+- `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
+- `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.
+
+Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarlas desde la raíz del proyecto:
+
+```powershell
+firebase deploy --only "firestore:rules" --project handplaydemo
+```
+
 ## Pendientes técnicos conocidos
 
 - **Google Sign-In en Android** requiere el SHA-1 (y SHA-256) del
@@ -138,15 +155,3 @@ para clasificar en valla menos vencida (RF-20).
   y agregar el SHA-1 que aparezca ahí en Firebase Console, luego
   volver a descargar `google-services.json` y reemplazar el de
   `android/app/`.
-- **Build de Android lento (`org.gradle.daemon=false`)**: en la
-  máquina de desarrollo actual, el daemon de Gradle y de Kotlin se
-  colgaban indefinidamente en `assembleDebug` (`Failed connecting to
-  the daemon in 4 retries`), aparentemente por firewall/antivirus
-  bloqueando el socket de loopback. Se desactivaron ambos daemons en
-  `android/gradle.properties` como solución. Esto hace los builds más
-  lentos para TODOS los que clonen el repo (no solo la máquina
-  afectada). Si en tu máquina los builds nunca tuvieron ese problema,
-  puedes probar a quitar esas dos líneas y ver si te compila más
-  rápido con el daemon activado — si es así, considera mover esa
-  configuración a tu `~/.gradle/gradle.properties` personal en vez de
-  dejarla en el repo compartido.

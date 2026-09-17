@@ -45,7 +45,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el segundo elemento (índice 1) de la barra de navegación inferior. TODO: reemplazar por la ruta del calendario cuando se implemente.
                 break;
               case 2:
-                context.go(RouteNames.login); // Navegamos a la pantalla de login cuando se toca el tercer elemento (índice 2) de la barra de navegación inferior. TODO: reemplazar por la ruta del perfil cuando se implemente.
+                context.go(RouteNames.profile); // El perfil solo está disponible después de iniciar sesión.
                 break;
             }
           },
