@@ -112,10 +112,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 28),
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
           children: [
             TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nombre del torneo *', hintText: 'Interclubes 2026'), validator: (v) => v == null || v.trim().isEmpty ? 'Escribe un nombre' : null),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text('Categorías y ramas *', style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
             Text(
@@ -167,15 +167,23 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     .toList(),
               ),
             ],
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             Row(children: [Expanded(child: _DateButton(label: 'Fecha inicio *', value: _startDate, onPressed: () => _pickDate(start: true))), const SizedBox(width: 8), Expanded(child: _DateButton(label: 'Fecha fin (opcional)', value: _endDate, onPressed: () => _pickDate(start: false)))]),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(value: _format, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos *'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) <= 0 ? 'Indica un cupo válido' : null),
             const SizedBox(height: 8),
-            SwitchListTile.adaptive(value: _publicRegistration, onChanged: (v) => setState(() => _publicRegistration = v), title: const Text('Inscripción pública', style: TextStyle(fontWeight: FontWeight.bold)), subtitle: const Text('Los equipos podrán inscribirse ellos mismos con el formulario'), contentPadding: EdgeInsets.zero),
-            const SizedBox(height: 14),
+            SwitchListTile.adaptive(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              value: _publicRegistration,
+              onChanged: (v) => setState(() => _publicRegistration = v),
+              title: const Text('Inscripción pública', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('Los equipos podrán inscribirse ellos mismos.'),
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 8),
             SizedBox(height: 48, child: FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Guardando...' : 'Crear torneo'))),
           ],
         ),
@@ -191,5 +199,19 @@ class _DateButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(onPressed: onPressed, child: Align(alignment: Alignment.centerLeft, child: Text(value == null ? label : '$label: ${value!.day.toString().padLeft(2, '0')}/${value!.month.toString().padLeft(2, '0')}/${value!.year}')));
+  Widget build(BuildContext context) => OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(44),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value == null ? label : '$label: ${value!.day.toString().padLeft(2, '0')}/${value!.month.toString().padLeft(2, '0')}/${value!.year}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
 }
