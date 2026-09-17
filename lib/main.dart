@@ -104,9 +104,18 @@ class _HandPlayAppState extends State<HandPlayApp> {
         ),
         GoRoute(
           path: RouteNames.createTournament,
-          builder: (context, state) => CreateTournamentScreen(
-            adminId: state.extra! as String,
-          ),
+          builder: (context, state) {
+            final extraAdminId = state.extra;
+            final adminId = extraAdminId is String && extraAdminId.isNotEmpty
+                ? extraAdminId
+                : FirebaseAuth.instance.currentUser?.uid;
+
+            if (adminId == null || adminId.isEmpty) {
+              return const TorneosScreen();
+            }
+
+            return CreateTournamentScreen(adminId: adminId);
+          },
         ),
         GoRoute(
           path: RouteNames.login,
