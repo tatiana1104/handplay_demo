@@ -18,6 +18,7 @@ import 'features/auth/presentation/screens/recover_password_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/matches/presentation/screens/calendar_screen.dart';
+import 'features/referees/presentation/screens/referees_screen.dart';
 import 'features/tournaments/presentation/screens/create_tournament_screen.dart';
 import 'features/tournaments/presentation/screens/torneos_screen.dart';
 import 'firebase_options.dart';
@@ -114,6 +115,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
         GoRoute(
           path: RouteNames.calendar,
           builder: (context, state) => const CalendarScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.referees,
+          builder: (context, state) => const RefereesScreen(),
         ),
         GoRoute(
           path: RouteNames.createTournament,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/referees/presentation/screens/referees_screen.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 
@@ -69,7 +68,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 break;
               case 2:
                 if (effectiveAdmin) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
+                  GoRouter.of(context).go(RouteNames.referees);
                 } else {
                   context.go(hasAuthenticatedSession ? RouteNames.profile : RouteNames.login);
                 }
