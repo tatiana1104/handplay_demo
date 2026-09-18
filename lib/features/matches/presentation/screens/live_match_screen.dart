@@ -137,6 +137,24 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  Future<void> _stopAndAdvancePeriod() async {
+    if (!_isTimekeeper || _match['status'] == 'finished') return;
+    final currentPeriod = (_match['period'] as num?)?.toInt() ?? 1;
+    final nextPeriod = currentPeriod < 4 ? currentPeriod + 1 : currentPeriod;
+    _timer?.cancel();
+    await _saveMatch({
+      'period': nextPeriod,
+      'elapsedSeconds': 0,
+      'status': 'paused',
+      'periodStartedAt': FieldValue.serverTimestamp(),
+    });
+    if (!mounted) return;
+    setState(() {
+      _elapsedSeconds = 0;
+      _isPaused = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final home = _match['homeTeamName'] ?? _match['localName'] ?? 'Equipo local';
@@ -177,7 +195,13 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
-                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cron��metro')),
+                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cron����metro')),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _match['status'] == 'finished' ? null : _stopAndAdvancePeriod,
+                    icon: const Icon(Icons.stop_circle_outlined),
+                    label: Text(((_match['period'] as num?)?.toInt() ?? 1) < 4 ? 'Parar funcionamiento y pasar al siguiente período' : 'Parar funcionamiento'),
+                  ),
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
                 ],
