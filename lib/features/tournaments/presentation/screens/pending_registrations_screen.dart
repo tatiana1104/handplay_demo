@@ -91,6 +91,11 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
         final playerMatches = await profiles.where('document', isEqualTo: document).limit(1).get();
         final playerRef = playerMatches.docs.isEmpty ? profiles.doc('document_$document') : playerMatches.docs.first.reference;
         batch.set(playerRef, {'roles': FieldValue.arrayUnion(['jugador']), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+        final playerUsers = await users.where('document', isEqualTo: document).limit(1).get();
+        final playerUsersByNumber = playerUsers.docs.isEmpty ? await users.where('documentNumber', isEqualTo: document).limit(1).get() : playerUsers;
+        if (playerUsersByNumber.docs.isNotEmpty) {
+          batch.set(playerUsersByNumber.docs.first.reference, {'roles': FieldValue.arrayUnion(['jugador']), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+        }
       }
     }
     await batch.commit();

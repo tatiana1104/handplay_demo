@@ -47,7 +47,20 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   static const positions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
 
+  Future<void> _loadExistingPlayer() async {
+    final existing = await _findProfile(_document.text.trim());
+    if (!mounted || existing == null) return;
+    setState(() {
+      _name.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? '';
+      _number.text = existing['number']?.toString() ?? existing['shirtNumber']?.toString() ?? '';
+      _position.text = existing['position']?.toString() ?? '';
+      _gender = existing['gender']?.toString();
+      _club.text = existing['club']?.toString() ?? existing['clubName']?.toString() ?? '';
+    });
+  }
+
   Future<void> _submit() async {
+    await _loadExistingPlayer();
     if (!_formKey.currentState!.validate()) return;
     final number = int.parse(_number.text.trim());
     if (widget.usedNumbers.contains(number)) {
@@ -73,7 +86,9 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     final result = await directory.where('document', isEqualTo: document).limit(1).get();
     if (result.docs.isNotEmpty) return result.docs.first.data();
     final users = await FirebaseFirestore.instance.collection('users').where('document', isEqualTo: document).limit(1).get();
-    return users.docs.isEmpty ? null : users.docs.first.data();
+    if (users.docs.isNotEmpty) return users.docs.first.data();
+    final usersByNumber = await FirebaseFirestore.instance.collection('users').where('documentNumber', isEqualTo: document).limit(1).get();
+    return usersByNumber.docs.isEmpty ? null : usersByNumber.docs.first.data();
   }
 
   @override
@@ -105,6 +120,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
               TextFormField(
                 controller: _document,
                 decoration: const InputDecoration(labelText: 'Número de documento *', prefixIcon: Icon(Icons.credit_card_outlined)),
+                onEditingComplete: _loadExistingPlayer,
                 validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
               ),
               const SizedBox(height: 8),
@@ -261,7 +277,17 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           ? await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get()
           : userByDocument;
       final userByEmail = await firestore.collection('profile_directory').where('email', isEqualTo: coachEmail).limit(1).get();
-      final existingCoach = userByDocumentNumber.docs.isNotEmpty ? userByDocumentNumber.docs.first : (userByEmail.docs.isNotEmpty ? userByEmail.docs.first : null);
+      final coachUsersByDocument = await firestore.collection('users').where('document', isEqualTo: coachDocument).limit(1).get();
+      final coachUsersByEmail = await firestore.collection('users').where('email', isEqualTo: coachEmail).limit(1).get();
+      final existingCoach = userByDocumentNumber.docs.isNotEmpty
+          ? userByDocumentNumber.docs.first.data()
+          : userByEmail.docs.isNotEmpty
+              ? userByEmail.docs.first.data()
+              : coachUsersByDocument.docs.isNotEmpty
+                  ? coachUsersByDocument.docs.first.data()
+                  : coachUsersByEmail.docs.isNotEmpty
+                      ? coachUsersByEmail.docs.first.data()
+                      : null;
       final enrichedPlayers = <Map<String, String>>[];
       for (final player in _players) {
         final document = player['document']?.trim() ?? '';
