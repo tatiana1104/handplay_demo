@@ -503,15 +503,18 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
       }
       userRef ??= users.doc();
       final data = await userRef.get();
-      final roles = (data.data()?['roles'] as List?)
+      final existingData = data.data() ?? <String, dynamic>{};
+      final roles = (existingData['roles'] as List?)
               ?.map((role) => role.toString().trim().toLowerCase())
               .where((role) => role.isNotEmpty)
               .toSet() ??
           <String>{};
+      final primaryRole = existingData['rol']?.toString().trim().toLowerCase();
+      if (primaryRole != null && primaryRole.isNotEmpty) roles.add(primaryRole);
       roles.add('arbitro');
       await userRef.set({
-        'uid': data.data()?['uid'] ?? userRef.id,
-        'rol': data.data()?['rol'] ?? 'arbitro',
+        'uid': existingData['uid'] ?? userRef.id,
+        'rol': primaryRole ?? 'arbitro',
         'displayName': _name.text.trim().isNotEmpty ? _name.text.trim() : (data.data()?['displayName'] ?? ''),
         'email': _email.text.trim().toLowerCase(),
         'phone': _phone.text.trim(),
