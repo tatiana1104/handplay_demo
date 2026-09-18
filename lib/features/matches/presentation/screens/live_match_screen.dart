@@ -66,7 +66,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   bool get _isReferee {
     final state = context.read<AuthBloc>().state;
-    return state is AuthAuthenticated && state.user.roles.any((role) => role == 'arbitro' || role == 'referee');
+    if (state is! AuthAuthenticated) return false;
+    return state.user.roles
+        .map((role) => role.trim().toLowerCase())
+        .any((role) => role == 'arbitro' || role == 'árbitro' || role == 'referee');
   }
 
   bool get _canStart {
