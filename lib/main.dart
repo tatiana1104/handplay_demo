@@ -22,6 +22,8 @@ import 'features/matches/presentation/screens/live_match_screen.dart';
 import 'features/referees/presentation/screens/referees_screen.dart';
 import 'features/tournaments/presentation/screens/create_tournament_screen.dart';
 import 'features/tournaments/presentation/screens/torneos_screen.dart';
+import 'features/tournaments/presentation/screens/tournament_detail_screen.dart';
+import 'features/tournaments/domain/models/tournament_models.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
