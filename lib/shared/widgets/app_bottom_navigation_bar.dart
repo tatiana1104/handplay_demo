@@ -55,14 +55,14 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el primer elemento (índice 0) de la barra de navegación inferior
                 break;
               case 1:
-                if (isAuthenticated) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
-                } else {
-                  context.go(RouteNames.login);
-                }
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
                 break;
               case 2:
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
+                if (effectiveAdmin) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
+                } else if (!isAuthenticated) {
+                  context.go(RouteNames.login);
+                }
                 break;
               case 3:
                 context.go(RouteNames.profile);
@@ -80,29 +80,21 @@ class AppBottomNavigationBar extends StatelessWidget {
           // reemplaza el acceso de sesión por Perfil.
           items: isAuthenticated
               ? [
-                  BottomNavigationBarItem(
+                  const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Calendario'),
+                  if (effectiveAdmin) const BottomNavigationBarItem(icon: Icon(Icons.sports_outlined), label: 'Árbitros'),
+                  const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Perfil'),
+                ]
+              : [
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.home_rounded),
                     label: 'Home',
                   ),
-                  BottomNavigationBarItem(
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.calendar_month_rounded),
                     label: 'Calendario',
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.sports_outlined),
-                    label: 'Árbitros',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_rounded),
-                    label: 'Perfil',
-                  ),
-                ]
-              : const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_rounded),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.login_rounded),
                     label: 'Iniciar sesión',
                   ),

@@ -36,8 +36,8 @@ service cloud.firestore {
     }
 
     // El usuario solo puede consultar y actualizar su propio perfil.
-    match /users/{userId} {
-      allow read: if isSelf(userId) || isAdmin();
+  match /users/{userId} {
+    allow read: if isSelf(userId) || isAdmin() || resource.data.roles.hasAny(['arbitro']);
   allow create: if isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == userId
@@ -132,12 +132,12 @@ service cloud.firestore {
     // Permite el calendario global basado en collectionGroup('matches').
     // Las pantallas por torneo mantienen las validaciones específicas anteriores.
     match /{path=**}/matches/{matchId} {
-      allow read: if signedIn();
+      allow read: if true;
     }
 
     // Permite resolver nombres y colores de equipos inscritos en el calendario.
     match /{path=**}/registrations/{registrationId} {
-      allow read: if signedIn();
+      allow read: if resource.data.status == 'approved' || signedIn();
     }
 
     // Mantiene compatibilidad con la colección raíz creada en Firebase Console.

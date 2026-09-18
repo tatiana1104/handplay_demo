@@ -1,5 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class RefereesScreen extends StatelessWidget {
   const RefereesScreen({super.key});
@@ -11,10 +15,13 @@ class RefereesScreen extends StatelessWidget {
         .where('roles', arrayContains: 'arbitro')
         .snapshots();
 
+    final authState = context.watch<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && authState.user.roles.any((role) => role == 'admin' || role == 'admin_liga');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Listado de árbitros'),
-        actions: [
+        actions: isAdmin ? [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: FilledButton.icon(
@@ -29,7 +36,7 @@ class RefereesScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
+        ] : const [],
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: referees,
