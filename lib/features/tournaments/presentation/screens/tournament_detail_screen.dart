@@ -314,7 +314,7 @@ class _MatchesSection extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
-                          Expanded(child: _TeamMatchLabel(name: away, color: awayColor)),
+                          Expanded(child: _TeamMatchLabel(name: home, color: homeColor)),
                           Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -332,13 +332,13 @@ class _MatchesSection extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: home, color: homeColor))),
+                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: away, color: awayColor))),
                         ]),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: status == 'scheduled' ? Colors.green.shade700 : Colors.black26, borderRadius: BorderRadius.circular(5)),
-                          child: Text(status == 'scheduled' ? 'Cargar resultado' : 'Finalizado', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          decoration: BoxDecoration(color: _statusColor(status), borderRadius: BorderRadius.circular(5)),
+                          child: Text(_statusLabel(status), style: const TextStyle(color: Colors.white, fontSize: 11)),
                         ),
                       ]),
                     ),
@@ -366,6 +366,18 @@ class _TeamMatchLabel extends StatelessWidget {
           Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
         ],
       );
+}
+
+String _statusLabel(String? status) {
+  final value = status?.toLowerCase();
+  if (value == 'playing' || value == 'jugando') return 'Jugando';
+  if (value == 'finished' || value == 'finalizado') return 'Finalizado';
+  return 'Por iniciar';
+}
+
+Color _statusColor(String? status) {
+  final label = _statusLabel(status);
+  return label == 'Jugando' ? Colors.orange.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.green.shade700;
 }
 
 Color _teamColorFromValue(dynamic value, Color fallback) {

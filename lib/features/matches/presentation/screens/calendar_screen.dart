@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
@@ -10,6 +12,7 @@ class CalendarScreen extends StatelessWidget {
     final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
+      bottomNavigationBar: const AppBottomNavigationBar(selectedIndex: 1),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
         builder: (context, snapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -79,7 +82,7 @@ class _CalendarDay extends StatelessWidget {
                         Expanded(child: Align(alignment: Alignment.centerRight, child: _Team(name: _name(match, false), color: _color(match['awayTeamColor'], Colors.deepOrange)))),
                       ]),
                       const SizedBox(height: 7),
-                      Align(alignment: Alignment.centerLeft, child: DecoratedBox(decoration: BoxDecoration(color: Colors.green.shade700, borderRadius: BorderRadius.circular(5)), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3), child: Text('Cargar resultado', style: TextStyle(color: Colors.white, fontSize: 11))))),
+                      Align(alignment: Alignment.centerLeft, child: _StatusLabel(status: match['status'])),
                     ],
                   ),
                 ),
@@ -118,6 +121,19 @@ String _dateLabel(dynamic value) {
 String _time(dynamic value) {
   final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
   return date == null ? 'Hora por definir' : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+}
+
+class _StatusLabel extends StatelessWidget {
+  const _StatusLabel({required this.status});
+  final dynamic status;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = status?.toString().toLowerCase();
+    final label = value == 'playing' || value == 'jugando' ? 'Jugando' : value == 'finished' || value == 'finalizado' ? 'Finalizado' : 'Por iniciar';
+    final color = label == 'Jugando' ? Colors.orange.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.green.shade700;
+    return DecoratedBox(decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11))));
+  }
 }
 
 class _Team extends StatelessWidget {
