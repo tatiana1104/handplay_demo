@@ -99,22 +99,23 @@ class _HandPlayAppState extends State<HandPlayApp> {
           return RouteNames.home;
         }
 
-        // El detalle del torneo es de solo lectura y puede ser consultado por
-        // visitantes, cuentas públicas, administradores y usuarios autenticados.
-        if (isPublicRoute) {
-          return null;
+        if (isAuthenticated &&
+            !isPublicRole &&
+            (state.matchedLocation == RouteNames.login ||
+                state.matchedLocation == RouteNames.register ||
+                state.matchedLocation == RouteNames.recoverPassword ||
+                state.matchedLocation == RouteNames.splash)) {
+          return RouteNames.profile;
         }
 
         if (state.matchedLocation == RouteNames.splash) {
           return isAuthenticated && !isPublicRole ? RouteNames.profile : RouteNames.home;
         }
 
-        if (isAuthenticated &&
-            (state.matchedLocation == RouteNames.login ||
-                state.matchedLocation == RouteNames.register ||
-                state.matchedLocation == RouteNames.recoverPassword ||
-                state.matchedLocation == RouteNames.splash)) {
-          return RouteNames.profile;
+        // El detalle del torneo es de solo lectura y puede ser consultado por
+        // visitantes, cuentas públicas, administradores y usuarios autenticados.
+        if (isPublicRoute) {
+          return null;
         }
 
         return null;
