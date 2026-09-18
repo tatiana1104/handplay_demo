@@ -408,6 +408,21 @@ class _MatchesSection extends StatelessWidget {
                       child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: _statusColor(status), borderRadius: BorderRadius.circular(5)),
+                            child: Text(
+                              _statusLabel(status),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         Row(children: [
                           Expanded(child: _TeamMatchLabel(label: 'LOCAL', name: home, color: homeColor)),
                           Column(
@@ -478,12 +493,6 @@ class _MatchesSection extends StatelessWidget {
                             ],
                           ),
                         ],
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: _statusColor(status), borderRadius: BorderRadius.circular(5)),
-                          child: Text(_statusLabel(status), style: const TextStyle(color: Colors.white, fontSize: 11)),
-                        ),
                       ]),
                       ),
                     ),
