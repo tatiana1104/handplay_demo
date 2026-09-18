@@ -187,7 +187,17 @@ class _ApprovedTeamsScreen extends StatelessWidget {
               final teamColor = _uniformColor(uniformColor);
               return Card(
                 margin: EdgeInsets.zero,
+                clipBehavior: Clip.antiAlias,
                 child: ListTile(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => _ApprovedTeamDetailScreen(
+                        tournament: tournament,
+                        registration: data,
+                        teamColor: teamColor,
+                      ),
+                    ),
+                  ),
                   leading: CircleAvatar(
                     backgroundColor: teamColor,
                     foregroundColor: _contrastColor(teamColor),
@@ -227,6 +237,115 @@ class _ApprovedTeamsScreen extends StatelessWidget {
   }
 
   Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
+class _ApprovedTeamDetailScreen extends StatelessWidget {
+  const _ApprovedTeamDetailScreen({
+    required this.tournament,
+    required this.registration,
+    required this.teamColor,
+  });
+
+  final Tournament tournament;
+  final Map<String, dynamic> registration;
+  final Color teamColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final teamName = registration['teamName']?.toString().trim().isNotEmpty == true
+        ? registration['teamName'].toString()
+        : 'Equipo sin nombre';
+    final players = (registration['players'] as List?)?.whereType<Map>().toList() ?? const <Map>[];
+    final coach = registration['coachName']?.toString() ?? 'Entrenador no registrado';
+    final category = registration['category']?.toString() ?? 'Categoría no registrada';
+
+    return Scaffold(
+      appBar: AppBar(title: Text(teamName)),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: teamColor,
+                foregroundColor: _contrastColor(teamColor),
+                child: Text(teamName.substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(teamName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                    Text('$category · DT: $coach'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(child: _TeamMetric(label: 'Jugadores', value: '${players.length}')),
+              const SizedBox(width: 8),
+              Expanded(child: _TeamMetric(label: 'Posición', value: '--')),
+              const SizedBox(width: 8),
+              Expanded(child: _TeamMetric(label: 'Puntos', value: '--')),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text('Plantilla (${players.length})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          if (players.isEmpty)
+            const Card(child: ListTile(title: Text('No hay jugadores registrados.')))
+          else
+            ...players.asMap().entries.map((entry) => _PlayerRow(player: entry.value, index: entry.key)),
+        ],
+      ),
+    );
+  }
+
+  Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
+class _TeamMetric extends StatelessWidget {
+  const _TeamMetric({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: Theme.of(context).textTheme.bodySmall), const SizedBox(height: 4), Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))]),
+        ),
+      );
+}
+
+class _PlayerRow extends StatelessWidget {
+  const _PlayerRow({required this.player, required this.index});
+  final Map player;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = player['name']?.toString() ?? 'Jugador';
+    final position = player['position']?.toString() ?? 'Sin posición';
+    final number = player['number']?.toString() ?? '--';
+    final goals = player['goals']?.toString();
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        dense: true,
+        leading: SizedBox(width: 28, child: Text(number == '--' ? '${index + 1}' : '#$number')),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(position),
+        trailing: goals == null ? null : Text('$goals goles'),
+      ),
+    );
+  }
 }
 
 class _SectionTitle extends StatelessWidget {
