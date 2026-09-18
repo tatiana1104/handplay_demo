@@ -178,5 +178,45 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
   Widget _official(String role, dynamic name) => ListTile(dense: true, title: Text(role), trailing: Text(name?.toString() ?? 'Sin asignar'));
-  Widget _playerRow(String number, String name, int goals) => Card(child: ListTile(leading: Text(number), title: Text(name), subtitle: Text('$goals goles'), trailing: Wrap(spacing: 4, children: [IconButton(onPressed: null, icon: const Icon(Icons.sports_handball)), IconButton(onPressed: null, icon: const Icon(Icons.crop_square)), IconButton(onPressed: null, icon: const Icon(Icons.square, color: Colors.amber)), IconButton(onPressed: null, icon: const Icon(Icons.square, color: Colors.red))])));
+
+  final Map<String, Map<String, int>> _playerEvents = {};
+
+  void _recordPlayerEvent(String playerKey, String event) {
+    setState(() {
+      final events = _playerEvents.putIfAbsent(playerKey, () => <String, int>{});
+      events[event] = (events[event] ?? 0) + 1;
+    });
+  }
+
+  Widget _playerRow(String number, String name, int goals) {
+    final key = '$number-$name';
+    final events = _playerEvents[key] ?? const <String, int>{};
+    return Card(
+      child: ListTile(
+        leading: Text(number),
+        title: Text(name),
+        subtitle: Text('${goals + (events['goal'] ?? 0)} goles'),
+        trailing: Wrap(spacing: 2, children: [
+          _eventButton(Icons.sports_handball, 'goal', key, Colors.white),
+          _textEventButton("2'", 'exclusion', key, Colors.amber),
+          _eventButton(Icons.square, 'yellowCard', key, Colors.amber),
+          _eventButton(Icons.square, 'redCard', key, Colors.red),
+        ]),
+      ),
+    );
+  }
+
+  Widget _eventButton(IconData icon, String event, String playerKey, Color color) => IconButton(
+        tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
+        visualDensity: VisualDensity.compact,
+        onPressed: () => _recordPlayerEvent(playerKey, event),
+        icon: Icon(icon, color: color, size: 20),
+      );
+
+  Widget _textEventButton(String label, String event, String playerKey, Color color) => IconButton(
+        tooltip: 'Exclusión 2 minutos',
+        visualDensity: VisualDensity.compact,
+        onPressed: () => _recordPlayerEvent(playerKey, event),
+        icon: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+      );
 }
