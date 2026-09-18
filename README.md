@@ -99,6 +99,7 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 
 ### 🛠️ Sprint 3 — Calendario y árbitros
 - [x] Corregida la compilación de las pantallas de calendario, árbitros e inscripciones pendientes
+- [x] Corregidos cierres de widgets `DecoratedBox` en filtros de árbitros e inscripciones pendientes
 - [x] Ajustados los contenedores decorados para usar `BoxDecoration` en lugar de parámetros no soportados por `Material`
 - [x] Eliminado el acceso a `context` desde componentes que no reciben `BuildContext`
 

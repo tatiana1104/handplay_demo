@@ -261,6 +261,7 @@ class _RegistrationFilterChip extends StatelessWidget {
           child: Text(label, style: TextStyle(color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant, fontWeight: selected ? FontWeight.w700 : FontWeight.w600, fontSize: 13)),
         ),
       ),
+    ),
     );
   }
 }
