@@ -31,7 +31,12 @@ class CalendarScreen extends StatelessWidget {
           }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final registrationById = <String, Map<String, dynamic>>{
-            for (final doc in registrationsSnapshot.data?.docs ?? const []) doc.id: doc.data(),
+            for (final doc in registrationsSnapshot.data?.docs ?? const []) ...{
+              doc.id: doc.data(),
+              if (doc.data()['id'] != null) doc.data()['id'].toString(): doc.data(),
+              if (doc.data()['teamId'] != null) doc.data()['teamId'].toString(): doc.data(),
+              if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
+            },
           };
           final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
           if (docs.isEmpty) return const Center(child: Text('No hay partidos programados.'));
@@ -42,10 +47,10 @@ class CalendarScreen extends StatelessWidget {
             data['tournamentId'] = doc.reference.parent.parent?.id;
             final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
             final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
-            final home = registrationById[homeId];
-            final away = registrationById[awayId];
-            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? homeId ?? 'Equipo local');
-            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? awayId ?? 'Equipo visitante');
+            final home = _findRegistration(registrationById, homeId, data, true);
+            final away = _findRegistration(registrationById, awayId, data, false);
+            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? data['localName'] ?? homeId ?? 'Equipo local');
+            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? data['visitorName'] ?? awayId ?? 'Equipo visitante');
             data['homeTeamColor'] = home?['uniformColor'] ?? data['homeTeamColor'];
             data['awayTeamColor'] = away?['uniformColor'] ?? data['awayTeamColor'];
             grouped.putIfAbsent(_dateLabel(data['date']), () => []).add(data);
@@ -117,7 +122,17 @@ class _CalendarDay extends StatelessWidget {
   }
 }
 
-String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
+  Map<String, dynamic>? _findRegistration(Map<String, Map<String, dynamic>> registrations, String? teamId, Map<String, dynamic> match, bool home) {
+    if (teamId != null && registrations[teamId] != null) return registrations[teamId];
+    final name = match[home ? 'homeTeamName' : 'awayTeamName'] ?? match[home ? 'localName' : 'visitorName'];
+    for (final registration in registrations.values) {
+      final registrationName = registration['teamName'] ?? registration['clubName'] ?? registration['name'];
+      if (name != null && registrationName?.toString() == name.toString()) return registration;
+    }
+    return null;
+  }
+
+  String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
   if (registration == null) return fallback.toString();
   return registration['teamName']?.toString() ?? registration['clubName']?.toString() ?? registration['name']?.toString() ?? fallback.toString();
 }
