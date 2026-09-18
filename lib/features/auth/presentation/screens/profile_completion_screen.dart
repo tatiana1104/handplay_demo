@@ -72,6 +72,11 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       'profileComplete': true,
       'profileCompletedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      final savedSnapshot = await profileRef.get(const GetOptions(source: Source.server));
+      final savedData = savedSnapshot.data();
+      if (!savedSnapshot.exists || savedData?['profileCompleted'] != true) {
+        throw StateError('Firestore no confirmó el perfil guardado');
+      }
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil guardado correctamente')));

@@ -252,6 +252,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: Completar perfil normaliza los roles `player/jugador`, `coach/entrenador`, `referee/arbitro` y `public/publico`; todos los roles usan la misma validación de guardado y las reglas de Firestore aceptan los perfiles soportados.
   - `HEAD`: Perfil normaliza los roles antes de comprobar la finalización y acepta banderas booleanas o serializadas como texto, además de validar los datos mínimos persistidos; evita volver a mostrar el formulario después de cambiar de vista.
   - `HEAD`: el banner inferior usa AuthBloc como fuente de sesión en todas las vistas, normaliza roles públicos y administrativos, conserva índices válidos y navega a Home con `go_router` sin depender de la pila de `Navigator`.
+  - `HEAD`: completar perfil verifica en el servidor que Firestore confirmó `profileCompleted` antes de cerrar; Perfil solo evalúa el formulario cuando la lectura terminó y no tiene error.
   - `HEAD`: arquitectura y documentación sincronizadas con el flujo multirol actual; AuthBloc/GoRouter controlan la sesión, el splash espera el estado real sin temporizador y los permisos secundarios no bloquean el arranque.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 

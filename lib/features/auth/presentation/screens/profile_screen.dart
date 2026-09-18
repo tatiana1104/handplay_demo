@@ -66,7 +66,8 @@ class ProfileScreen extends StatelessWidget {
             profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
             profile['profileComplete']?.toString().toLowerCase() == 'true' ||
             hasRequiredProfileData;
-        if (snapshot.hasData && !profileCompleted) {
+        final profileReadyToEvaluate = snapshot.connectionState == ConnectionState.active || snapshot.connectionState == ConnectionState.done;
+        if (profileReadyToEvaluate && !snapshot.hasError && !profileCompleted) {
           return ProfileCompletionScreen(role: role);
         }
         return Scaffold(
