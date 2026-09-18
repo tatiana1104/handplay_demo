@@ -33,6 +33,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   final _document = TextEditingController();
   final _number = TextEditingController();
   final _position = TextEditingController();
+  final _selectedPositions = <String>[];
   final _club = TextEditingController();
   String? _gender;
 
@@ -59,12 +60,18 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       final name = _firstValue(existing, ['name', 'displayName', 'nombre', 'fullName']);
       final playerData = existing['player'] is Map ? Map<String, dynamic>.from(existing['player'] as Map) : <String, dynamic>{};
       final number = _firstValue({...existing, ...playerData}, ['number', 'shirtNumber', 'shirt_number', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
-      final position = _normalizePosition(_firstValue({...existing, ...playerData}, ['position', 'player_position', 'playerPosition', 'posicion', 'posicionJugador', 'positionName']));
+      final position = _firstValue({...existing, ...playerData}, ['position', 'player_position', 'playerPosition', 'posicion', 'posicionJugador', 'positionName']);
       final gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
       final club = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name', 'clubes']);
       if (name != null) _name.text = name;
       if (number != null) _number.text = number;
-      if (position != null && _position.text.trim().isEmpty) _position.text = position;
+      if (position != null && _position.text.trim().isEmpty) {
+        final loadedPositions = position.split(RegExp(r'[,/|]')).map((item) => _normalizePosition(item)).whereType<String>().toSet().toList();
+        _selectedPositions
+          ..clear()
+          ..addAll(loadedPositions.take(2));
+        _position.text = _selectedPositions.join(', ');
+      }
       if (gender != null) _gender = _normalizeGender(gender);
       if (club != null) _club.text = club;
       if (number == null || position == null) {
@@ -223,12 +230,30 @@ class _PlayerDialogState extends State<_PlayerDialog> {
                 },
               ),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _position.text.isEmpty ? null : _position.text,
-                decoration: const InputDecoration(labelText: 'Posición *', prefixIcon: Icon(Icons.sports_handball_outlined)),
-                items: positions.map((position) => DropdownMenuItem(value: position, child: Text(position))).toList(),
-                onChanged: (value) => setState(() => _position.text = value ?? ''),
-                validator: (value) => value == null ? 'Selecciona una posición' : null,
+              FormField<List<String>>(
+                initialValue: _selectedPositions,
+                validator: (_) => _selectedPositions.isEmpty ? 'Selecciona una posición' : null,
+                builder: (field) => InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Posición * (máximo 2)',
+                    prefixIcon: const Icon(Icons.sports_handball_outlined),
+                    errorText: field.errorText,
+                  ),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: positions.map((position) => FilterChip(
+                      label: Text(position),
+                      selected: _selectedPositions.contains(position),
+                      onSelected: (selected) => setState(() {
+                        if (selected && _selectedPositions.length < 2) _selectedPositions.add(position);
+                        if (!selected) _selectedPositions.remove(position);
+                        _position.text = _selectedPositions.join(', ');
+                        field.didChange(_selectedPositions);
+                      }),
+                    )).toList(),
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
