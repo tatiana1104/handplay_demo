@@ -16,6 +16,35 @@ class LiveMatchScreen extends StatefulWidget {
 
 class _LiveMatchScreenState extends State<LiveMatchScreen> {
   late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
+  final Map<String, String> _officialNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOfficialNames();
+  }
+
+  Future<void> _loadOfficialNames() async {
+    final ids = ['refereeOne', 'refereeTwo', 'timekeeper', 'scorer']
+        .map((key) => _match[key]?.toString())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    for (final id in ids) {
+      final snapshot = await FirebaseFirestore.instance.collection('users').doc(id).get();
+      final data = snapshot.data();
+      final name = data?['displayName']?.toString() ?? data?['nombre']?.toString();
+      if (name != null && name.trim().isNotEmpty && mounted) {
+        setState(() => _officialNames[id] = name.trim());
+      }
+    }
+  }
+
+  String _officialDisplayName(String key) {
+    final value = _match[key]?.toString();
+    if (value == null || value.isEmpty) return 'Sin asignar';
+    return _match['${key}Name']?.toString() ?? _officialNames[value] ?? 'Sin nombre';
+  }
 
   bool get _canStart {
     final state = context.read<AuthBloc>().state;
@@ -59,10 +88,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         ],
         const SizedBox(height: 18),
         _section('Oficiales del partido', [
-          _official('Árb. campo 1', _match['refereeOneName'] ?? _match['refereeOne']),
-          _official('Árb. campo 2', _match['refereeTwoName'] ?? _match['refereeTwo']),
-          _official('Mesa - Cronometrista', _match['timekeeperName'] ?? _match['timekeeper']),
-          _official('Mesa - Anotador', _match['scorerName'] ?? _match['scorer']),
+          _official('Árb. campo 1', _officialDisplayName('refereeOne')),
+          _official('Árb. campo 2', _officialDisplayName('refereeTwo')),
+          _official('Mesa - Cronometrista', _officialDisplayName('timekeeper')),
+          _official('Mesa - Anotador', _officialDisplayName('scorer')),
         ]),
         const SizedBox(height: 18),
         _section('Planilla digital', [
