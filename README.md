@@ -185,8 +185,8 @@ Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarl
 firebase deploy --only "firestore:rules" --project handplaydemo
 ```
 
-### 🟨 Sprint 3 — Calendario y árbitros (en progreso)
-La creación manual de partidos, calendario global, presentación de equipos/colores, estados y validación de conflictos ya está implementada. Pendiente: generación automática de jornadas.
+### ✅ Sprint 3 — Calendario y árbitros (completado)
+La creación manual de partidos, calendario global, presentación de equipos/colores, estados y validación de conflictos está implementada. La generación automática de jornadas queda planificada para el Sprint 6 de automatizaciones.
 
 ### Arquitectura de features
 La información se organiza por dominio y no se concentra en una pantalla:
@@ -199,7 +199,12 @@ La información se organiza por dominio y no se concentra en una pantalla:
 
 Las pantallas deben coordinar datos y composición visual; los modelos, acceso a Firestore y widgets específicos permanecen dentro de su feature. Como parte de esta etapa, `TeamRepository` centraliza las inscripciones aprobadas y `MatchRepository` centraliza la lectura de partidos; las pantallas de torneo ya consumen esos repositorios.
 
-### ⬜ Sprint 4 — Partido en vivo
+### 🟨 Sprint 4 — Partido en vivo (siguiente)
+- [ ] Marcador en tiempo real.
+- [ ] Registro de goles.
+- [ ] Tarjetas y exclusiones.
+- [ ] Planilla digital.
+- [ ] Bloqueo de planillas aprobadas.
 
 ### ⬜ Sprint 6 — Automatizaciones
 Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos.
