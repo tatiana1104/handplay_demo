@@ -232,7 +232,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
             _matchDropdown('Mesa - Anotador', _scorer, refereeOptions, (value) => setState(() => _scorer = value)),
             const SizedBox(height: 16),
             FilledButton(onPressed: _saving ? null : _save, child: Text(_saving ? 'Guardando...' : 'Guardar partido')),
-          ]);
+          ]));
         });
       }),
     );
