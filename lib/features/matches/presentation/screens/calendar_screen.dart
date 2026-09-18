@@ -20,7 +20,7 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
-    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').where('status', isEqualTo: 'approved').snapshots();
+    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       bottomNavigationBar: AppBottomNavigationBar(
@@ -36,7 +36,7 @@ class CalendarScreen extends StatelessWidget {
             return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('No se pudo cargar el calendario. Publica las reglas de Firestore y verifica que el usuario haya iniciado sesión.', textAlign: TextAlign.center)));
           }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final registrationById = <String, Map<String, dynamic>>{
+            final registrationById = <String, Map<String, dynamic>>{
             for (final doc in registrationsSnapshot.data?.docs ?? const []) ...{
               doc.id: doc.data(),
               if (doc.data()['id'] != null) doc.data()['id'].toString(): doc.data(),

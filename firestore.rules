@@ -137,7 +137,7 @@ service cloud.firestore {
 
     // Permite resolver nombres y colores de equipos inscritos en el calendario.
     match /{path=**}/registrations/{registrationId} {
-      allow read: if resource.data.status == 'approved' || signedIn();
+      allow read: if true;
     }
 
     // Mantiene compatibilidad con la colección raíz creada en Firebase Console.

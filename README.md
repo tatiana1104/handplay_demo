@@ -218,6 +218,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: navegación consistente del banner para visitantes, usuarios y administradores; Perfil vuelve a funcionar para roles no administradores; el formulario de perfil persiste correo, documento y datos específicos del rol.
   - `HEAD`: evita mostrar UIDs como nombres durante la carga; calendario y detalle muestran nombres guardados o un texto neutral mientras resuelven la inscripción.
   - `HEAD`: el banner público del calendario muestra `Home`, `Calendario` e `Iniciar sesión`; Home navega directamente sin depender del historial de rutas.
+  - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 
 ### 🟨 Sprint 4 — Partido en vivo (en progreso)
