@@ -152,6 +152,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
       final roles = List<String>.from(data.data()?['roles'] ?? const <String>[]);
       if (!roles.contains('arbitro')) roles.add('arbitro');
       await userRef.set({
+        'uid': data.data()?['uid'] ?? userRef.id,
+        'rol': 'arbitro',
         'displayName': _name.text.trim(),
         'email': _email.text.trim(),
         'phone': _phone.text.trim(),
@@ -162,6 +164,12 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       if (mounted) Navigator.pop(context);
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo guardar el árbitro: ${error.code}')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

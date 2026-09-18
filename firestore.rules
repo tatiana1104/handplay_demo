@@ -38,16 +38,17 @@ service cloud.firestore {
     // El usuario solo puede consultar y actualizar su propio perfil.
     match /users/{userId} {
       allow read: if isSelf(userId) || isAdmin();
-      allow create: if isSelf(userId)
-        && request.resource.data.uid == userId
-        && request.resource.data.rol in ['jugador', 'entrenador']
-        && request.resource.data.roles is list
-        && request.resource.data.roles.hasOnly(['jugador', 'entrenador']);
-      allow update: if isSelf(userId)
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.roles is list
-        && request.resource.data.roles.hasOnly(['jugador', 'entrenador'])
-        && request.resource.data.roles.hasAll(resource.data.roles);
+  allow create: if isAdmin()
+  || (isSelf(userId)
+    && request.resource.data.uid == userId
+    && request.resource.data.rol in ['jugador', 'entrenador']
+    && request.resource.data.roles is list
+    && request.resource.data.roles.hasOnly(['jugador', 'entrenador']));
+  allow update: if isAdmin()
+  || (isSelf(userId)
+    && request.resource.data.uid == resource.data.uid
+    && request.resource.data.roles is list
+    && request.resource.data.roles.hasAll(resource.data.roles));
       allow delete: if isAdmin();
     }
 

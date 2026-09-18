@@ -154,7 +154,7 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] El acceso de Árbitros usa un icono deportivo tipo silbato; Flutter Material no incluye un icono de silbato dedicado.
 - [x] Listado inicial de árbitros registrados.
 - [x] Botón Nuevo árbitro con estilo similar al botón de agregar de Mi torneo.
-- [x] Formulario de documento, nombre, correo, teléfono y acreditación: municipal (básico), departamental (intermedio, requiere municipal) y nacional (alto, requiere departamental). Si el documento existe carga sus datos y habilita solo los niveles permitidos; si no existe comienza en municipal.
+- [x] Formulario de documento, nombre, correo, teléfono y acreditación: municipal (básico), departamental (intermedio, requiere municipal) y nacional (alto, requiere departamental). El administrador puede crear o actualizar el perfil y se informa el error de Firebase si el guardado falla. Si el documento existe carga sus datos y habilita solo los niveles permitidos; si no existe comienza en municipal.
 - [ ] Generación de calendario.
 - [ ] Asignación de árbitros.
 - [ ] Asignación de mesa.
