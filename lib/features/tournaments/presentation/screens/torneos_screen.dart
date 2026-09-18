@@ -40,7 +40,10 @@ class TorneosScreen extends StatelessWidget {
       body: FutureBuilder<IdTokenResult?>(
         future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
         builder: (context, snapshot) {
-          return _PublicTournamentList(isAdmin: user != null, adminId: user?.uid);
+          return _PublicTournamentList(
+            isAdmin: _hasAdminRole(snapshot.data?.claims),
+            adminId: user?.uid,
+          );
         },
       ),
     );
@@ -57,15 +60,7 @@ class _CreateTournamentAction extends StatelessWidget {
     return FutureBuilder<IdTokenResult>(
       future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
       builder: (context, snapshot) {
-        final claims = snapshot.data?.claims;
-        final roles = (claims?['roles'] as List?)?.whereType<String>().toSet() ??
-            <String>{};
-        final legacyRole = claims?['rol'];
-        final isAdmin = roles.contains('admin_liga') ||
-            roles.contains('admin') ||
-            legacyRole == 'admin_liga' ||
-            legacyRole == 'admin';
-        if (!isAdmin) return const SizedBox.shrink();
+        if (!_hasAdminRole(snapshot.data?.claims)) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(right: 12),
           child: FilledButton.icon(
@@ -77,6 +72,15 @@ class _CreateTournamentAction extends StatelessWidget {
       },
     );
   }
+}
+
+bool _hasAdminRole(Map<String, dynamic>? claims) {
+  final roles = (claims?['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
+  final legacyRole = claims?['rol'];
+  return roles.contains('admin') ||
+      roles.contains('admin_liga') ||
+      legacyRole == 'admin' ||
+      legacyRole == 'admin_liga';
 }
 
 enum _TournamentFilter { all, upcoming, playing, finished }
