@@ -28,6 +28,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   @override
   void initState() {
     super.initState();
+    _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
+    _isPaused = _match['status'] != 'playing';
+    if (_match['status'] == 'playing') _startLocalTimer();
     _loadOfficialNames();
     _loadTeamNames();
   }
@@ -93,16 +96,21 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     super.dispose();
   }
 
+  void _startLocalTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _isPaused) return;
+      setState(() => _elapsedSeconds++);
+    });
+  }
+
   void _toggleTimer() {
     if (!_isTimekeeper) return;
     setState(() => _isPaused = !_isPaused);
     if (_isPaused) {
       _timer?.cancel();
     } else {
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (!mounted) return;
-        setState(() => _elapsedSeconds++);
-      });
+      _startLocalTimer();
     }
     _saveMatch({'status': _isPaused ? 'paused' : 'playing', 'elapsedSeconds': _elapsedSeconds});
   }
@@ -116,9 +124,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
     setState(() => _isPaused = false);
     await _saveMatch({'status': 'playing', 'startedAt': FieldValue.serverTimestamp(), 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds});
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _elapsedSeconds++);
-    });
+    _startLocalTimer();
   }
 
   Future<void> _changePeriod(int period) async {
@@ -149,7 +155,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.circle, size: 8, color: _statusColor(_match['status']?.toString())),
           const SizedBox(width: 5),
-          Text('${_statusLabel(_match['status']?.toString())} · ${_elapsedLabel()}', style: Theme.of(context).textTheme.labelMedium),
+          Text('${_statusLabel(_match['status']?.toString())} · ${_elapsedLabel()}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: _statusColor(_match['status']?.toString()))),
         ])),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
