@@ -71,6 +71,7 @@ class _HandPlayAppState extends State<HandPlayApp> {
           RouteNames.splash,
           RouteNames.home,
           RouteNames.calendar,
+          RouteNames.liveMatch,
           RouteNames.login,
           RouteNames.register,
           RouteNames.recoverPassword,
