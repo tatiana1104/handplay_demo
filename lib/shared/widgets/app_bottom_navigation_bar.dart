@@ -34,8 +34,10 @@ class AppBottomNavigationBar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final authUser = authState is AuthAuthenticated ? authState.user : null;
-    final hasAuthenticatedSession = authUser != null && isAuthenticated && !authUser.roles.any((role) => role == 'publico' || role == 'public');
-    final effectiveAdmin = hasAuthenticatedSession && (isAdmin || authUser.roles.any((role) => role == 'admin' || role == 'admin_liga'));
+    final normalizedRoles = authUser?.roles.map((role) => role.trim().toLowerCase()).toSet() ?? const <String>{};
+    final isPublicRole = normalizedRoles.contains('publico') || normalizedRoles.contains('public') || normalizedRoles.contains('público');
+    final hasAuthenticatedSession = authUser != null && !isPublicRole;
+    final effectiveAdmin = hasAuthenticatedSession && (isAdmin || normalizedRoles.contains('admin') || normalizedRoles.contains('admin_liga'));
 
     return Container(
       decoration: BoxDecoration(
@@ -58,11 +60,7 @@ class AppBottomNavigationBar extends StatelessWidget {
 
             switch (index) { // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
               case 0:
-                final navigator = Navigator.of(context);
-                if (navigator.canPop()) navigator.popUntil((route) => route.isFirst);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) GoRouter.of(context).go(RouteNames.home);
-                });
+                GoRouter.of(context).go(RouteNames.home);
                 break;
               case 1:
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
