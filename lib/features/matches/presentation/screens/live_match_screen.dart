@@ -307,7 +307,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           icon: Icon(Icons.stop_circle_outlined, color: Colors.red.shade400),
-                          label: Text(((_match['period'] as num?)?.toInt() ?? 1) == 2 ? 'Terminar' : 'Iniciar período 2'),
+                          label: Text(((_match['period'] as num?)?.toInt() ?? 1) >= 2 ? 'Terminar' : 'Iniciar período 2'),
                         ),
                       ),
                     ],
