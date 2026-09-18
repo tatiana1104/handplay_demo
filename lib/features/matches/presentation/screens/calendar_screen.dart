@@ -7,20 +7,34 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
+    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
-        builder: (context, snapshot) {
+        builder: (context, snapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: registrations,
+          builder: (context, registrationsSnapshot) {
           if (snapshot.hasError) {
             return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('No se pudo cargar el calendario. Publica las reglas de Firestore y verifica que el usuario haya iniciado sesión.', textAlign: TextAlign.center)));
           }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final registrationById = <String, Map<String, dynamic>>{
+            for (final doc in registrationsSnapshot.data?.docs ?? const []) doc.id: doc.data(),
+          };
           final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
           if (docs.isEmpty) return const Center(child: Text('No hay partidos programados.'));
           final grouped = <String, List<Map<String, dynamic>>>{};
           for (final doc in docs) {
-            final data = doc.data();
+            final data = Map<String, dynamic>.from(doc.data());
+            final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
+            final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
+            final home = registrationById[homeId];
+            final away = registrationById[awayId];
+            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? homeId ?? 'Equipo local');
+            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? awayId ?? 'Equipo visitante');
+            data['homeTeamColor'] = home?['uniformColor'] ?? data['homeTeamColor'];
+            data['awayTeamColor'] = away?['uniformColor'] ?? data['awayTeamColor'];
             grouped.putIfAbsent(_dateLabel(data['date']), () => []).add(data);
           }
           return ListView(
@@ -29,7 +43,8 @@ class CalendarScreen extends StatelessWidget {
                 .map((entry) => _CalendarDay(title: entry.key, matches: entry.value))
                 .toList(),
           );
-        },
+          },
+        ),
       ),
     );
   }
@@ -73,7 +88,21 @@ class _CalendarDay extends StatelessWidget {
       );
 
   String _name(Map<String, dynamic> match, bool home) => match[home ? 'homeTeamName' : 'awayTeamName']?.toString() ?? match[home ? 'homeTeam' : 'awayTeam']?.toString() ?? (home ? 'Equipo local' : 'Equipo visitante');
-  Color _color(dynamic value, Color fallback) => value is int ? Color(value) : fallback;
+  Color _color(dynamic value, Color fallback) {
+    if (value is int) return Color(value);
+    if (value is String) {
+      final hex = int.tryParse(value.replaceFirst('#', ''), radix: 16);
+      if (hex != null) return Color(value.replaceFirst('#', '').length <= 6 ? 0xFF000000 | hex : hex);
+      const named = {'rojo': Colors.red, 'azul': Colors.blue, 'verde': Colors.green, 'amarillo': Colors.yellow, 'naranja': Colors.orange, 'morado': Colors.purple, 'negro': Colors.black, 'blanco': Colors.white};
+      return named[value.toLowerCase()] ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
+  if (registration == null) return fallback.toString();
+  return registration['teamName']?.toString() ?? registration['clubName']?.toString() ?? registration['name']?.toString() ?? fallback.toString();
 }
 
 DateTime _dateValue(dynamic value) => value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '') ?? DateTime(9999);

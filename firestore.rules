@@ -135,6 +135,11 @@ service cloud.firestore {
       allow read: if signedIn();
     }
 
+    // Permite resolver nombres y colores de equipos inscritos en el calendario.
+    match /{path=**}/registrations/{registrationId} {
+      allow read: if signedIn();
+    }
+
     // Mantiene compatibilidad con la colección raíz creada en Firebase Console.
     match /teams/{teamId} {
       allow read: if signedIn();
