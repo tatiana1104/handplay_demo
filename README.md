@@ -97,7 +97,11 @@ con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
 - [ ] Consulta y creación de equipos en tournaments/{id}/teams
 - [ ] Modelo y repositorio documentados con comentarios explicativos
 
-### ⬜ Sprint 3 — Calendario y árbitros
+### 🛠️ Sprint 3 — Calendario y árbitros
+- [x] Corregida la compilación de las pantallas de calendario, árbitros e inscripciones pendientes
+- [x] Ajustados los contenedores decorados para usar `BoxDecoration` en lugar de parámetros no soportados por `Material`
+- [x] Eliminado el acceso a `context` desde componentes que no reciben `BuildContext`
+
 ### ⬜ Sprint 4 — Partido en vivo
 ### ⬜ Sprint 5 — Estadísticas
 ### ⬜ Sprint 6 — Gemini y notificaciones
