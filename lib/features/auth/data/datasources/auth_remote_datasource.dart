@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
@@ -63,7 +65,7 @@ class AuthRemoteDataSource {
       await user.updateDisplayName(name.trim());
       await user.reload();
       user = _firebaseAuth.currentUser ?? user;
-      await _ensureUserProfile(user, name: name.trim());
+      unawaited(_ensureUserProfile(user, name: name.trim()));
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
@@ -123,7 +125,7 @@ class AuthRemoteDataSource {
       if (user == null) {
         throw const ServerException('No se pudo iniciar sesión con Google.');
       }
-      await _ensureUserProfile(user);
+      unawaited(_ensureUserProfile(user));
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
@@ -132,18 +134,14 @@ class AuthRemoteDataSource {
 
   Future<void> _ensureUserProfile(fb.User user, {String? name}) async {
     final ref = FirebaseFirestore.instance.collection('users').doc(user.uid);
-    final existing = await ref.get();
+    final existing = await ref.get().timeout(const Duration(seconds: 5));
     final data = existing.data();
     final existingRoles = (data?['roles'] as List?)?.whereType<String>().toList();
-    final registration = user.email == null
-        ? null
-        : await FirebaseFirestore.instance
-            .collectionGroup('registrations')
-            .where('coachEmail', isEqualTo: user.email!.trim().toLowerCase())
-            .limit(1)
-            .get();
-    final isCoach = registration?.docs.isNotEmpty == true || existingRoles?.contains('entrenador') == true;
-    final roles = {...?existingRoles, if (isCoach) 'entrenador', if (!isCoach && (existingRoles == null || existingRoles.isEmpty)) 'jugador'};
+    final isCoach = existingRoles?.contains('entrenador') == true;
+    final roles = {
+      ...?existingRoles,
+      if (!isCoach && (existingRoles == null || existingRoles.isEmpty)) 'jugador',
+    };
     await ref.set({
       'uid': user.uid,
       'email': user.email,

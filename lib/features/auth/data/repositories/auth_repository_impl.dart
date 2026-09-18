@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 
@@ -28,9 +27,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AppUserModel> _appUserFromFirebaseUser(fb.User firebaseUser) async {
     final token = await firebaseUser.getIdTokenResult();
     final claimRoles = _rolesFromClaims(token.claims);
-    final profile = await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get();
-    final profileRoles = (profile.data()?['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
-    final roles = {...claimRoles, ...profileRoles}.toList();
+    final roles = claimRoles;
     return AppUserModel.fromFirebaseUser(firebaseUser, roles: roles.isEmpty ? const ['jugador'] : roles);
   }
 
