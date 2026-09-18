@@ -363,7 +363,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     final data = player is Map ? player : <String, dynamic>{'name': player};
                     final number = data['number']?.toString() ?? '--';
                     final name = data['name']?.toString() ?? data['fullName']?.toString() ?? 'Jugador';
-                    return _playerRow('#$number', name, 0);
+                    return _playerRow('#$number', name, 0, _selectedRoster == 'home');
                   }).toList()),
           ),
         ),
@@ -453,17 +453,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   final Map<String, Map<String, int>> _playerEvents = {};
 
-  Future<void> _recordPlayerEvent(String playerKey, String event) async {
+  Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome}) async {
     if (!_canUseScoreSheet) return;
-    final eventData = {'type': event, 'player': playerKey, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
-    await _saveMatch({'events': FieldValue.arrayUnion([eventData])});
+    final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
+    final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
+    final eventData = {'type': event, 'player': playerKey, 'team': isHome == true ? 'home' : isHome == false ? 'away' : null, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
+    await _saveMatch({'events': FieldValue.arrayUnion([eventData]), if (event == 'goal') 'homeScore': nextHomeScore, if (event == 'goal') 'awayScore': nextAwayScore});
     setState(() {
       final events = _playerEvents.putIfAbsent(playerKey, () => <String, int>{});
       events[event] = (events[event] ?? 0) + 1;
     });
   }
 
-  Widget _playerRow(String number, String name, int goals) {
+  Widget _playerRow(String number, String name, int goals, bool isHome) {
     final key = '$number-$name';
     final events = _playerEvents[key] ?? const <String, int>{};
     return Card(
@@ -477,10 +479,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     'goal',
                     key,
                     Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                    isHome,
                   ),
-          _textEventButton("2'", 'exclusion', key, Colors.amber),
-          _eventButton(Icons.square, 'yellowCard', key, Colors.amber),
-          _eventButton(Icons.square, 'redCard', key, Colors.red),
+          _textEventButton("2'", 'exclusion', key, Colors.amber, isHome),
+          _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome),
+          _eventButton(Icons.square, 'redCard', key, Colors.red, isHome),
         ]),
       ),
     );
@@ -496,17 +499,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       );
 
-  Widget _eventButton(IconData icon, String event, String playerKey, Color color) => IconButton(
+  Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome) => IconButton(
         tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event),
+        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome),
         icon: Icon(icon, color: color, size: 24),
       );
 
-  Widget _textEventButton(String label, String event, String playerKey, Color color) => IconButton(
+  Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome) => IconButton(
         tooltip: 'Exclusión 2 minutos',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event),
+        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome),
         icon: Text(label, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w700)),
       );
 }
