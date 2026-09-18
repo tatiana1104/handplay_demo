@@ -8,7 +8,7 @@ import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../core/routing/route_names.dart'; // Importamos los nombres de ruta de la app, como `RouteNames.home`, para poder navegar a la pantalla de inicio desde la barra de navegación inferior
 
 class AppBottomNavigationBar extends StatelessWidget {
-  final int selectedIndex; // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
+  final int? selectedIndex; // null indica que la pantalla no pertenece a ninguna pestaña del banner
   final bool isAuthenticated; // Cambia las acciones disponibles para visitantes.
   final bool isAdmin;
   final ValueChanged<int>? onTap; // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
@@ -16,7 +16,7 @@ class AppBottomNavigationBar extends StatelessWidget {
   /// Constructor de la barra de navegación inferior, con parámetros opcionales `selectedIndex` y `onTap`.
   const AppBottomNavigationBar({
     super.key, 
-    this.selectedIndex = 0, // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
+    this.selectedIndex = 0,
     this.isAuthenticated = true,
     this.isAdmin = false,
     this.onTap, // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
@@ -52,7 +52,7 @@ class AppBottomNavigationBar extends StatelessWidget {
       ),
       child: SafeArea(
         child: BottomNavigationBar(
-          currentIndex: _safeSelectedIndex(routeSelectedIndex, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
+          currentIndex: _safeSelectedIndex(routeSelectedIndex ?? 0, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
           onTap: (index) { // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior
             if (onTap != null) { 
               onTap!(index);  // Si se proporcionó un callback `onTap`, lo llamamos con el índice del elemento tocado y salimos de la función para no ejecutar la navegación por defecto.
@@ -81,8 +81,8 @@ class AppBottomNavigationBar extends StatelessWidget {
           type: BottomNavigationBarType.fixed, // Tipo de barra de navegación inferior fija, que muestra todos los elementos sin desplazamiento
           showSelectedLabels: true, // Muestra las etiquetas de los elementos seleccionados en la barra de navegación inferior
           showUnselectedLabels: true, // Muestra las etiquetas de los elementos no seleccionados en la barra de navegación inferior
-          selectedItemColor: colorScheme.primary, // Color del ícono y la etiqueta del elemento seleccionado en la barra de navegación inferior según el tema actual
-          unselectedItemColor: colorScheme.onSurfaceVariant, // Color del ícono y la etiqueta de los elementos no seleccionados en la barra de navegación inferior según el tema actual
+          selectedItemColor: selectedIndex == null ? colorScheme.onSurfaceVariant : colorScheme.primary,
+          unselectedItemColor: colorScheme.onSurfaceVariant,
           backgroundColor: colorScheme.surface, // Color de fondo de la barra de navegación inferior según el tema actual
           elevation: 0, // Elevación de la barra de navegación inferior (0 = sin sombra)
           // La navegación pública no expone Perfil; después del login se
