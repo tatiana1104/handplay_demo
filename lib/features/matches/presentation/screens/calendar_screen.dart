@@ -110,14 +110,15 @@ class _CalendarDay extends StatelessWidget {
                           constraints: const BoxConstraints(maxWidth: 120),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: matchStatusColor(context, match['status']?.toString()),
-                            borderRadius: BorderRadius.circular(5),
+                            color: matchStatusColor(context, match['status']?.toString()).withValues(alpha: .16),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: matchStatusColor(context, match['status']?.toString()).withValues(alpha: .28)),
                           ),
                           child: Text(
                             matchStatusLabel(match['status']?.toString()),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: matchStatusColor(context, match['status']?.toString()), fontSize: 11, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),

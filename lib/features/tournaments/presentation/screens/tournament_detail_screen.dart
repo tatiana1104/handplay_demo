@@ -415,12 +415,16 @@ class _MatchesSection extends StatelessWidget {
                           child: Container(
                             constraints: const BoxConstraints(maxWidth: 120),
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: matchStatusColor(context, status), borderRadius: BorderRadius.circular(5)),
+                            decoration: BoxDecoration(
+                                color: matchStatusColor(context, status).withValues(alpha: .16),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: matchStatusColor(context, status).withValues(alpha: .28)),
+                              ),
                             child: Text(
                               matchStatusLabel(status),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                              style: TextStyle(color: matchStatusColor(context, status), fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
