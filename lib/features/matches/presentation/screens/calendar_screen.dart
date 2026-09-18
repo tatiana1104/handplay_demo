@@ -6,15 +6,17 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final matches = FirebaseFirestore.instance.collectionGroup('matches').orderBy('date').snapshots();
+    final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('No se pudo cargar el calendario.'));
+          if (snapshot.hasError) {
+            return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('No se pudo cargar el calendario. Publica las reglas de Firestore y verifica que el usuario haya iniciado sesión.', textAlign: TextAlign.center)));
+          }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final docs = snapshot.data!.docs;
+          final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
           if (docs.isEmpty) return const Center(child: Text('No hay partidos programados.'));
           final grouped = <String, List<Map<String, dynamic>>>{};
           for (final doc in docs) {
@@ -73,6 +75,8 @@ class _CalendarDay extends StatelessWidget {
   String _name(Map<String, dynamic> match, bool home) => match[home ? 'homeTeamName' : 'awayTeamName']?.toString() ?? match[home ? 'homeTeam' : 'awayTeam']?.toString() ?? (home ? 'Equipo local' : 'Equipo visitante');
   Color _color(dynamic value, Color fallback) => value is int ? Color(value) : fallback;
 }
+
+DateTime _dateValue(dynamic value) => value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '') ?? DateTime(9999);
 
 String _dateLabel(dynamic value) {
   final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');

@@ -129,6 +129,12 @@ service cloud.firestore {
       }
     }
 
+    // Permite el calendario global basado en collectionGroup('matches').
+    // Las pantallas por torneo mantienen las validaciones específicas anteriores.
+    match /{path=**}/matches/{matchId} {
+      allow read: if signedIn();
+    }
+
     // Mantiene compatibilidad con la colección raíz creada en Firebase Console.
     match /teams/{teamId} {
       allow read: if signedIn();
