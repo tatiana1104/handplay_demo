@@ -142,10 +142,12 @@ class ProfileScreen extends StatelessWidget {
           Card(child: ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Número de documento'), subtitle: Text(documentNumber))),
           Card(child: ListTile(leading: const Icon(Icons.email_outlined), title: const Text('Correo electrónico'), subtitle: Text(currentEmail))),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => context.go(RouteNames.recoverPassword),
-            icon: const Icon(Icons.lock_reset_outlined),
-            label: const Text('Cambiar contraseña'),
+          Row(
+            children: [
+              Expanded(child: OutlinedButton.icon(onPressed: () => context.push(RouteNames.editProfile, extra: profile), icon: const Icon(Icons.edit_outlined), label: const Text('Editar perfil'))),
+              const SizedBox(width: 12),
+              Expanded(child: OutlinedButton.icon(onPressed: () => context.push(RouteNames.changePassword), icon: const Icon(Icons.lock_reset_outlined), label: const Text('Cambiar contraseña'))),
+            ],
           ),
           if (hasRole('entrenador'))
             _roleButton(context, 'Ficha de entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['teamName', 'specialty', 'experience'])),

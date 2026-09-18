@@ -15,6 +15,7 @@ import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/profile_screen.dart';
 import 'features/auth/presentation/screens/recover_password_screen.dart';
+import 'features/auth/presentation/screens/profile_edit_screen.dart';
 import 'features/auth/presentation/screens/register_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/matches/presentation/screens/calendar_screen.dart';
@@ -185,6 +186,17 @@ class _HandPlayAppState extends State<HandPlayApp> {
         GoRoute(
           path: RouteNames.recoverPassword,
           builder: (context, state) => const RecoverPasswordScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.editProfile,
+          builder: (context, state) => ProfileEditScreen(
+            userId: FirebaseAuth.instance.currentUser!.uid,
+            initialData: (state.extra as Map<String, dynamic>?) ?? const {},
+          ),
+        ),
+        GoRoute(
+          path: RouteNames.changePassword,
+          builder: (context, state) => const ChangePasswordScreen(),
         ),
       ],
     );

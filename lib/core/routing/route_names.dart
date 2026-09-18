@@ -25,4 +25,6 @@ class RouteNames {
   static const String login = '/login'; // Ruta de la pantalla de login
   static const String register = '/register'; // Ruta de la pantalla de registro
   static const String recoverPassword = '/recover-password'; // Ruta de la pantalla de recuperación de contraseña
+  static const String editProfile = '/perfil/editar';
+  static const String changePassword = '/perfil/cambiar-contrasena';
 }
