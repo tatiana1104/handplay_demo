@@ -92,17 +92,15 @@ class _HandPlayAppState extends State<HandPlayApp> {
               : RouteNames.splash;
         }
 
-        if (!isAuthenticated && !isPublicRoute) {
-          return RouteNames.login;
-        }
-
-        if (isPublicRole && !isPublicRoute) {
+        // Visitantes y cuentas con rol público solo pueden navegar por las
+        // pantallas informativas; nunca deben ser enviados a Perfil o Login.
+        if ((!isAuthenticated || isPublicRole) && !isPublicRoute) {
           return RouteNames.home;
         }
 
         // El detalle del torneo es de solo lectura y puede ser consultado por
-        // cuentas públicas, administradores y usuarios autenticados.
-        if (state.matchedLocation == RouteNames.tournamentDetail) {
+        // visitantes, cuentas públicas, administradores y usuarios autenticados.
+        if (isPublicRoute) {
           return null;
         }
 
