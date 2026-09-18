@@ -20,6 +20,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
+  bool _showPassword = false;
+  bool _showConfirmation = false;
 
   @override
   void dispose() {
@@ -77,9 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 18),
               TextField(controller: _email, enabled: !loading, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo electrónico')),
               const SizedBox(height: 18),
-              TextField(controller: _password, enabled: !loading, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña')),
+              TextField(controller: _password, enabled: !loading, obscureText: !_showPassword, decoration: InputDecoration(labelText: 'Contraseña', suffixIcon: IconButton(tooltip: _showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showPassword = !_showPassword), icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
               const SizedBox(height: 18),
-              TextField(controller: _confirmation, enabled: !loading, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmar contraseña')),
+              TextField(controller: _confirmation, enabled: !loading, obscureText: !_showConfirmation, decoration: InputDecoration(labelText: 'Confirmar contraseña', suffixIcon: IconButton(tooltip: _showConfirmation ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showConfirmation = !_showConfirmation), icon: Icon(_showConfirmation ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: loading ? null : () => _register(context),

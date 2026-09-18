@@ -19,6 +19,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 28),
                       TextField(controller: _email, enabled: !loading, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo electrónico')),
                       const SizedBox(height: 18),
-                      TextField(controller: _password, enabled: !loading, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña')),
+                      TextField(controller: _password, enabled: !loading, obscureText: !_showPassword, decoration: InputDecoration(labelText: 'Contraseña', suffixIcon: IconButton(tooltip: _showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showPassword = !_showPassword), icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
                       Align(alignment: Alignment.centerRight, child: TextButton(onPressed: loading ? null : () => context.go(RouteNames.recoverPassword), child: const Text('¿Olvidaste tu contraseña?'))),
                       const SizedBox(height: 10),
                       FilledButton(

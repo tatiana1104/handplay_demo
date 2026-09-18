@@ -102,6 +102,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _next = TextEditingController();
   final _confirmation = TextEditingController();
   bool _saving = false;
+  bool _showCurrent = false;
+  bool _showNext = false;
+  bool _showConfirmation = false;
 
   @override
   void dispose() {
@@ -133,11 +136,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Cambiar contraseña')),
     body: ListView(padding: const EdgeInsets.all(24), children: [
-      TextField(controller: _current, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña actual', border: OutlineInputBorder())),
+      TextField(controller: _current, obscureText: !_showCurrent, decoration: InputDecoration(labelText: 'Contraseña actual', border: const OutlineInputBorder(), suffixIcon: IconButton(tooltip: _showCurrent ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showCurrent = !_showCurrent), icon: Icon(_showCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
       const SizedBox(height: 14),
-      TextField(controller: _next, obscureText: true, decoration: const InputDecoration(labelText: 'Nueva contraseña', helperText: 'Mínimo 6 caracteres', border: OutlineInputBorder())),
+      TextField(controller: _next, obscureText: !_showNext, decoration: InputDecoration(labelText: 'Nueva contraseña', helperText: 'Mínimo 6 caracteres', border: const OutlineInputBorder(), suffixIcon: IconButton(tooltip: _showNext ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showNext = !_showNext), icon: Icon(_showNext ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
       const SizedBox(height: 14),
-      TextField(controller: _confirmation, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmar nueva contraseña', border: OutlineInputBorder())),
+      TextField(controller: _confirmation, obscureText: !_showConfirmation, decoration: InputDecoration(labelText: 'Confirmar nueva contraseña', border: const OutlineInputBorder(), suffixIcon: IconButton(tooltip: _showConfirmation ? 'Ocultar contraseña' : 'Mostrar contraseña', onPressed: () => setState(() => _showConfirmation = !_showConfirmation), icon: Icon(_showConfirmation ? Icons.visibility_off_outlined : Icons.visibility_outlined)))),
       const SizedBox(height: 20),
       FilledButton(onPressed: _saving ? null : _change, child: Text(_saving ? 'Actualizando...' : 'Actualizar contraseña')),
     ]),
