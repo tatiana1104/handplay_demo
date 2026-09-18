@@ -58,7 +58,11 @@ class AppBottomNavigationBar extends StatelessWidget {
 
             switch (index) { // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
               case 0:
-                context.go(RouteNames.home);
+                final navigator = Navigator.of(context);
+                if (navigator.canPop()) navigator.popUntil((route) => route.isFirst);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) GoRouter.of(context).go(RouteNames.home);
+                });
                 break;
               case 1:
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
