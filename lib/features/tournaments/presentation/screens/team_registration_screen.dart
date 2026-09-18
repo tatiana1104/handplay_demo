@@ -47,19 +47,6 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   static const positions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
 
-  Future<void> _loadExistingCoach() async {
-    final document = _coachDocument.text.trim();
-    if (document.isEmpty) return;
-    final existing = await _findProfile(document);
-    if (!mounted || existing == null) return;
-    setState(() {
-      _coach.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? _coach.text;
-      _coachDocument.text = existing['document']?.toString() ?? existing['documentNumber']?.toString() ?? document;
-      _phone.text = existing['phone']?.toString() ?? existing['telefono']?.toString() ?? _phone.text;
-      _email.text = existing['email']?.toString() ?? existing['correo']?.toString() ?? _email.text;
-    });
-  }
-
   Future<void> _loadExistingPlayer() async {
     final existing = await _findProfile(_document.text.trim());
     if (!mounted || existing == null) return;
@@ -234,6 +221,30 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   void dispose() {
     for (final controller in [_team, _club, _coach, _coachDocument, _phone, _email]) controller.dispose();
     super.dispose();
+  }
+
+  Future<Map<String, dynamic>?> _findProfile(String document) async {
+    final directory = FirebaseFirestore.instance.collection('profile_directory');
+    final result = await directory.where('document', isEqualTo: document).limit(1).get();
+    if (result.docs.isNotEmpty) return result.docs.first.data();
+    final users = FirebaseFirestore.instance.collection('users');
+    final byDocument = await users.where('document', isEqualTo: document).limit(1).get();
+    if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
+    final byNumber = await users.where('documentNumber', isEqualTo: document).limit(1).get();
+    return byNumber.docs.isEmpty ? null : byNumber.docs.first.data();
+  }
+
+  Future<void> _loadExistingCoach() async {
+    final document = _coachDocument.text.trim();
+    if (document.isEmpty) return;
+    final existing = await _findProfile(document);
+    if (!mounted || existing == null) return;
+    setState(() {
+      _coach.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? _coach.text;
+      _coachDocument.text = existing['document']?.toString() ?? existing['documentNumber']?.toString() ?? document;
+      _phone.text = existing['phone']?.toString() ?? existing['telefono']?.toString() ?? _phone.text;
+      _email.text = existing['email']?.toString() ?? existing['correo']?.toString() ?? _email.text;
+    });
   }
 
   Future<void> _addPlayer() async {
