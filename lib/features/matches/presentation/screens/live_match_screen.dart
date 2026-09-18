@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
 class LiveMatchScreen extends StatefulWidget {
   const LiveMatchScreen({super.key, required this.matchId, required this.match});
@@ -69,6 +70,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Partido en vivo')),
+      bottomNavigationBar: AppBottomNavigationBar(
+        isAuthenticated: context.watch<AuthBloc>().state is AuthAuthenticated,
+      ),
       body: ListView(padding: const EdgeInsets.all(12), children: [
         Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.circle, size: 8, color: _statusColor(_match['status']?.toString())),

@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../widgets/match_status_label.dart';
 import 'live_match_screen.dart';
@@ -14,7 +17,10 @@ class CalendarScreen extends StatelessWidget {
     final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
-      bottomNavigationBar: const AppBottomNavigationBar(selectedIndex: 1),
+      bottomNavigationBar: AppBottomNavigationBar(
+        selectedIndex: 1,
+        isAuthenticated: context.watch<AuthBloc>().state is AuthAuthenticated,
+      ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
         builder: (context, snapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(

@@ -210,7 +210,9 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
 - `e85c4b0`: sección de oficiales plegable.
 - `3ff25c2`: planilla digital con equipos y jugadores.
 - `f8bd046`: controles de gol, exclusión, tarjeta amarilla y tarjeta roja.
-- `HEAD`: formulario de finalización de perfil después del inicio de sesión, con datos específicos para jugadores.
+  - `HEAD`: formulario de finalización de perfil después del inicio de sesión, con datos específicos para jugadores.
+  - `HEAD`: árbitros visibles para cualquier usuario autenticado; calendario y detalle de partidos accesibles públicamente; el banner público muestra `Iniciar sesión` en lugar de `Perfil`.
+
 
 ### 🟨 Sprint 4 — Partido en vivo (en progreso)
 - [x] Marcador y estado del partido.

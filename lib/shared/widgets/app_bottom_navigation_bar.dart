@@ -62,11 +62,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 }
                 break;
               case 2:
-                if (effectiveAdmin) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
-                } else {
-                  context.go(RouteNames.profile);
-                }
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
                 break;
               case 3:
                 context.go(RouteNames.profile);
@@ -92,11 +88,10 @@ class AppBottomNavigationBar extends StatelessWidget {
                     icon: Icon(Icons.calendar_month_rounded),
                     label: 'Calendario',
                   ),
-                  if (effectiveAdmin)
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.sports_outlined),
-                      label: 'Árbitros',
-                    ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.sports_outlined),
+                    label: 'Árbitros',
+                  ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person_rounded),
                     label: 'Perfil',
