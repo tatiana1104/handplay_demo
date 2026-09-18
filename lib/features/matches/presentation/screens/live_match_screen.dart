@@ -17,6 +17,7 @@ class LiveMatchScreen extends StatefulWidget {
 class _LiveMatchScreenState extends State<LiveMatchScreen> {
   late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
   final Map<String, String> _officialNames = {};
+  bool _showOfficials = true;
 
   @override
   void initState() {
@@ -87,12 +88,29 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           FilledButton.icon(onPressed: _startMatch, icon: const Icon(Icons.play_arrow), label: const Text('Iniciar partido')),
         ],
         const SizedBox(height: 18),
-        _section('Oficiales del partido', [
-          _official('Árb. campo 1', _officialDisplayName('refereeOne')),
-          _official('Árb. campo 2', _officialDisplayName('refereeTwo')),
-          _official('Mesa - Cronometrista', _officialDisplayName('timekeeper')),
-          _official('Mesa - Anotador', _officialDisplayName('scorer')),
-        ]),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Column(children: [
+            ListTile(
+              dense: true,
+              title: const Text('Oficiales del partido', style: TextStyle(fontWeight: FontWeight.w700)),
+              trailing: IconButton(
+                tooltip: _showOfficials ? 'Ocultar oficiales' : 'Mostrar oficiales',
+                icon: Icon(_showOfficials ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                onPressed: () => setState(() => _showOfficials = !_showOfficials),
+              ),
+            ),
+            if (_showOfficials) Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(children: [
+                _official('Árb. campo 1', _officialDisplayName('refereeOne')),
+                _official('Árb. campo 2', _officialDisplayName('refereeTwo')),
+                _official('Mesa - Cronometrista', _officialDisplayName('timekeeper')),
+                _official('Mesa - Anotador', _officialDisplayName('scorer')),
+              ]),
+            ),
+          ]),
+        ),
         const SizedBox(height: 18),
         _section('Planilla digital', [
           _playerRow('#7', 'Jugador local', 0),
