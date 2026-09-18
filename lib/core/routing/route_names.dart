@@ -19,6 +19,7 @@ class RouteNames {
   static const String calendar = '/calendario'; // Calendario de partidos
   static const String referees = '/arbitros'; // Gestión de árbitros
   static const String liveMatch = '/partido-en-vivo'; // Partido en vivo
+  static const String internal = '/_internal'; // Navegación interna unificada
   static const String createTournament = '/torneos/nuevo'; // Alta de torneo para admin de liga
   static const String login = '/login'; // Ruta de la pantalla de login
   static const String register = '/register'; // Ruta de la pantalla de registro

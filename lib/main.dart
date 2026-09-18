@@ -122,6 +122,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
           builder: (context, state) => const RefereesScreen(),
         ),
         GoRoute(
+          path: RouteNames.internal,
+          builder: (context, state) => state.extra is Widget ? state.extra as Widget : const TorneosScreen(),
+        ),
+        GoRoute(
           path: RouteNames.liveMatch,
           builder: (context, state) {
             final data = state.extra is Map ? Map<String, dynamic>.from(state.extra as Map) : <String, dynamic>{};

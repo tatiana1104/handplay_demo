@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+import '../../../../core/routing/route_names.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../data/tournament_repository.dart';
@@ -149,15 +150,9 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                         // Los torneos antiguos pueden no tener adminId guardado, por eso
                         // no se condiciona la visibilidad de las acciones a ese campo.
                         isAdmin: widget.isAdmin,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => TournamentDetailScreen(
-                              tournament: visibleTournaments[index],
-                            ),
-                          ),
-                        ),
+                        onTap: () => context.push(RouteNames.internal, extra: TournamentDetailScreen(tournament: visibleTournaments[index])),
                         onEdit: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateTournamentScreen(adminId: widget.adminId!, tournament: visibleTournaments[index]))),
-                        onRequests: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name))),
+                        onRequests: () => context.push(RouteNames.internal, extra: PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name)),
                         onDelete: () => _deleteTournament(context, visibleTournaments[index]),
                         coachEmail: widget.coachEmail,
                         coachUid: widget.adminId == null ? null : FirebaseAuth.instance.currentUser?.uid,
@@ -401,14 +396,7 @@ class _TournamentCard extends StatelessWidget {
                             const Text('Puedes editar los datos indicados y volver a enviar la solicitud.'),
                             const SizedBox(height: 8),
                             FilledButton.icon(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => TeamRegistrationScreen(
-                                    tournament: tournament,
-                                    registrationId: docs.first.id,
-                                    initialRegistration: data,
-                                    rejectionReason: rejectedReason,
-                                  ),
+onPressed: () => context.push(RouteNames.internal, extra: TeamRegistrationScreen(tournament: tournament, registrationId: docs.first.id)),
                                 ),
                               ),
                               icon: const Icon(Icons.edit_outlined),

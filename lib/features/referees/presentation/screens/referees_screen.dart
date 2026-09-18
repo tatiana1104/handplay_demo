@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/routing/route_names.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -26,9 +29,7 @@ class RefereesScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NewRefereeScreen()),
-              ),
+              onPressed: () => context.push(RouteNames.internal, extra: const NewRefereeScreen()),
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Nuevo'),
               style: FilledButton.styleFrom(
@@ -61,9 +62,7 @@ class RefereesScreen extends StatelessWidget {
               final accreditation = data['accreditation']?.toString() ?? data['nivel']?.toString() ?? 'municipal';
               return Card(
                 child: ListTile(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => RefereeDetailScreen(refereeId: docs[index].id, data: data)),
-                  ),
+                  onTap: () => context.push(RouteNames.internal, extra: RefereeDetailScreen(refereeId: docs[index].id, data: data)),
                   leading: CircleAvatar(child: Text(name.substring(0, 1).toUpperCase())),
                   title: Text(name),
                   subtitle: Text(accreditation),

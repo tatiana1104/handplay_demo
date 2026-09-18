@@ -36,8 +36,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     final isPublicRole = normalizedRoles.contains('publico') || normalizedRoles.contains('public') || normalizedRoles.contains('público');
     final hasAuthenticatedSession = authUser != null && !isPublicRole;
     final effectiveAdmin = hasAuthenticatedSession && (isAdmin || normalizedRoles.contains('admin') || normalizedRoles.contains('admin_liga'));
-    // Las vistas abiertas con Navigator.push no tienen GoRouterState en su subárbol.
-    // Por eso el contexto de cada pantalla se expresa mediante selectedIndex.
+// El contexto de la pestaña se expresa mediante selectedIndex para mantener el banner estable.
     final routeSelectedIndex = selectedIndex;
 
     return Container(
