@@ -145,7 +145,7 @@ class AuthRemoteDataSource {
       for (final candidate in pending.docs) {
         if (candidate.id != user.uid && candidate.data()['roles'] is List) {
           final roles = (candidate.data()['roles'] as List).map((value) => value.toString().toLowerCase()).toList();
-          if (roles.contains('arbitro') || roles.contains('entrenador')) {
+          if (roles.contains('arbitro') || roles.contains('entrenador') || roles.contains('jugador') || roles.contains('player')) {
             pendingRef = candidate.reference;
             pendingData = candidate.data();
             break;
@@ -155,7 +155,8 @@ class AuthRemoteDataSource {
     }
     final mergedData = {...?pendingData, ...?data};
     final existingRoles = (mergedData['roles'] as List?)?.map((value) => value.toString()).toList();
-    final isCoach = existingRoles?.contains('entrenador') == true;
+    final isCoach = existingRoles?.contains('entrenador') == true || existingRoles?.contains('coach') == true;
+    final isPlayer = existingRoles?.contains('jugador') == true || existingRoles?.contains('player') == true;
     final roles = {
       ...?existingRoles,
       if (!isCoach && (existingRoles == null || existingRoles.isEmpty)) 'jugador',
@@ -165,7 +166,7 @@ class AuthRemoteDataSource {
       'email': user.email,
       'nombre': name?.isNotEmpty == true ? name : (mergedData['nombre'] ?? user.displayName ?? ''),
       'roles': roles.toList(),
-      'rol': mergedData['rol'] ?? (isCoach ? 'entrenador' : 'jugador'),
+      'rol': mergedData['rol'] ?? (isCoach ? 'entrenador' : (isPlayer ? 'jugador' : 'jugador')),
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
@@ -177,7 +178,7 @@ class AuthRemoteDataSource {
       await pendingRef.update({
         'linkedUid': user.uid,
         'linkedAt': FieldValue.serverTimestamp(),
-        'roles': FieldValue.arrayRemove(['arbitro', 'entrenador']),
+        'roles': FieldValue.arrayRemove(['arbitro', 'entrenador', 'coach', 'jugador', 'player']),
       });
     }
   }
