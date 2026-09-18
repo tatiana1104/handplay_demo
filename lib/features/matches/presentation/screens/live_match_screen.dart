@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,6 +21,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
   final Map<String, String> _officialNames = {};
   bool _showOfficials = true;
+  Timer? _timer;
+  int _elapsedSeconds = 0;
+  bool _isPaused = true;
 
   @override
   void initState() {
@@ -72,16 +77,57 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         .any((role) => role == 'arbitro' || role == 'árbitro' || role == 'referee');
   }
 
-  bool get _canStart {
+  String? get _currentUid {
     final state = context.read<AuthBloc>().state;
-    if (state is! AuthAuthenticated) return false;
-    final uid = state.user.uid;
-    return _isReferee && (uid == _match['timekeeper'] || uid == _match['scorer']);
+    return state is AuthAuthenticated ? state.user.uid : null;
+  }
+
+  bool get _isTimekeeper => _isReferee && _currentUid == _match['timekeeper']?.toString();
+  bool get _isScorer => _isReferee && _currentUid == _match['scorer']?.toString();
+  bool get _canOperate => _isTimekeeper || _isScorer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _toggleTimer() {
+    if (!_isTimekeeper) return;
+    setState(() => _isPaused = !_isPaused);
+    if (_isPaused) {
+      _timer?.cancel();
+    } else {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        setState(() => _elapsedSeconds++);
+      });
+    }
+    _saveMatch({'status': _isPaused ? 'paused' : 'playing', 'elapsedSeconds': _elapsedSeconds});
+  }
+
+  Future<void> _saveMatch(Map<String, dynamic> data) async {
+    await FirebaseFirestore.instance.collection('tournaments').doc(_match['tournamentId']).collection('matches').doc(widget.matchId).update(data);
+    if (mounted) setState(() => _match.addAll(data));
   }
 
   Future<void> _startMatch() async {
-    await FirebaseFirestore.instance.collection('tournaments').doc(_match['tournamentId']).collection('matches').doc(widget.matchId).update({'status': 'playing', 'startedAt': FieldValue.serverTimestamp(), 'period': 1, 'elapsedSeconds': 0});
-    setState(() => _match['status'] = 'playing');
+    _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
+    setState(() => _isPaused = false);
+    await _saveMatch({'status': 'playing', 'startedAt': FieldValue.serverTimestamp(), 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds});
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _elapsedSeconds++);
+    });
+  }
+
+  Future<void> _changePeriod(int period) async {
+    if (!_isTimekeeper) return;
+    await _saveMatch({'period': period, 'elapsedSeconds': 0, 'status': 'paused'});
+    _timer?.cancel();
+    setState(() {
+      _elapsedSeconds = 0;
+      _isPaused = true;
+    });
   }
 
   @override
@@ -112,9 +158,22 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         ]),
         const SizedBox(height: 6),
         Center(child: Text('Tiempo ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min')),
-        if (_canStart && _match['status'] != 'playing' && _match['status'] != 'finished') ...[
+        if (_canOperate) ...[
           const SizedBox(height: 14),
-          FilledButton.icon(onPressed: _startMatch, icon: const Icon(Icons.play_arrow), label: const Text('Iniciar partido')),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(children: [
+                Text(_isTimekeeper ? 'Cronometrista' : 'Anotador', style: const TextStyle(fontWeight: FontWeight.w700)),
+                if (_isTimekeeper) ...[
+                  const SizedBox(height: 8),
+                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((_match['status'] != 'playing' && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronómetro')),
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
+                ] else const Text('Registra goles, tarjetas, exclusiones, sustituciones y tiempos muertos desde la planilla.'),
+              ]),
+            ),
+          ),
         ],
         const SizedBox(height: 18),
         Card(
@@ -174,7 +233,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Color _statusColor(String? status) => status == 'playing' ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
 
   String _elapsedLabel() {
-    final seconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
+    final seconds = _elapsedSeconds > 0 ? _elapsedSeconds : ((_match['elapsedSeconds'] as num?)?.toInt() ?? 0);
     return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
   }
 
@@ -210,7 +269,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   final Map<String, Map<String, int>> _playerEvents = {};
 
-  void _recordPlayerEvent(String playerKey, String event) {
+  Future<void> _recordPlayerEvent(String playerKey, String event) async {
+    if (!_isScorer) return;
+    final eventData = {'type': event, 'player': playerKey, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
+    await _saveMatch({'events': FieldValue.arrayUnion([eventData])});
     setState(() {
       final events = _playerEvents.putIfAbsent(playerKey, () => <String, int>{});
       events[event] = (events[event] ?? 0) + 1;
