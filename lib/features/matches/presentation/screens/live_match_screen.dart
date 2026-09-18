@@ -149,24 +149,51 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
-  Future<void> _resetToSecondPeriod() async {
+  Future<void> _startPeriod(int period) async {
     if (!_isTimekeeper) return;
     _timer?.cancel();
     _elapsedSeconds = 0;
     _isPaused = false;
-    _match['period'] = 2;
+    _match['period'] = period;
     _match['elapsedSeconds'] = 0;
     _match['status'] = 'en_curso';
     if (mounted) setState(() {});
     _startLocalTimer();
     await _saveMatch({
-      'period': 2,
+      'period': period,
       'elapsedSeconds': 0,
       'status': 'en_curso',
       'finishedAt': null,
       'periodStartedAt': FieldValue.serverTimestamp(),
       'startedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> _resetToSecondPeriod() => _startPeriod(2);
+
+  Future<void> _handlePeriodEnd() async {
+    if (!_isTimekeeper) return;
+    final shouldContinue = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Terminar período 2'),
+        content: const Text('¿Deseas terminar el partido o pasar al período 3?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Pasar al período 3')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Terminar partido'),
+          ),
+        ],
+      ),
+    );
+    if (shouldContinue == null) return;
+    if (shouldContinue) {
+      await _finishMatch();
+    } else {
+      await _startPeriod(3);
+    }
   }
 
   Future<void> _finishMatch() async {
@@ -270,7 +297,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _resetToSecondPeriod,
+                          onPressed: ((_match['period'] as num?)?.toInt() ?? 1) == 2 ? _handlePeriodEnd : _resetToSecondPeriod,
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.red.withValues(alpha: 0.14),
                             foregroundColor: Colors.red.shade300,
@@ -280,7 +307,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           icon: Icon(Icons.stop_circle_outlined, color: Colors.red.shade400),
-                          label: const Text('Iniciar período 2'),
+                          label: Text(((_match['period'] as num?)?.toInt() ?? 1) == 2 ? 'Terminar' : 'Iniciar período 2'),
                         ),
                       ),
                     ],
