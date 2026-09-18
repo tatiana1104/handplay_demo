@@ -519,6 +519,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Widget _playerRow(String number, String name, int goals, bool isHome) {
     final key = '$number-$name';
     final events = _playerEvents[key] ?? const <String, int>{};
+    final isExcluded = _activeSuspensions.any((suspension) => suspension['player'] == key);
+    final goalColor = isExcluded
+        ? Theme.of(context).disabledColor
+        : (Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white);
     return Card(
       child: ListTile(
         leading: Text(number),
@@ -529,9 +533,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     Icons.sports_handball,
                     'goal',
                     key,
-                    Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                    goalColor,
                     isHome,
                     name,
+                    enabled: !isExcluded,
                   ),
           _textEventButton("2'", 'exclusion', key, Colors.amber, isHome, name),
           _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome, name),
@@ -551,17 +556,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       );
 
-  Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome, String playerName) => IconButton(
+  Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome, String playerName, {bool enabled = true}) => IconButton(
         tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: name),
+        onPressed: enabled ? () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: playerName) : null,
         icon: Icon(icon, color: color, size: 24),
       );
 
   Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome, String playerName) => IconButton(
         tooltip: 'Exclusión 2 minutos',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: name),
+        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: playerName),
         icon: Text(label, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w700)),
       );
 }
