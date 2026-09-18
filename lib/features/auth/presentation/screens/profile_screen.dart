@@ -55,7 +55,15 @@ class ProfileScreen extends StatelessWidget {
         final normalizedRoles = roles.map((item) => item.trim().toLowerCase()).toSet();
         final role = normalizedRoles.contains('jugador') || normalizedRoles.contains('player')
             ? 'jugador'
-            : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
+            : normalizedRoles.contains('entrenador') || normalizedRoles.contains('coach')
+                ? 'entrenador'
+                : normalizedRoles.contains('arbitro') || normalizedRoles.contains('referee') || normalizedRoles.contains('árbitro')
+                    ? 'arbitro'
+                    : normalizedRoles.contains('admin_liga')
+                        ? 'admin_liga'
+                        : normalizedRoles.contains('admin')
+                            ? 'admin'
+                            : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
         final hasDocument = profile['documentNumber']?.toString().trim().isNotEmpty == true;
         final hasPlayerData = profile['shirtNumber'] != null &&
             int.tryParse(profile['shirtNumber'].toString()) != null &&

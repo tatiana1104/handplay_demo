@@ -63,7 +63,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       existingRoles.add(normalizedRole);
       await profileRef.set({
       'uid': uid,
-      'roles': existingRoles.toList(),
+      'roles': existingRoles.toList()..sort(),
       'rol': normalizedRole,
       'profileCompletedByRole': {
         ...((existingData['profileCompletedByRole'] as Map?)?.map((key, value) => MapEntry(key.toString(), value)) ?? const <String, dynamic>{}),
@@ -82,8 +82,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       }, SetOptions(merge: true));
       final savedSnapshot = await profileRef.get(const GetOptions(source: Source.server));
       final savedData = savedSnapshot.data();
-      if (!savedSnapshot.exists || savedData?['profileCompleted'] != true) {
-        throw StateError('Firestore no confirmó el perfil guardado');
+      final savedCompleted = savedData?['profileCompleted'] == true ||
+          savedData?['profileComplete'] == true ||
+          savedData?['profileCompleted']?.toString().toLowerCase() == 'true' ||
+          savedData?['profileComplete']?.toString().toLowerCase() == 'true';
+      final savedRoleCompleted = (savedData?['profileCompletedByRole'] as Map?)?[normalizedRole] == true;
+      if (!savedSnapshot.exists || (!savedCompleted && !savedRoleCompleted)) {
+        throw StateError('Firestore no confirmó el perfil guardado para el rol $normalizedRole');
       }
       if (!mounted) return;
       setState(() => _saving = false);
