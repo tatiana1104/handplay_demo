@@ -232,23 +232,42 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
-      await registration.set({
+      final firestore = FirebaseFirestore.instance;
+      final batch = firestore.batch();
+      batch.set(registration, {
         ...teamData,
         'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
         'termsAccepted': true,
       });
       if (isCoachAccount) {
-        final userRef = FirebaseFirestore.instance.collection('users').doc(currentUser!.uid);
-        await userRef.set({
-          'uid': currentUser.uid,
-          'email': currentUser.email,
-          'nombre': _coach.text.trim(),
-          'roles': FieldValue.arrayUnion(['entrenador']),
-          'rol': 'entrenador',
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('teams').doc(registration.id).set(teamData);
+        final userRef = firestore.collection('users').doc(currentUser!.uid);
+        final teamRef = firestore
+            .collection('tournaments')
+            .doc(widget.tournament.id)
+            .collection('teams')
+            .doc(registration.id);
+        batch.set(
+          userRef,
+          {
+            'uid': currentUser.uid,
+            'email': currentUser.email,
+            'nombre': _coach.text.trim(),
+            'roles': FieldValue.arrayUnion(['entrenador']),
+            'rol': 'entrenador',
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+        batch.set(teamRef, teamData);
       }
+      await batch.commit().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw FirebaseException(
+          plugin: 'cloud_firestore',
+          code: 'deadline-exceeded',
+          message: 'La conexión con Firebase tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.',
+        ),
+      );
       if (mounted) {
         _show(isCoachAccount
             ? 'Solicitud enviada y equipo vinculado a tu cuenta. Espera la verificación del administrador.'
@@ -258,6 +277,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     } on FirebaseException catch (error) {
       final message = switch (error.code) {
         'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y verifica que el torneo tenga inscripción pública.',
+        'deadline-exceeded' => error.message ?? 'La conexión con Firebase tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.',
+        'unavailable' => 'Firebase no está disponible temporalmente. Comprueba tu conexión e inténtalo de nuevo.',
         _ => error.message ?? 'No se pudo enviar la solicitud.',
       };
       _show(message);
