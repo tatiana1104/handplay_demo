@@ -215,32 +215,34 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _match['status'] == 'finished' ? null : _finishMatch,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red.shade400,
-                        side: BorderSide(color: Colors.red.shade400),
-                        minimumSize: const Size.fromHeight(40),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(40),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+                          label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronometro'),
+                        ),
                       ),
-                      icon: const Icon(Icons.stop_circle_outlined),
-                      label: const Text('Terminar partido'),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(40),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _match['status'] == 'finished' ? null : _finishMatch,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red.shade400,
+                            side: BorderSide(color: Colors.red.shade400),
+                            minimumSize: const Size.fromHeight(40),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          icon: const Icon(Icons.stop_circle_outlined),
+                          label: const Text('Restablecer'),
+                        ),
                       ),
-                      icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
-                      label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronometro'),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Wrap(
