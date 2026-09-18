@@ -37,6 +37,14 @@ class AppBottomNavigationBar extends StatelessWidget {
     final isPublicRole = normalizedRoles.contains('publico') || normalizedRoles.contains('public') || normalizedRoles.contains('público');
     final hasAuthenticatedSession = authUser != null && !isPublicRole;
     final effectiveAdmin = hasAuthenticatedSession && (isAdmin || normalizedRoles.contains('admin') || normalizedRoles.contains('admin_liga'));
+    final currentLocation = GoRouterState.of(context).matchedLocation;
+    final routeSelectedIndex = currentLocation == RouteNames.calendar
+        ? 1
+        : currentLocation == RouteNames.profile
+            ? (effectiveAdmin ? 3 : 2)
+            : currentLocation == RouteNames.home
+                ? 0
+                : selectedIndex;
 
     return Container(
       decoration: BoxDecoration(
@@ -50,7 +58,7 @@ class AppBottomNavigationBar extends StatelessWidget {
       ),
       child: SafeArea(
         child: BottomNavigationBar(
-          currentIndex: _safeSelectedIndex(selectedIndex, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
+          currentIndex: _safeSelectedIndex(routeSelectedIndex, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
           onTap: (index) { // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior
             if (onTap != null) { 
               onTap!(index);  // Si se proporcionó un callback `onTap`, lo llamamos con el índice del elemento tocado y salimos de la función para no ejecutar la navegación por defecto.

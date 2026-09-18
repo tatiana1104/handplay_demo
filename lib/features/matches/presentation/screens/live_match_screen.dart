@@ -95,6 +95,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Partido en vivo')),
       bottomNavigationBar: AppBottomNavigationBar(
+        selectedIndex: 1,
         isAuthenticated: context.watch<AuthBloc>().state is AuthAuthenticated,
       ),
       body: ListView(padding: const EdgeInsets.all(12), children: [
