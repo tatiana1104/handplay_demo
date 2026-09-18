@@ -153,14 +153,10 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
               children: [
                 Text(widget.tournamentName, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(value: 'pending', label: Text('Pendientes (${pending.length})')),
-                    ButtonSegment(value: 'approved', label: Text('Aprobadas (${approved.length})')),
-                    ButtonSegment(value: 'rejected', label: Text('Rechazadas (${rejected.length})')),
-                  ],
-                  selected: {_selectedStatus},
-                  onSelectionChanged: (selection) => setState(() => _selectedStatus = selection.first),
+                _RegistrationFilterBar(
+                  selected: _selectedStatus,
+                  counts: {'pending': pending.length, 'approved': approved.length, 'rejected': rejected.length},
+                  onChanged: (status) => setState(() => _selectedStatus = status),
                 ),
                 const SizedBox(height: 12),
                 if (visible.isEmpty) Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(_selectedStatus == 'pending' ? 'No hay solicitudes pendientes.' : _selectedStatus == 'approved' ? 'No hay solicitudes aprobadas.' : 'No hay solicitudes rechazadas.'))),
@@ -212,4 +208,54 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
           },
         ),
       );
+}
+
+class _RegistrationFilterBar extends StatelessWidget {
+  const _RegistrationFilterBar({required this.selected, required this.counts, required this.onChanged});
+
+  final String selected;
+  final Map<String, int> counts;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const filters = [('pending', 'Pendientes'), ('approved', 'Aprobadas'), ('rejected', 'Rechazadas')];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          for (final filter in filters) ...[
+            _RegistrationFilterChip(label: '${filter.$2} (${counts[filter.$1] ?? 0})', selected: selected == filter.$1, onTap: () => onChanged(filter.$1)),
+            const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RegistrationFilterChip extends StatelessWidget {
+  const _RegistrationFilterChip({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Text(label, style: TextStyle(color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant, fontWeight: selected ? FontWeight.w700 : FontWeight.w600, fontSize: 13)),
+        ),
+      ),
+    );
+  }
 }
