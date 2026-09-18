@@ -129,7 +129,8 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Detalle con desplazamiento vertical para pantallas pequeñas y contenido ampliable
 - [x] Inscripción pública de equipos desde el detalle del torneo, con categoría, entrenador, contacto y consentimiento
 - [x] Solicitudes guardadas en `tournaments/{id}/registrations` con estado `pending` para revisión administrativa
-- [x] Inscripción permitida desde la vista pública o con sesión de entrenador
+  - [x] Inscripción permitida desde la vista pública o con sesión de entrenador
+  - [x] Las solicitudes rechazadas muestran el motivo y permiten editar y reenviar el mismo formulario con los datos precargados; al reenviar, la solicitud vuelve a `pending`.
 - [x] Logo del equipo deshabilitado temporalmente hasta configurar almacenamiento
 - [x] `firebase.json` ya no intenta desplegar Storage; la inscripción funciona solo con Firestore
 - [x] Formulario de inscripción reorganizado en secciones visuales adaptables

@@ -11,6 +11,7 @@ import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
 import 'create_tournament_screen.dart';
 import 'pending_registrations_screen.dart';
+import 'team_registration_screen.dart';
 import 'tournament_detail_screen.dart';
 
 /// Home público y panel de torneos de la liga de balonmano.
@@ -384,6 +385,20 @@ class _TournamentCard extends StatelessWidget {
                             Text(rejectedReason?.isNotEmpty == true ? rejectedReason! : 'Revisa la información y vuelve a enviar la inscripción.'),
                             const SizedBox(height: 4),
                             const Text('Puedes editar los datos indicados y volver a enviar la solicitud.'),
+                            const SizedBox(height: 8),
+                            FilledButton.icon(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => TeamRegistrationScreen(
+                                    tournament: tournament,
+                                    registrationId: docs.first.id,
+                                    initialRegistration: data,
+                                  ),
+                                ),
+                              ),
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text('Editar solicitud'),
+                            ),
                           ],
                         ],
                       ),

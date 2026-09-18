@@ -6,8 +6,10 @@ import '../../domain/models/tournament_models.dart';
 
 /// Solicitud pública para inscribir un equipo y sus jugadores.
 class TeamRegistrationScreen extends StatefulWidget {
-  const TeamRegistrationScreen({required this.tournament, super.key});
+  const TeamRegistrationScreen({required this.tournament, this.initialRegistration, this.registrationId, super.key});
   final Tournament tournament;
+  final Map<String, dynamic>? initialRegistration;
+  final String? registrationId;
 
   @override
   State<TeamRegistrationScreen> createState() => _TeamRegistrationScreenState();
@@ -162,6 +164,31 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    final data = widget.initialRegistration;
+    if (data == null) return;
+    _team.text = data['teamName']?.toString() ?? '';
+    _club.text = data['clubName']?.toString() ?? '';
+    _coach.text = data['coachName']?.toString() ?? '';
+    _phone.text = data['coachPhone']?.toString() ?? '';
+    _email.text = data['coachEmail']?.toString() ?? '';
+    _category = data['category']?.toString();
+    _color = data['uniformColor']?.toString() ?? _color;
+    final players = data['players'];
+    if (players is List) {
+      _players.addAll(
+        players.whereType<Map>().map(
+          (player) => <String, String>{
+            for (final entry in player.entries) entry.key.toString(): entry.value?.toString() ?? '',
+          },
+        ),
+      );
+    }
+    _accepted = true;
+  }
+
+  @override
   void dispose() {
     for (final controller in [_team, _club, _coach, _phone, _email]) controller.dispose();
     super.dispose();
@@ -212,7 +239,13 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final coachEmail = _email.text.trim().toLowerCase();
       final currentUser = FirebaseAuth.instance.currentUser;
       final isCoachAccount = currentUser?.email?.trim().toLowerCase() == coachEmail;
-      final registration = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').doc();
+      final registrations = FirebaseFirestore.instance
+          .collection('tournaments')
+          .doc(widget.tournament.id)
+          .collection('registrations');
+      final registration = widget.registrationId == null
+          ? registrations.doc()
+          : registrations.doc(widget.registrationId);
       final teamData = {
         'id': registration.id,
         'tournamentId': widget.tournament.id,
@@ -228,8 +261,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'players': _players,
         'playerCount': _players.length,
         'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
+        if (widget.registrationId == null) 'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        if (widget.registrationId != null) 'rejectionReason': FieldValue.delete(),
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
       final firestore = FirebaseFirestore.instance;
@@ -269,7 +303,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         ),
       );
       if (mounted) {
-        _show(isCoachAccount
+        _show(widget.registrationId != null
+            ? 'Solicitud actualizada y enviada nuevamente para revisión.'
+            : isCoachAccount
             ? 'Solicitud enviada y equipo vinculado a tu cuenta. Espera la verificación del administrador.'
             : 'Solicitud enviada. Inicia sesión con la cuenta de este correo para vincular el equipo y recibir el rol de entrenador.');
         Navigator.of(context).pop();
