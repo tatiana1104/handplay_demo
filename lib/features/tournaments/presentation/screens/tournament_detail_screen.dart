@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/tournament_models.dart';
 import '../../../teams/data/team_repository.dart';
 import '../../../matches/data/match_repository.dart';
+import '../../../matches/presentation/screens/live_match_screen.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
 
@@ -340,7 +341,8 @@ class _MatchesSection extends StatelessWidget {
         }
         final grouped = <String, List<Map<String, dynamic>>>{};
         for (final doc in matches) {
-          final data = doc.data();
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] = doc.id;
           final date = _matchDateKey(data['date'] ?? data['fecha']);
           final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
           final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
@@ -368,7 +370,9 @@ class _MatchesSection extends StatelessWidget {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: Padding(
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LiveMatchScreen(matchId: match['id']?.toString() ?? '', match: {...match, 'tournamentId': tournament.id}))),
+                      child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
@@ -399,6 +403,7 @@ class _MatchesSection extends StatelessWidget {
                           child: Text(_statusLabel(status), style: const TextStyle(color: Colors.white, fontSize: 11)),
                         ),
                       ]),
+                      ),
                     ),
                   );
                 }),

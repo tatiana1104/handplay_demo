@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../widgets/match_status_label.dart';
+import 'live_match_screen.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -31,6 +32,8 @@ class CalendarScreen extends StatelessWidget {
           final grouped = <String, List<Map<String, dynamic>>>{};
           for (final doc in docs) {
             final data = Map<String, dynamic>.from(doc.data());
+            data['matchId'] = doc.id;
+            data['tournamentId'] = doc.reference.parent.parent?.id;
             final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
             final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
             final home = registrationById[homeId];
@@ -69,6 +72,9 @@ class _CalendarDay extends StatelessWidget {
           ),
           ...matches.map((match) => Card(
                 margin: const EdgeInsets.only(bottom: 10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LiveMatchScreen(matchId: match['matchId'].toString(), match: match))),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                   child: Column(
@@ -86,6 +92,7 @@ class _CalendarDay extends StatelessWidget {
                       Align(alignment: Alignment.centerLeft, child: MatchStatusLabel(status: match['status']?.toString())),
                     ],
                   ),
+                ),
                 ),
               )),
         ],

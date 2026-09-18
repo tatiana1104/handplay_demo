@@ -1,0 +1,80 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../widgets/match_status_label.dart';
+
+class LiveMatchScreen extends StatefulWidget {
+  const LiveMatchScreen({super.key, required this.matchId, required this.match});
+  final String matchId;
+  final Map<String, dynamic> match;
+
+  @override
+  State<LiveMatchScreen> createState() => _LiveMatchScreenState();
+}
+
+class _LiveMatchScreenState extends State<LiveMatchScreen> {
+  late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
+
+  bool get _canStart {
+    final state = context.read<AuthBloc>().state;
+    if (state is! AuthAuthenticated) return false;
+    return state.user.roles.any((role) => role == 'cronometrista' || role == 'anotador');
+  }
+
+  Future<void> _startMatch() async {
+    await FirebaseFirestore.instance.collection('tournaments').doc(_match['tournamentId']).collection('matches').doc(widget.matchId).update({'status': 'playing', 'startedAt': FieldValue.serverTimestamp(), 'period': 1, 'elapsedSeconds': 0});
+    setState(() => _match['status'] = 'playing');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final home = _match['homeTeamName'] ?? _match['homeTeam'] ?? 'Equipo local';
+    final away = _match['awayTeamName'] ?? _match['awayTeam'] ?? 'Equipo visitante';
+    final homeScore = _match['homeScore'] ?? 0;
+    final awayScore = _match['awayScore'] ?? 0;
+    final events = (_match['events'] as List?)?.cast<Map>() ?? const <Map>[];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Partido en vivo')),
+      body: ListView(padding: const EdgeInsets.all(12), children: [
+        Center(child: Text(_match['status'] == 'playing' ? 'EN VIVO · ${_match['elapsedSeconds'] ?? 0}:00' : 'PARTIDO PROGRAMADO', style: Theme.of(context).textTheme.labelMedium)),
+        const SizedBox(height: 8),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          Expanded(child: Text(home.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
+          Text('$homeScore  -  $awayScore', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+          Expanded(child: Text(away.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
+        ]),
+        const SizedBox(height: 6),
+        Center(child: Text('Período ${_match['period'] ?? 1}')),
+        if (_canStart && _match['status'] != 'playing' && _match['status'] != 'finished') ...[
+          const SizedBox(height: 14),
+          FilledButton.icon(onPressed: _startMatch, icon: const Icon(Icons.play_arrow), label: const Text('Iniciar partido')),
+        ],
+        const SizedBox(height: 18),
+        _section('Oficiales del partido', [
+          _official('Árb. campo 1', _match['refereeOneName'] ?? _match['refereeOne']),
+          _official('Árb. campo 2', _match['refereeTwoName'] ?? _match['refereeTwo']),
+          _official('Mesa', _match['tableOfficialName'] ?? _match['tableOfficial']),
+        ]),
+        const SizedBox(height: 14),
+        MatchStatusLabel(status: _match['status']?.toString()),
+        const SizedBox(height: 18),
+        _section('Planilla digital', [
+          _playerRow('#7', 'Jugador local', 0),
+          _playerRow('#11', 'Jugador local', 0),
+          _playerRow('#9', 'Jugador visitante', 0),
+        ]),
+        const SizedBox(height: 18),
+        Text('Cronología', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        ...events.map((event) => ListTile(dense: true, leading: Text('${event['minute'] ?? "--"}\''), title: Text(event['description']?.toString() ?? 'Evento'))),
+      ]),
+    );
+  }
+
+  Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
+  Widget _official(String role, dynamic name) => ListTile(dense: true, title: Text(role), trailing: Text(name?.toString() ?? 'Sin asignar'));
+  Widget _playerRow(String number, String name, int goals) => Card(child: ListTile(leading: Text(number), title: Text(name), subtitle: Text('$goals goles'), trailing: Wrap(spacing: 4, children: [IconButton(onPressed: null, icon: const Icon(Icons.sports_handball)), IconButton(onPressed: null, icon: const Icon(Icons.crop_square)), IconButton(onPressed: null, icon: const Icon(Icons.square, color: Colors.amber)), IconButton(onPressed: null, icon: const Icon(Icons.square, color: Colors.red))])));
+}
