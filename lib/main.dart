@@ -29,9 +29,17 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 8));
+  } catch (error) {
+    // La vista pública no debe quedar bloqueada por Firebase o notificaciones.
+    debugPrint('[v0] Firebase no estuvo disponible durante el arranque: $error');
+  }
+  await initDependencies();
+  runApp(const HandPlayApp());
+  // Las notificaciones no deben retrasar ni bloquear el primer frame.
   FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
@@ -43,8 +51,6 @@ Future<void> main() async {
   FirebaseMessaging.onMessage.listen((message) {
     debugPrint('[v0] Notificación recibida: ${message.notification?.title}');
   });
-  await initDependencies();
-  runApp(const HandPlayApp());
 }
 
 class HandPlayApp extends StatefulWidget {
