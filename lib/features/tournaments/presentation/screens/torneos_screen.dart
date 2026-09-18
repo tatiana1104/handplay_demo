@@ -396,7 +396,11 @@ class _TournamentCard extends StatelessWidget {
                             const Text('Puedes editar los datos indicados y volver a enviar la solicitud.'),
                             const SizedBox(height: 8),
                             FilledButton.icon(
-onPressed: () => context.push(RouteNames.internal, extra: TeamRegistrationScreen(tournament: tournament, registrationId: docs.first.id)),
+                              onPressed: () => context.push(
+                                RouteNames.internal,
+                                extra: TeamRegistrationScreen(
+                                  tournament: tournament,
+                                  registrationId: docs.first.id,
                                 ),
                               ),
                               icon: const Icon(Icons.edit_outlined),
