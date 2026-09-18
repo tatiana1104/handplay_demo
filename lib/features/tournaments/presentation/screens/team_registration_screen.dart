@@ -47,6 +47,19 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   static const positions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
 
+  Future<void> _loadExistingCoach() async {
+    final document = _coachDocument.text.trim();
+    if (document.isEmpty) return;
+    final existing = await _findProfile(document);
+    if (!mounted || existing == null) return;
+    setState(() {
+      _coach.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? _coach.text;
+      _coachDocument.text = existing['document']?.toString() ?? existing['documentNumber']?.toString() ?? document;
+      _phone.text = existing['phone']?.toString() ?? existing['telefono']?.toString() ?? _phone.text;
+      _email.text = existing['email']?.toString() ?? existing['correo']?.toString() ?? _email.text;
+    });
+  }
+
   Future<void> _loadExistingPlayer() async {
     final existing = await _findProfile(_document.text.trim());
     if (!mounted || existing == null) return;
@@ -554,7 +567,14 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           title: 'Datos del entrenador',
           children: [
             _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
-            _field(_coachDocument, 'Documento del entrenador *', '1006514021'),
+            TextFormField(
+              controller: _coachDocument,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Documento del entrenador *', hintText: '1006514021', prefixIcon: Icon(Icons.credit_card_outlined)),
+              onEditingComplete: _loadExistingCoach,
+              onFieldSubmitted: (_) => _loadExistingCoach(),
+              validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
+            ),
             Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
           ],
         ),
