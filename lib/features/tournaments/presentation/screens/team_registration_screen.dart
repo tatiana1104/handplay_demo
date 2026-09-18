@@ -124,22 +124,17 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-        contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        title: const Row(
-          children: [
-            Icon(Icons.person_add_alt_1_rounded),
-            SizedBox(width: 10),
-            Text('Agregar jugador'),
-          ],
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Agregar jugador'),
+          leading: const BackButton(),
         ),
-        content: Form(
+        body: Form(
           key: _formKey,
           child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
             child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Datos del jugador', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 10),
@@ -207,10 +202,16 @@ class _PlayerDialogState extends State<_PlayerDialog> {
             ),
           ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          FilledButton(onPressed: _submit, child: const Text('Agregar')),
-        ],
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          child: Row(
+            children: [
+              Expanded(child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))),
+              const SizedBox(width: 12),
+              Expanded(child: FilledButton(onPressed: _submit, child: const Text('Agregar jugador'))),
+            ],
+          ),
+        ),
       );
 }
 
@@ -302,17 +303,12 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   Future<void> _addPlayer() async {
   final result = await Navigator.of(context).push<Map<String, String>>(
     MaterialPageRoute(
-      builder: (_) => Scaffold(
-        appBar: AppBar(title: const Text('Agregar jugador')),
-        body: SafeArea(
-          child: _PlayerDialog(
-  usedNumbers: _players
+      builder: (_) => _PlayerDialog(
+        usedNumbers: _players
             .map((player) => int.tryParse(player['number'] ?? ''))
             .whereType<int>()
             .toSet(),
-  tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
-          ),
-        ),
+        tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
       ),
     ),
     );
