@@ -53,8 +53,8 @@ class CalendarScreen extends StatelessWidget {
             final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
             final home = _findRegistration(registrationById, homeId, data, true);
             final away = _findRegistration(registrationById, awayId, data, false);
-            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? data['localName'] ?? homeId ?? 'Equipo local');
-            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? data['visitorName'] ?? awayId ?? 'Equipo visitante');
+            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? data['localName'] ?? 'Equipo local');
+            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? data['visitorName'] ?? 'Equipo visitante');
             data['homeTeamColor'] = home?['uniformColor'] ?? data['homeTeamColor'];
             data['awayTeamColor'] = away?['uniformColor'] ?? data['awayTeamColor'];
             grouped.putIfAbsent(_dateLabel(data['date']), () => []).add(data);

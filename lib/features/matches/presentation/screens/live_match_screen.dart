@@ -31,10 +31,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final tournamentId = _match['tournamentId']?.toString();
     if (tournamentId == null || tournamentId.isEmpty) return;
     final snapshot = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').get();
-    final registrations = snapshot.docs.map((doc) => doc.data()).toList();
+    final registrations = snapshot.docs.map((doc) => <String, dynamic>{...doc.data(), 'documentId': doc.id}).toList();
     for (final side in ['home', 'away']) {
       final id = _match['${side}Team']?.toString();
-      final registration = registrations.firstWhere((item) => [item['id'], item['registrationId'], item['teamId'], item['teamUid'], item['uid']].map((value) => value?.toString()).contains(id), orElse: () => <String, dynamic>{});
+      final registration = registrations.firstWhere((item) => [item['documentId'], item['id'], item['registrationId'], item['teamId'], item['teamUid'], item['uid']].map((value) => value?.toString()).contains(id), orElse: () => <String, dynamic>{});
       final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
       if (name != null && name.toString().trim().isNotEmpty && mounted) {
         setState(() => _match['${side}TeamName'] = name.toString().trim());
@@ -78,8 +78,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final home = _match['homeTeamName'] ?? _match['homeTeam'] ?? 'Equipo local';
-    final away = _match['awayTeamName'] ?? _match['awayTeam'] ?? 'Equipo visitante';
+    final home = _match['homeTeamName'] ?? _match['localName'] ?? 'Equipo local';
+    final away = _match['awayTeamName'] ?? _match['visitorName'] ?? 'Equipo visitante';
     final homeScore = _match['homeScore'] ?? 0;
     final awayScore = _match['awayScore'] ?? 0;
     final events = (_match['events'] as List?)?.cast<Map>() ?? const <Map>[];
