@@ -240,34 +240,6 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: (isPlayer || isCoach)
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: Row(
-                  children: [
-                    if (isPlayer)
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RoleProfileScreen(title: 'Ficha jugador', data: widget.data))),
-                          icon: const Icon(Icons.person_outline),
-                          label: const Text('Ficha jugador'),
-                        ),
-                      ),
-                    if (isPlayer && isCoach) const SizedBox(width: 8),
-                    if (isCoach)
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RoleProfileScreen(title: 'Ficha entrenador', data: widget.data))),
-                          icon: const Icon(Icons.sports_outlined),
-                          label: const Text('Ficha entrenador'),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            )
-          : null,
     );
   }
 }
