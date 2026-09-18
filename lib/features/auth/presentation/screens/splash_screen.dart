@@ -8,16 +8,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-
-    });
-  }
-
-  @override
-  void dispose() {
-    _redirectTimer?.cancel(); // Cancelamos el `Timer` si todavía está activo cuando el widget se desmonta para evitar que intente navegar a la pantalla de inicio después de que el widget ya no esté en el árbol de widgets
-    super.dispose(); // Llamamos a `super.dispose()` para asegurarnos de que cualquier limpieza adicional del estado del widget se realice correctamente cuando el widget se desmonta
-  }
+class _SplashScreenState extends State<SplashScreen> {}
 
   @override
   Widget build(BuildContext context) {
