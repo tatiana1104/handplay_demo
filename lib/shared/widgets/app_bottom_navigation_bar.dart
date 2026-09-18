@@ -84,6 +84,8 @@ class AppBottomNavigationBar extends StatelessWidget {
           unselectedItemColor: colorScheme.onSurfaceVariant,
           backgroundColor: colorScheme.surface, // Color de fondo de la barra de navegación inferior según el tema actual
           elevation: 0, // Elevación de la barra de navegación inferior (0 = sin sombra)
+          selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           // La navegación pública no expone Perfil; después del login se
           // reemplaza el acceso de sesión por Perfil.
           items: hasAuthenticatedSession

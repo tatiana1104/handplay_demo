@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+
 class MatchStatusLabel extends StatelessWidget {
   const MatchStatusLabel({super.key, required this.status});
 
@@ -13,11 +15,12 @@ class MatchStatusLabel extends StatelessWidget {
         : normalized == 'finished' || normalized == 'finalizado'
             ? 'Finalizado'
             : 'Por iniciar';
+    final colorScheme = Theme.of(context).colorScheme;
     final color = label == 'Jugando'
-        ? Colors.orange.shade700
+        ? AppColors.brandDark
         : label == 'Finalizado'
-            ? Colors.blueGrey
-            : Colors.green.shade700;
+            ? colorScheme.onSurfaceVariant
+            : (Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight);
 
     return Container(
       width: double.infinity,

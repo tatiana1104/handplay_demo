@@ -105,8 +105,10 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: border.withValues(alpha: 0.8)),
         ),
       ),
 
@@ -117,12 +119,30 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        labelStyle: TextStyle(color: secondaryText),
+        hintStyle: TextStyle(color: secondaryText),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: border, width: 0.5),
         ),
       ),
 
+      // Botones principales y secundarios comparten radios y jerarquía visual.
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: brand,
+          side: BorderSide(color: brand.withValues(alpha: 0.65)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: brand,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
       // Botones principales (ElevatedButton): fondo verde de marca.
       // El color del TEXTO cambia según el tema porque verde oscuro
       // (`brandDark`, tema oscuro) necesita texto oscuro encima para
@@ -140,6 +160,17 @@ class AppTheme {
         ),
       ),
 
+      dividerTheme: DividerThemeData(
+        color: border,
+        thickness: 1,
+        space: 1,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: brightness == Brightness.dark ? AppColors.darkBrandSoft : AppColors.lightBrandSoft,
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        labelStyle: TextStyle(color: onSurface, fontWeight: FontWeight.w600),
+      ),
       useMaterial3: true,
     );
   }
