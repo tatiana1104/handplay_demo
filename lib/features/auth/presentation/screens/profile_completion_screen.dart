@@ -53,6 +53,14 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el perfil: ${error.message ?? error.code}')));
+    } on FormatException {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El número de camiseta no es válido')));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el perfil: $error')));
     }
   }
 

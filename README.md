@@ -221,6 +221,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: el banner calcula la sesión real desde AuthBloc, evita mostrar Perfil a visitantes/rol público y mantiene índices válidos para usuarios, administradores y visitantes.
   - `HEAD`: el botón Home del banner limpia la pila de navegación antes de ir a `/torneos`, evitando que el calendario abierto con `Navigator.push` bloquee el regreso.
   - `HEAD`: completar perfil crea/actualiza `users/{uid}` con `uid`, `roles`, `rol`, correo y datos del jugador; la pantalla Perfil muestra los datos guardados y errores de Firestore.
+  - `HEAD`: las reglas de Firestore permiten crear el perfil propio para todos los roles soportados y el formulario muestra también errores no relacionados directamente con Firebase.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 

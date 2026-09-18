@@ -41,9 +41,10 @@ service cloud.firestore {
   allow create: if isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == userId
-    && request.resource.data.rol in ['jugador', 'entrenador']
+    && request.resource.data.rol in ['jugador', 'entrenador', 'arbitro', 'admin', 'admin_liga']
     && request.resource.data.roles is list
-    && request.resource.data.roles.hasOnly(['jugador', 'entrenador']));
+    && request.resource.data.roles.size() > 0
+    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'admin', 'admin_liga']));
   allow update: if isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == resource.data.uid
