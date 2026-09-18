@@ -87,22 +87,39 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
       if (currentName.isNotEmpty && currentName == previousName) warnings.add('Mismo nombre de equipo que "$label".');
       if (currentColor.isNotEmpty && currentColor == previousColor) warnings.add('Mismo color de uniforme que "$label".');
       final repeatedPlayers = currentPlayers.intersection(previousPlayers);
-      if (repeatedPlayers.isNotEmpty) warnings.add('${repeatedPlayers.length} jugador(es) también aparece(n) en "$label".');
+      if (repeatedPlayers.isNotEmpty) {
+        final currentPlayerDetails = _playerDetails(current['players']);
+        final previousPlayerDetails = _playerDetails(previous['players']);
+        final details = repeatedPlayers.map((key) {
+          final player = currentPlayerDetails[key] ?? previousPlayerDetails[key];
+          return player == null ? key : '${player['name']} — documento: ${player['document']}';
+        }).join('; ');
+        warnings.add('Jugadores con similitud en "$label": $details.');
+      }
     }
     return warnings.toList();
   }
 
   String _normalize(Object? value) => value?.toString().trim().toLowerCase() ?? '';
 
-  Set<String> _playerKeys(Object? value) {
+  Set<String> _playerKeys(Object? value) => _playerDetails(value).keys.toSet();
+
+  Map<String, Map<String, String>> _playerDetails(Object? value) {
     final players = value is List ? value : const <dynamic>[];
-    return players.map((player) {
-      if (player is Map) {
-        final document = _normalize(player['document']);
-        return document.isNotEmpty ? document : _normalize(player['name']);
+    final details = <String, Map<String, String>>{};
+    for (final player in players) {
+      if (player is! Map) continue;
+      final document = player['document']?.toString().trim() ?? '';
+      final name = player['name']?.toString().trim() ?? '';
+      final key = _normalize(document.isNotEmpty ? document : name);
+      if (key.isNotEmpty) {
+        details[key] = {
+          'name': name.isNotEmpty ? name : 'Nombre no registrado',
+          'document': document.isNotEmpty ? document : 'Documento no registrado',
+        };
       }
-      return '';
-    }).where((key) => key.isNotEmpty).toSet();
+    }
+    return details;
   }
 
   @override
