@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/routing/route_names.dart';
 
 import '../../domain/models/tournament_models.dart';
 import '../../../teams/data/team_repository.dart';
 import '../../../matches/data/match_repository.dart';
-import '../../../matches/presentation/screens/live_match_screen.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
 
@@ -374,7 +376,7 @@ class _MatchesSection extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 10),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: InkWell(
-                      onTap: () => context.go(RouteNames.liveMatch, extra: {...match, 'id': match['id']?.toString() ?? '', 'tournamentId': tournament.id})),
+                      onTap: () => context.go(RouteNames.liveMatch, extra: {...match, 'id': match['id']?.toString() ?? '', 'tournamentId': tournament.id}),
                       child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
