@@ -15,6 +15,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   final _documentController = TextEditingController();
   final _shirtController = TextEditingController();
   final _positionController = TextEditingController();
+  static const _playerPositions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
   bool _saving = false;
 
   @override
@@ -88,7 +89,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
               const SizedBox(height: 14),
               TextFormField(controller: _shirtController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número de camiseta', border: OutlineInputBorder()), validator: (value) => int.tryParse(value ?? '') == null ? 'Ingresa un número válido' : null),
               const SizedBox(height: 14),
-              TextFormField(controller: _positionController, decoration: const InputDecoration(labelText: 'Posición', border: OutlineInputBorder()), validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa tu posición' : null),
+              DropdownButtonFormField<String>(
+                value: _playerPositions.contains(_positionController.text) ? _positionController.text : null,
+                decoration: const InputDecoration(labelText: 'Posición', border: OutlineInputBorder(), prefixIcon: Icon(Icons.sports_handball_outlined)),
+                items: _playerPositions.map((position) => DropdownMenuItem(value: position, child: Text(position))).toList(),
+                onChanged: _saving ? null : (value) => setState(() => _positionController.text = value ?? ''),
+                validator: (value) => value == null || value.isEmpty ? 'Selecciona una posición' : null,
+              ),
             ],
             const SizedBox(height: 14),
             TextFormField(initialValue: FirebaseAuth.instance.currentUser?.email ?? '', readOnly: true, decoration: const InputDecoration(labelText: 'Correo electrónico', border: OutlineInputBorder())),
