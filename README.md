@@ -107,7 +107,7 @@ node scripts/create-test-users.cjs
 
 El script muestra las contraseñas temporales una sola vez; guárdalas de forma segura y obliga al usuario a cerrar sesión y entrar de nuevo para refrescar sus claims.
 
-### 🟨 Sprint 2 — Torneos y equipos (modelo iniciado)
+### ✅ Sprint 2 — Torneos y equipos (completado)
 - [x] Modelos Dart para torneos, categorías, sedes, equipos, jugadores y partidos
 - [x] Repositorio Firestore con consultas reactivas de torneos, categorías y sedes
 - [x] Home público de liga de balonmano con banner inferior para consultar información e iniciar sesión
@@ -136,8 +136,15 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] Logo del equipo deshabilitado temporalmente hasta configurar almacenamiento
 - [x] `firebase.json` ya no intenta desplegar Storage; la inscripción funciona solo con Firestore
 - [x] Formulario de inscripción reorganizado en secciones visuales adaptables
-- [ ] Vistas de equipos
-- [ ] Escrituras completas y validación de formularios
+- [x] Vista Equipos inscritos con contador en tiempo real de solicitudes aprobadas y navegación al detalle de cada equipo
+- [x] Detalle de equipo con uniforme, categoría, entrenador, métricas y plantilla de jugadores
+- [x] Escrituras completas y validación de formularios para torneo, solicitud, equipo y jugadores
+- [x] Revisión administrativa: aprobar/rechazar solicitudes y registrar motivo de rechazo
+- [x] Advertencias de similitud de equipos, uniformes y jugadores con nombre y documento
+- [x] Edición y reenvío de solicitudes rechazadas con datos precargados y cambios solicitados destacados en rojo
+- [x] Perfil multirol sincronizado entre Firebase Authentication y Firestore
+- [x] Estados de solicitud visibles para el entrenador: pendiente, aprobada y rechazada
+- [x] Acceso seguro a solicitudes y equipos aprobados mediante reglas Firestore
 
 #### Modelo de datos Firestore
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:

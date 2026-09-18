@@ -92,6 +92,7 @@ class _StatsGrid extends StatelessWidget {
       stream: approvedTeams,
       builder: (context, snapshot) {
         final count = snapshot.data?.docs.length ?? 0;
+        final hasError = snapshot.hasError;
         return GridView.count(
           crossAxisCount: 2,
           mainAxisSpacing: 10,
@@ -102,7 +103,7 @@ class _StatsGrid extends StatelessWidget {
           children: [
             _StatCard(
               label: 'Equipos',
-              value: '$count',
+              value: hasError ? '—' : '$count',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => _ApprovedTeamsScreen(tournament: tournament),
