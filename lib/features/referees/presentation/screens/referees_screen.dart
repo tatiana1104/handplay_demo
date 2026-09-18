@@ -136,14 +136,21 @@ class _AccreditationFilterChip extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          child: Text(label, style: TextStyle(color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant, fontWeight: selected ? FontWeight.w700 : FontWeight.w600, fontSize: 13)),
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
         ),
       ),
-    ),
     );
   }
 }
