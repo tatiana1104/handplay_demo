@@ -24,6 +24,22 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   void initState() {
     super.initState();
     _loadOfficialNames();
+    _loadTeamNames();
+  }
+
+  Future<void> _loadTeamNames() async {
+    final tournamentId = _match['tournamentId']?.toString();
+    if (tournamentId == null || tournamentId.isEmpty) return;
+    final snapshot = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').get();
+    final registrations = snapshot.docs.map((doc) => doc.data()).toList();
+    for (final side in ['home', 'away']) {
+      final id = _match['${side}Team']?.toString();
+      final registration = registrations.firstWhere((item) => [item['id'], item['registrationId'], item['teamId'], item['teamUid'], item['uid']].map((value) => value?.toString()).contains(id), orElse: () => <String, dynamic>{});
+      final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
+      if (name != null && name.toString().trim().isNotEmpty && mounted) {
+        setState(() => _match['${side}TeamName'] = name.toString().trim());
+      }
+    }
   }
 
   Future<void> _loadOfficialNames() async {

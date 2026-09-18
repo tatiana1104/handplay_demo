@@ -38,6 +38,8 @@ class CalendarScreen extends StatelessWidget {
               if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
               if (doc.data()['team'] != null) doc.data()['team'].toString(): doc.data(),
               if (doc.data()['uid'] != null) doc.data()['uid'].toString(): doc.data(),
+              if (doc.data()['registrationId'] != null) doc.data()['registrationId'].toString(): doc.data(),
+              if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
             },
           };
           final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
@@ -126,10 +128,15 @@ class _CalendarDay extends StatelessWidget {
 
   Map<String, dynamic>? _findRegistration(Map<String, Map<String, dynamic>> registrations, String? teamId, Map<String, dynamic> match, bool home) {
     if (teamId != null && registrations[teamId] != null) return registrations[teamId];
-    final name = match[home ? 'homeTeamName' : 'awayTeamName'] ?? match[home ? 'localName' : 'visitorName'];
+    final storedName = match[home ? 'homeTeamName' : 'awayTeamName'] ?? match[home ? 'localName' : 'visitorName'];
     for (final registration in registrations.values) {
-      final registrationName = registration['teamName'] ?? registration['clubName'] ?? registration['name'];
-      if (name != null && registrationName?.toString() == name.toString()) return registration;
+      final identifiers = [
+        registration['id'], registration['registrationId'], registration['teamId'],
+        registration['teamUid'], registration['uid'],
+      ].where((value) => value != null).map((value) => value.toString());
+      if (teamId != null && identifiers.contains(teamId)) return registration;
+      final registrationName = registration['teamName'] ?? registration['clubName'] ?? registration['name'] ?? registration['team'];
+      if (storedName != null && registrationName?.toString() == storedName.toString()) return registration;
     }
     return null;
   }
