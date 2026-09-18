@@ -154,6 +154,12 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final name = widget.data['displayName']?.toString() ?? widget.data['nombre']?.toString() ?? 'Árbitro';
+    final roles = [
+      ...(widget.data['roles'] is List ? List<dynamic>.from(widget.data['roles']) : <dynamic>[]),
+      if (widget.data['rol'] != null) widget.data['rol'],
+    ].map((role) => role.toString().toLowerCase()).toSet();
+    final isPlayer = roles.contains('jugador') || roles.contains('player');
+    final isCoach = roles.contains('entrenador') || roles.contains('coach');
     final document = widget.data['document']?.toString() ?? widget.data['documentNumber']?.toString() ?? 'No registrado';
     final email = widget.data['email']?.toString() ?? widget.data['correo']?.toString() ?? 'No registrado';
     final phone = widget.data['phone']?.toString() ?? widget.data['telefono']?.toString() ?? 'No registrado';
@@ -212,6 +218,61 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
                 trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
               ),
             ),
+        ],
+      ),
+      bottomNavigationBar: (isPlayer || isCoach)
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Row(
+                  children: [
+                    if (isPlayer)
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RoleProfileScreen(title: 'Ficha jugador', data: widget.data))),
+                          icon: const Icon(Icons.person_outline),
+                          label: const Text('Ficha jugador'),
+                        ),
+                      ),
+                    if (isPlayer && isCoach) const SizedBox(width: 8),
+                    if (isCoach)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => RoleProfileScreen(title: 'Ficha entrenador', data: widget.data))),
+                          icon: const Icon(Icons.sports_outlined),
+                          label: const Text('Ficha entrenador'),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+class RoleProfileScreen extends StatelessWidget {
+  const RoleProfileScreen({required this.title, required this.data, super.key});
+  final String title;
+  final Map<String, dynamic> data;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = data['displayName']?.toString() ?? data['nombre']?.toString() ?? 'Usuario';
+    final email = data['email']?.toString() ?? data['correo']?.toString() ?? 'No registrado';
+    final phone = data['phone']?.toString() ?? data['telefono']?.toString() ?? 'No registrado';
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CircleAvatar(radius: 34, child: Text(name.substring(0, 1).toUpperCase())),
+          const SizedBox(height: 12),
+          Center(child: Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
+          const SizedBox(height: 20),
+          Card(child: ListTile(title: const Text('Correo'), subtitle: Text(email))),
+          Card(child: ListTile(title: const Text('Teléfono'), subtitle: Text(phone))),
         ],
       ),
     );
