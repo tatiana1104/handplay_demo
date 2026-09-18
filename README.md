@@ -157,12 +157,18 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Formulario de documento, nombre, correo, teléfono y acreditación: municipal (básico), departamental (intermedio, requiere municipal) y nacional (alto, requiere departamental). El administrador puede crear o actualizar el perfil y se informa el error de Firebase si el guardado falla.
 - [x] Cada árbitro abre un perfil con documento, correo, teléfono y selector para agregar o actualizar su nivel permitido; el listado muestra solo su acreditación resumida: municipal, departamental o nacional. En el perfil del árbitro aparecen botones inferiores para abrir la ficha de jugador o entrenador según los roles guardados en Firestore. La acreditación usa una lista desplegable con el mismo patrón visual del selector de categoría del torneo. El perfil muestra únicamente la lista de certificaciones vigentes, sin selector duplicado. El botón `+` abre el cuadro para seleccionar el siguiente nivel permitido. Si el documento existe carga sus datos y habilita solo los niveles permitidos; si no existe comienza en municipal.
 - [x] En el detalle del torneo, tarjeta Jornada navegable hacia una pantalla independiente de partidos agrupados por fecha; lista conectada a `tournaments/{id}/matches`.
-- [x] El botón Calendario del banner abre el calendario global con los partidos agrupados por día, hora, sede, equipos y estado.
-- [x] El administrador puede crear partidos desde la pantalla de jornadas, asignando equipos, fecha, hora, sede, árbitros y mesa. Las reglas permiten gestionar partidos al administrador del torneo, no solo a usuarios con claim global de administrador; la subcolección `matches` está anidada correctamente bajo cada torneo.
-- [ ] Generación de calendario.
-- [ ] Asignación de árbitros.
-- [ ] Asignación de mesa.
-- [ ] Validación de conflictos de interés.
+- [x] El botón Calendario del banner abre el calendario global con los partidos agrupados por día, hora, sede/cancha, equipos y estado.
+- [x] El banner inferior de navegación está disponible también en la vista global de Calendario y conserva el acceso a Home, Calendario, Árbitros y Perfil según el rol.
+- [x] El administrador del torneo puede crear partidos desde la pantalla de jornadas, asignando local, visitante, fecha, hora, sede/cancha, árbitros y mesa.
+- [x] Las tarjetas muestran siempre LOCAL a la izquierda y VISITANTE a la derecha, con el nombre real del equipo y el color de uniforme registrado.
+- [x] La fecha almacenada como `Timestamp` se presenta como día y mes legibles; la hora y la sede/cancha aparecen debajo de la fila de equipos.
+- [x] Los estados de partido están normalizados como `Por iniciar`, `Jugando` y `Finalizado` en jornadas y calendario global.
+- [x] Se evita guardar un partido cuando un árbitro de campo pertenece a la plantilla del equipo local o visitante; se muestra una alerta visual con el nombre del árbitro y el equipo en conflicto.
+- [x] Las reglas Firestore permiten al administrador del torneo gestionar la subcolección anidada `tournaments/{id}/matches` y leer partidos/inscripciones para el calendario global.
+- [ ] Generación automática de calendario.
+- [x] Asignación manual de árbitros.
+- [x] Asignación manual de mesa.
+- [x] Validación de conflictos de interés entre árbitros de campo y equipos participantes.
 
 #### Modelo de datos Firestore
 Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
@@ -171,7 +177,7 @@ Las colecciones creadas en el proyecto `handplaydemo` usan esta estructura base:
 - `tournaments/{tournamentId}`: `adminId`, `name`, `status`, `categories` (`categoria|rama`), `format`, `teamLimit`, `publicRegistration`, `startDate`, `endDate`, `updatedAt`.
 - `tournaments/{tournamentId}/teams/{teamId}`: `name`, `members`, `createdAt`. El propietario del torneo o un administrador gestiona equipos.
 - `teams/{teamId}`: colección raíz compatible con los documentos ya creados; las escrituras quedan reservadas a administradores.
-- `matches/{matchId}`: `tournamentId`, `teamAId`, `teamBId`, `participantIds`, `refereeId`, `scheduledAt`, `status`, `score`.
+- `tournaments/{tournamentId}/matches/{matchId}`: `homeTeam`, `awayTeam`, `homeTeamName`, `awayTeamName`, `homeTeamColor`, `awayTeamColor`, `date` (`Timestamp`), `venue`, `refereeOne`, `refereeTwo`, `tableOfficial`, `status` (`scheduled`/`playing`/`finished`) y `score`.
 
 Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarlas desde la raíz del proyecto:
 
@@ -179,7 +185,9 @@ Las reglas están en `firestore.rules`. Después de cualquier cambio, desplegarl
 firebase deploy --only "firestore:rules" --project handplaydemo
 ```
 
-### ⬜ Sprint 3 — Calendario y árbitros
+### 🟨 Sprint 3 — Calendario y árbitros (en progreso)
+La creación manual de partidos, calendario global, presentación de equipos/colores, estados y validación de conflictos ya está implementada. Pendiente: generación automática de jornadas.
+
 ### ⬜ Sprint 4 — Partido en vivo
 ### ⬜ Sprint 5 — Estadísticas
 ### ⬜ Sprint 6 — Gemini y notificaciones
