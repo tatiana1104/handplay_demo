@@ -81,7 +81,10 @@ service cloud.firestore {
           && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
           && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
           && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam;
-        allow read, update, delete: if canManageTournament(tournamentId);
+        allow read: if canManageTournament(tournamentId)
+          || (signedIn()
+            && resource.data.coachEmail == request.auth.token.email);
+        allow update, delete: if canManageTournament(tournamentId);
       }
 
       // Los equipos pertenecen a un torneo y no pueden quedar accesibles de forma pública.

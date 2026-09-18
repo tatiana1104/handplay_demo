@@ -135,12 +135,21 @@ class AuthRemoteDataSource {
     final existing = await ref.get();
     final data = existing.data();
     final existingRoles = (data?['roles'] as List?)?.whereType<String>().toList();
+    final registration = user.email == null
+        ? null
+        : await FirebaseFirestore.instance
+            .collectionGroup('registrations')
+            .where('coachEmail', isEqualTo: user.email!.trim().toLowerCase())
+            .limit(1)
+            .get();
+    final isCoach = registration?.docs.isNotEmpty == true || existingRoles?.contains('entrenador') == true;
+    final roles = {...?existingRoles, if (isCoach) 'entrenador', if (!isCoach && (existingRoles == null || existingRoles.isEmpty)) 'jugador'};
     await ref.set({
       'uid': user.uid,
       'email': user.email,
       'nombre': name?.isNotEmpty == true ? name : (data?['nombre'] ?? user.displayName ?? ''),
-      'roles': existingRoles == null || existingRoles.isEmpty ? ['jugador'] : existingRoles,
-      'rol': data?['rol'] ?? (existingRoles?.isNotEmpty == true ? existingRoles!.first : 'jugador'),
+      'roles': roles.toList(),
+      'rol': data?['rol'] ?? (isCoach ? 'entrenador' : 'jugador'),
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
