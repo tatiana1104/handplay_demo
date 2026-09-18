@@ -85,6 +85,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   bool get _isTimekeeper => _isReferee && _currentUid == _match['timekeeper']?.toString();
   bool get _isScorer => _isReferee && _currentUid == _match['scorer']?.toString();
   bool get _canOperate => _isTimekeeper || _isScorer;
+  bool get _canUseScoreSheet => _isTimekeeper || _isScorer;
 
   @override
   void dispose() {
@@ -164,13 +165,20 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(children: [
-                Text(_isTimekeeper ? 'Cronometrista' : 'Anotador', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(
+                  _isTimekeeper && _isScorer ? 'Cronometrista y anotador' : (_isTimekeeper ? 'Cronometrista' : 'Anotador'),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
                   FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((_match['status'] != 'playing' && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronómetro')),
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
-                ] else const Text('Registra goles, tarjetas, exclusiones, sustituciones y tiempos muertos desde la planilla.'),
+                ],
+                if (_canUseScoreSheet) ...[
+                  const SizedBox(height: 10),
+                  const Align(alignment: Alignment.centerLeft, child: Text('Planilla completa: goles, tarjetas, exclusiones, sustituciones y tiempos muertos.')),
+                ],
               ]),
             ),
           ),
@@ -270,7 +278,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   final Map<String, Map<String, int>> _playerEvents = {};
 
   Future<void> _recordPlayerEvent(String playerKey, String event) async {
-    if (!_isScorer) return;
+    if (!_canUseScoreSheet) return;
     final eventData = {'type': event, 'player': playerKey, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
     await _saveMatch({'events': FieldValue.arrayUnion([eventData])});
     setState(() {
