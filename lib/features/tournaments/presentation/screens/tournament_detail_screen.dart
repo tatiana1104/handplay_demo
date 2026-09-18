@@ -174,8 +174,10 @@ class _MatchesScreen extends StatelessWidget {
 }
 
 class _NewMatchScreen extends StatefulWidget {
-  const _NewMatchScreen({required this.tournament});
+  const _NewMatchScreen({required this.tournament, this.match, this.matchId});
   final Tournament tournament;
+  final Map<String, dynamic>? match;
+  final String? matchId;
 
   @override
   State<_NewMatchScreen> createState() => _NewMatchScreenState();
@@ -196,6 +198,24 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   List<Map<String, dynamic>> _teamOptions = [];
   List<Map<String, String>> _refereeOptions = [];
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final match = widget.match;
+    if (match == null) return;
+    _home = match['homeTeam']?.toString();
+    _away = match['awayTeam']?.toString();
+    _refereeOne = match['refereeOne']?.toString();
+    _refereeTwo = match['refereeTwo']?.toString();
+    _timekeeper = match['timekeeper']?.toString();
+    _scorer = match['scorer']?.toString();
+    _venue.text = match['venue']?.toString() ?? '';
+    _halfDurationMinutes = (match['halfDurationMinutes'] as num?)?.toInt() ?? 20;
+    final timestamp = match['date'];
+    final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.tryParse(timestamp?.toString() ?? '');
+    if (date != null) { _date = date; _time = TimeOfDay.fromDateTime(date); }
+  }
 
   @override
   void dispose() { _venue.dispose(); super.dispose(); }
@@ -224,13 +244,20 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     setState(() => _saving = true);
     final matchDate = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
     try {
-      await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('matches').add({
+      final matchData = {
         'homeTeam': _home, 'homeTeamName': _teamName(_home), 'homeTeamColor': _teamColor(_home),
         'awayTeam': _away, 'awayTeamName': _teamName(_away), 'awayTeamColor': _teamColor(_away),
         'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
         'refereeOne': _refereeOne, 'refereeOneName': _refereeName(_refereeOne ?? ''), 'refereeTwo': _refereeTwo, 'refereeTwoName': _refereeName(_refereeTwo ?? ''), 'timekeeper': _timekeeper, 'timekeeperName': _refereeName(_timekeeper ?? ''), 'scorer': _scorer, 'scorerName': _refereeName(_scorer ?? ''),
-        'status': 'scheduled', 'halfDurationMinutes': _halfDurationMinutes, 'createdAt': FieldValue.serverTimestamp(),
-      });
+        'status': widget.match?['status'] ?? 'scheduled', 'halfDurationMinutes': _halfDurationMinutes,
+        if (widget.match == null) 'createdAt': FieldValue.serverTimestamp(),
+      };
+      final matches = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('matches');
+      if (widget.matchId == null) {
+        await matches.add(matchData);
+      } else {
+        await matches.doc(widget.matchId).update(matchData);
+      }
       if (mounted) Navigator.of(context).pop();
     } on FirebaseException catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el partido: ${error.code}. Verifica que las reglas Firestore estén publicadas.')));
@@ -278,7 +305,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     final teams = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
     final referees = FirebaseFirestore.instance.collection('users').where('roles', arrayContains: 'arbitro').snapshots();
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo partido')),
+      appBar: AppBar(title: Text(widget.match == null ? 'Nuevo partido' : 'Editar partido')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: teams, builder: (context, teamSnapshot) {
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: referees, builder: (context, refereeSnapshot) {
           _teamOptions = (teamSnapshot.data?.docs ?? const []).map((doc) {
@@ -326,6 +353,7 @@ class _MatchesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
     final stream = MatchRepository().watchTournamentMatchDocuments(tournament.id);
     final teamsStream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots();
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -400,6 +428,21 @@ class _MatchesSection extends StatelessWidget {
                             ],
                           ),
                           Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(label: 'VISITANTE', name: away, color: awayColor, alignEnd: true))),
+                          if (isAdmin)
+                            PopupMenuButton<String>(
+                              tooltip: 'Administrar partido',
+                              onSelected: (action) async {
+                                if (action == 'edit') {
+                                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => _NewMatchScreen(tournament: tournament, match: match, matchId: match['id']?.toString())));
+                                } else if (action == 'delete') {
+                                  final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(title: const Text('Eliminar partido'), content: const Text('Esta acción no se puede deshacer.'), actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')), FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar'))]));
+                                  if (confirmed == true && context.mounted) {
+                                    await FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').doc(match['id']?.toString()).delete();
+                                  }
+                                }
+                              },
+                              itemBuilder: (_) => const [PopupMenuItem(value: 'edit', child: Text('Editar información')), PopupMenuItem(value: 'delete', child: Text('Eliminar partido'))],
+                            ),
                         ]),
                         const SizedBox(height: 6),
                         Container(
