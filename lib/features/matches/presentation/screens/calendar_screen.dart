@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+import '../widgets/match_status_label.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -82,7 +83,7 @@ class _CalendarDay extends StatelessWidget {
                         Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamSide(label: 'VISITANTE', name: _name(match, false), color: _color(match['awayTeamColor'], Colors.deepOrange), alignEnd: true))),
                       ]),
                       const SizedBox(height: 7),
-                      Align(alignment: Alignment.centerLeft, child: _StatusLabel(status: match['status'])),
+                      Align(alignment: Alignment.centerLeft, child: MatchStatusLabel(status: match['status']?.toString())),
                     ],
                   ),
                 ),
@@ -123,9 +124,6 @@ String _time(dynamic value) {
   return date == null ? 'Hora por definir' : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 }
 
-class _StatusLabel extends StatelessWidget {
-  const _StatusLabel({required this.status});
-  final dynamic status;
 
   @override
   Widget build(BuildContext context) {
