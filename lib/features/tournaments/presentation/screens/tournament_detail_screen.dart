@@ -188,6 +188,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   String? _timekeeper;
   String? _scorer;
   List<Map<String, dynamic>> _teamOptions = [];
+  List<Map<String, String>> _refereeOptions = [];
   bool _saving = false;
 
   @override
@@ -195,6 +196,25 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _home == _away || _date == null || _time == null) return;
+
+    final conflict = _refereeConflict();
+    if (conflict != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF3A321C),
+            behavior: SnackBarBehavior.floating,
+            content: Row(children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.amber),
+              const SizedBox(width: 10),
+              Expanded(child: Text(conflict, style: const TextStyle(color: Colors.amber, fontSize: 12))),
+            ]),
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _saving = true);
     final matchDate = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
     try {
@@ -210,6 +230,38 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el partido: ${error.code}. Verifica que las reglas Firestore estén publicadas.')));
     } finally { if (mounted) setState(() => _saving = false); }
   }
+
+  String? _refereeConflict() {
+    final selectedReferees = <String, String>{
+      if (_refereeOne != null) _refereeOne!: 'Árbitro de campo 1',
+      if (_refereeTwo != null) _refereeTwo!: 'Árbitro de campo 2',
+    };
+    for (final teamId in [_home, _away]) {
+      if (teamId == null) continue;
+      final team = _teamOptions.firstWhere((item) => item['id'] == teamId, orElse: () => <String, dynamic>{});
+      final players = team['players'];
+      if (players is! List) continue;
+      for (final player in players) {
+        final playerId = _playerId(player);
+        final role = selectedReferees[playerId];
+        if (role != null) {
+          final teamName = _teamName(teamId);
+          return '${_refereeName(playerId)} también está inscrito como jugador en $teamName. No puede ser asignado a un partido de su propio equipo.';
+        }
+      }
+    }
+    return null;
+  }
+
+  String _playerId(dynamic player) {
+    if (player is String) return player;
+    if (player is Map) {
+      return (player['uid'] ?? player['userId'] ?? player['id'] ?? player['playerId'] ?? '').toString();
+    }
+    return '';
+  }
+
+  String _refereeName(String id) => _refereeOptions.firstWhere((item) => item['id'] == id, orElse: () => {'name': id})['name']!;
 
   String _teamName(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'name': id ?? 'Equipo'} )['name'].toString();
 
@@ -232,7 +284,11 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
             };
           }).toList();
           final teamOptions = _teamOptions.map((team) => MapEntry(team['id'].toString(), team['name'].toString())).toList();
-          final refereeOptions = (refereeSnapshot.data?.docs ?? const []).map((doc) => MapEntry(doc.id, doc.data()['displayName']?.toString() ?? doc.data()['nombre']?.toString() ?? 'Árbitro')).toList();
+          _refereeOptions = (refereeSnapshot.data?.docs ?? const []).map((doc) => <String, String>{
+            'id': doc.id,
+            'name': doc.data()['displayName']?.toString() ?? doc.data()['nombre']?.toString() ?? 'Árbitro',
+          }).toList();
+          final refereeOptions = _refereeOptions.map((item) => MapEntry(item['id']!, item['name']!)).toList();
           return Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(16), children: [
             _matchDropdown('Equipo local', _home, teamOptions, (value) => setState(() => _home = value)),
             _matchDropdown('Equipo visitante', _away, teamOptions, (value) => setState(() => _away = value)),
