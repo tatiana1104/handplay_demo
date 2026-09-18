@@ -19,16 +19,29 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
   Future<void> _setStatus(BuildContext context, String id, String status) async {
     String? rejectionReason;
     if (status == 'rejected') {
-      final controller = TextEditingController();
+      final currentSnapshot = await _registrations.doc(id).get();
+      final allRegistrations = await _registrations.get();
+      final current = currentSnapshot.data() ?? <String, dynamic>{};
+      final currentCreatedAt = current['createdAt'];
+      final currentDate = currentCreatedAt is Timestamp ? currentCreatedAt.toDate() : DateTime.now();
+      final older = allRegistrations.docs
+          .where((doc) => doc.id != id && _createdAt(doc).isBefore(currentDate))
+          .toList();
+      final warnings = _similarityWarnings(current, older);
+      final suggestedReason = warnings.isEmpty
+          ? 'Revisa los datos de la inscripción antes de volver a enviarla.'
+          : 'Advertencia de similitud:\n${warnings.join('\n')}';
+      final controller = TextEditingController(text: suggestedReason);
       rejectionReason = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Datos por corregir'),
           content: TextField(
             controller: controller,
-            maxLines: 4,
+            maxLines: 6,
             decoration: const InputDecoration(
-              hintText: 'Indica qué debe cambiar el entrenador antes de reenviar la inscripción.',
+              labelText: 'Información para el entrenador',
+              hintText: 'Indica qué debe cambiar antes de reenviar la inscripción.',
               border: OutlineInputBorder(),
             ),
           ),
