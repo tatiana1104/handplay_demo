@@ -305,16 +305,33 @@ class _MatchesSection extends StatelessWidget {
                   final homeColor = _teamColorFromValue(match['homeTeamColor'], Colors.green);
                   final awayColor = _teamColorFromValue(match['awayTeamColor'], Colors.deepOrange);
                   final time = match['time']?.toString() ?? _matchTimeLabel(match['date']);
+                  final venue = match['venue']?.toString() ?? match['sede']?.toString() ?? match['cancha']?.toString() ?? 'Sede por definir';
                   final status = match['status']?.toString() ?? 'scheduled';
                   return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: 10),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
+                      padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
                           Expanded(child: _TeamMatchLabel(name: away, color: awayColor)),
-                          Text(time, style: Theme.of(context).textTheme.bodySmall),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(time, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 3),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 105),
+                                child: Text(
+                                  venue,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                ),
+                              ),
+                            ],
+                          ),
                           Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: home, color: homeColor))),
                         ]),
                         const SizedBox(height: 6),
@@ -346,7 +363,7 @@ class _TeamMatchLabel extends StatelessWidget {
         children: [
           Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 4),
-          Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+          Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
         ],
       );
 }
