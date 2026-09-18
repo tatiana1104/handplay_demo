@@ -141,8 +141,16 @@ class AuthRemoteDataSource {
     Map<String, dynamic>? pendingData;
     DocumentReference<Map<String, dynamic>>? pendingRef;
     if (email != null && email.isNotEmpty) {
-      final pending = await users.where('email', isEqualTo: email).limit(5).get();
-      for (final candidate in pending.docs) {
+      final snapshots = await Future.wait([
+        users.where('email', isEqualTo: email).limit(5).get(),
+        users.where('correo', isEqualTo: email).limit(5).get(),
+      ]);
+      final candidates = {
+        for (final snapshot in snapshots)
+          for (final candidate in snapshot.docs)
+            if (candidate.id != user.uid) candidate.id: candidate,
+      }.values;
+      for (final candidate in candidates) {
         if (candidate.id != user.uid && candidate.data()['roles'] is List) {
           final roles = (candidate.data()['roles'] as List).map((value) => value.toString().toLowerCase()).toList();
           if (roles.contains('arbitro') || roles.contains('entrenador') || roles.contains('jugador') || roles.contains('player')) {
@@ -154,7 +162,9 @@ class AuthRemoteDataSource {
       }
     }
     final mergedData = {...?pendingData, ...?data};
-    final existingRoles = (mergedData['roles'] as List?)?.map((value) => value.toString()).toList();
+    final pendingRoles = (pendingData?['roles'] as List?)?.map((value) => value.toString().trim().toLowerCase()).toSet() ?? <String>{};
+    final currentRoles = (data?['roles'] as List?)?.map((value) => value.toString().trim().toLowerCase()).toSet() ?? <String>{};
+    final existingRoles = [...pendingRoles, ...currentRoles];
     final isCoach = existingRoles?.contains('entrenador') == true || existingRoles?.contains('coach') == true;
     final isPlayer = existingRoles?.contains('jugador') == true || existingRoles?.contains('player') == true;
     final roles = {
@@ -166,7 +176,7 @@ class AuthRemoteDataSource {
       'email': user.email,
       'nombre': name?.isNotEmpty == true ? name : (mergedData['nombre'] ?? user.displayName ?? ''),
       'roles': roles.toList(),
-      'rol': mergedData['rol'] ?? (isCoach ? 'entrenador' : (isPlayer ? 'jugador' : 'jugador')),
+      'rol': pendingData?['rol'] ?? mergedData['rol'] ?? (isCoach ? 'entrenador' : (isPlayer ? 'jugador' : 'jugador')),
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
