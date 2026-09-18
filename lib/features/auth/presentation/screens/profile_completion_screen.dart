@@ -16,6 +16,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   final _shirtController = TextEditingController();
   final _positionController = TextEditingController();
   static const _playerPositions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
+  static const int _minShirtNumber = 1;
+  static const int _maxShirtNumber = 99;
   bool _saving = false;
 
   @override
@@ -60,7 +62,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       'email': currentUser.email,
       'nombre': existingData['nombre'] ?? currentUser.displayName ?? '',
       'documentNumber': _documentController.text.trim(),
-      if (widget.role == 'jugador') ...{
+      if (normalizedRole == 'jugador') ...{
         'shirtNumber': int.parse(_shirtController.text.trim()),
         'position': _positionController.text.trim(),
       },
@@ -89,7 +91,10 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isPlayer = widget.role == 'jugador';
+    final isPlayer = switch (widget.role.trim().toLowerCase()) {
+      'player' || 'jugador' => true,
+      _ => false,
+    };
     return Scaffold(
       appBar: AppBar(title: const Text('Completa tu perfil')),
       body: Form(
@@ -102,7 +107,17 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
             TextFormField(controller: _documentController, decoration: const InputDecoration(labelText: 'Número de documento', border: OutlineInputBorder()), validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa tu documento' : null),
             if (isPlayer) ...[
               const SizedBox(height: 14),
-              TextFormField(controller: _shirtController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número de camiseta', border: OutlineInputBorder()), validator: (value) => int.tryParse(value ?? '') == null ? 'Ingresa un número válido' : null),
+              TextFormField(
+                controller: _shirtController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Número de camiseta', border: OutlineInputBorder()),
+                validator: (value) {
+                  final number = int.tryParse(value ?? '');
+                  return number == null || number < _minShirtNumber || number > _maxShirtNumber
+                      ? 'Ingresa un número entre $_minShirtNumber y $_maxShirtNumber'
+                      : null;
+                },
+              ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
                 value: _playerPositions.contains(_positionController.text) ? _positionController.text : null,
