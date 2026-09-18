@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
 class RefereesScreen extends StatelessWidget {
   const RefereesScreen({super.key});
@@ -37,6 +38,11 @@ class RefereesScreen extends StatelessWidget {
             ),
           ),
         ] : const [],
+      ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        selectedIndex: 2,
+        isAuthenticated: authState is AuthAuthenticated,
+        isAdmin: isAdmin,
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: referees,
@@ -170,8 +176,15 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     final document = widget.data['document']?.toString() ?? widget.data['documentNumber']?.toString() ?? 'No registrado';
     final email = widget.data['email']?.toString() ?? widget.data['correo']?.toString() ?? 'No registrado';
     final phone = widget.data['phone']?.toString() ?? widget.data['telefono']?.toString() ?? 'No registrado';
+    final authState = context.watch<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && authState.user.roles.any((role) => role == 'admin' || role == 'admin_liga');
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil del árbitro')),
+      bottomNavigationBar: AppBottomNavigationBar(
+        selectedIndex: 2,
+        isAuthenticated: authState is AuthAuthenticated,
+        isAdmin: isAdmin,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
