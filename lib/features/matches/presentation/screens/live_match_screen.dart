@@ -122,7 +122,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Future<void> _saveMatch(Map<String, dynamic> data) async {
     await FirebaseFirestore.instance.collection('tournaments').doc(_match['tournamentId']).collection('matches').doc(widget.matchId).update(data);
-    if (mounted) setState(() => _match.addAll(data));
+    if (!mounted) return;
+    final localData = <String, dynamic>{
+      for (final entry in data.entries)
+        if (entry.value is! FieldValue) entry.key: entry.value,
+    };
+    setState(() => _match.addAll(localData));
   }
 
   Future<void> _startMatch() async {
@@ -459,7 +464,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
     final eventData = {'type': event, 'player': playerKey, 'team': isHome == true ? 'home' : isHome == false ? 'away' : null, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
     await _saveMatch({'events': FieldValue.arrayUnion([eventData]), if (event == 'goal') 'homeScore': nextHomeScore, if (event == 'goal') 'awayScore': nextAwayScore});
+    final currentEvents = (_match['events'] as List?)?.toList() ?? <dynamic>[];
+    currentEvents.add(eventData);
     setState(() {
+      _match['events'] = currentEvents;
       final events = _playerEvents.putIfAbsent(playerKey, () => <String, int>{});
       events[event] = (events[event] ?? 0) + 1;
     });
