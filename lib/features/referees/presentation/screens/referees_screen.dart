@@ -45,8 +45,7 @@ class RefereesScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final data = docs[index].data();
               final name = data['displayName']?.toString() ?? data['nombre']?.toString() ?? 'Árbitro sin nombre';
-              final email = data['email']?.toString() ?? '';
-              final phone = data['phone']?.toString() ?? data['telefono']?.toString() ?? '';
+              final accreditation = data['accreditation']?.toString() ?? data['nivel']?.toString() ?? 'municipal';
               return Card(
                 child: ListTile(
                   onTap: () => Navigator.of(context).push(
@@ -54,7 +53,7 @@ class RefereesScreen extends StatelessWidget {
                   ),
                   leading: CircleAvatar(child: Text(name.substring(0, 1).toUpperCase())),
                   title: Text(name),
-                  subtitle: Text([email, phone].where((value) => value.isNotEmpty).join(' · ')),
+                  subtitle: Text(accreditation),
                   trailing: const Icon(Icons.chevron_right),
                 ),
               );
