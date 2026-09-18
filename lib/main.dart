@@ -70,6 +70,7 @@ class _HandPlayAppState extends State<HandPlayApp> {
         final isPublicRoute = <String>{
           RouteNames.splash,
           RouteNames.home,
+          RouteNames.tournamentDetail,
           RouteNames.calendar,
           RouteNames.liveMatch,
           RouteNames.login,
@@ -109,6 +110,13 @@ class _HandPlayAppState extends State<HandPlayApp> {
         GoRoute(
           path: RouteNames.home,
           builder: (context, state) => const TorneosScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.tournamentDetail,
+          builder: (context, state) {
+            final tournament = state.extra;
+            return tournament is Tournament ? TournamentDetailScreen(tournament: tournament) : const TorneosScreen();
+          },
         ),
         GoRoute(
           path: RouteNames.profile,

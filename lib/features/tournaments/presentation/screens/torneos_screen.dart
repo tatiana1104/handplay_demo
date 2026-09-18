@@ -150,7 +150,7 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                         // Los torneos antiguos pueden no tener adminId guardado, por eso
                         // no se condiciona la visibilidad de las acciones a ese campo.
                         isAdmin: widget.isAdmin,
-                        onTap: () => context.push(RouteNames.internal, extra: TournamentDetailScreen(tournament: visibleTournaments[index])),
+                        onTap: () => context.push(RouteNames.tournamentDetail, extra: visibleTournaments[index]),
                         onEdit: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateTournamentScreen(adminId: widget.adminId!, tournament: visibleTournaments[index]))),
                         onRequests: () => context.push(RouteNames.internal, extra: PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name)),
                         onDelete: () => _deleteTournament(context, visibleTournaments[index]),
