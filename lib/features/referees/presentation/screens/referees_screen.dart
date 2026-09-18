@@ -99,6 +99,24 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
         _ => value,
       };
 
+  String? get _nextLevel {
+    switch (_level) {
+      case 'municipal':
+        return 'departamental';
+      case 'departamental':
+        return 'nacional';
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _advanceLevel() async {
+    final nextLevel = _nextLevel;
+    if (nextLevel == null) return;
+    setState(() => _level = nextLevel);
+    await _saveLevel();
+  }
+
   Future<void> _saveLevel() async {
     setState(() => _saving = true);
     try {
@@ -132,7 +150,41 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
           Card(child: ListTile(title: const Text('Documento'), subtitle: Text(document))),
           Card(child: ListTile(title: const Text('Correo'), subtitle: Text(email))),
           Card(child: ListTile(title: const Text('Teléfono'), subtitle: Text(phone))),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Certificaciones',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              if (_nextLevel != null)
+                IconButton(
+                  tooltip: 'Habilitar ${_label(_nextLevel!)}',
+                  onPressed: _saving ? null : _advanceLevel,
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+            ],
+          ),
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              dense: true,
+              title: Text('Curso Liga Caquetá 2024'),
+              trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          if (_level != 'municipal')
+            Card(
+              margin: const EdgeInsets.only(top: 6),
+              child: ListTile(
+                dense: true,
+                title: Text('Acreditación ${_label(_level)}'),
+                trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             value: _levels.contains(_level) ? _level : 'municipal',
             decoration: const InputDecoration(
