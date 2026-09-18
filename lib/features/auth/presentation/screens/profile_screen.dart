@@ -52,13 +52,20 @@ class ProfileScreen extends StatelessWidget {
         final documentNumber = profile['documentNumber']?.toString() ?? 'No registrado';
         final roles = (profile['roles'] as List?)?.whereType<String>().toSet().toList() ?? user.roles;
         final hasRole = (String role) => roles.any((item) => item.trim().toLowerCase() == role);
-        final role = roles.any((item) => ['jugador', 'player'].contains(item.trim().toLowerCase()))
+        final normalizedRoles = roles.map((item) => item.trim().toLowerCase()).toSet();
+        final role = normalizedRoles.contains('jugador') || normalizedRoles.contains('player')
             ? 'jugador'
-            : (roles.isNotEmpty ? roles.first : 'jugador');
-        final hasRequiredProfileData = profile['documentNumber']?.toString().trim().isNotEmpty == true &&
-            (role != 'jugador' || (profile['shirtNumber'] != null && profile['position']?.toString().trim().isNotEmpty == true)) &&
-            profile['email']?.toString().trim().isNotEmpty == true;
-        final profileCompleted = profile['profileCompleted'] == true || profile['profileComplete'] == true || hasRequiredProfileData;
+            : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
+        final hasDocument = profile['documentNumber']?.toString().trim().isNotEmpty == true;
+        final hasPlayerData = profile['shirtNumber'] != null &&
+            int.tryParse(profile['shirtNumber'].toString()) != null &&
+            profile['position']?.toString().trim().isNotEmpty == true;
+        final hasRequiredProfileData = hasDocument && (role != 'jugador' || hasPlayerData);
+        final profileCompleted = profile['profileCompleted'] == true ||
+            profile['profileComplete'] == true ||
+            profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
+            profile['profileComplete']?.toString().toLowerCase() == 'true' ||
+            hasRequiredProfileData;
         if (snapshot.hasData && !profileCompleted) {
           return ProfileCompletionScreen(role: role);
         }

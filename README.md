@@ -250,6 +250,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: se corrigieron errores de compilación: navegación de cambio de contraseña con `go_router` y argumento `bottomNavigationBar` duplicado en el detalle de árbitro.
   - `HEAD`: la posición del jugador en Completar perfil usa el mismo selector desplegable que la inscripción de equipo: Portero, Extremo, Lateral, Central y Pivote; el número de camiseta se controla con constantes y solo acepta valores del 1 al 99.
   - `HEAD`: Completar perfil normaliza los roles `player/jugador`, `coach/entrenador`, `referee/arbitro` y `public/publico`; todos los roles usan la misma validación de guardado y las reglas de Firestore aceptan los perfiles soportados.
+  - `HEAD`: Perfil normaliza los roles antes de comprobar la finalización y acepta banderas booleanas o serializadas como texto, además de validar los datos mínimos persistidos; evita volver a mostrar el formulario después de cambiar de vista.
   - `HEAD`: arquitectura y documentación sincronizadas con el flujo multirol actual; AuthBloc/GoRouter controlan la sesión, el splash espera el estado real sin temporizador y los permisos secundarios no bloquean el arranque.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
