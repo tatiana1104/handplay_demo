@@ -150,7 +150,8 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Acceso seguro a solicitudes y equipos aprobados mediante reglas Firestore
 
 ### 🟨 Sprint 3 — Calendario y árbitros (en progreso)
-- [x] Barra de navegación inferior del administrador con acceso al listado de árbitros; los demás roles conservan Home, Calendario y Perfil.
+- [x] Barra de navegación inferior global: el acceso a Árbitros aparece en todas las pantallas para `admin`/`admin_liga`, incluido Perfil; los demás roles no lo ven.
+- [x] El acceso de Árbitros usa un icono deportivo tipo silbato; Flutter Material no incluye un icono de silbato dedicado.
 - [x] Listado inicial de árbitros registrados.
 - [ ] Generación de calendario.
 - [ ] Asignación de árbitros.

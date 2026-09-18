@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/referees/presentation/screens/referees_screen.dart'; // Importamos la librería `go_router` para poder navegar entre pantallas usando rutas definidas en `RouteNames`
+import '../../features/referees/presentation/screens/referees_screen.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_state.dart';
 
 import '../../core/routing/route_names.dart'; // Importamos los nombres de ruta de la app, como `RouteNames.home`, para poder navegar a la pantalla de inicio desde la barra de navegación inferior
 
@@ -22,7 +25,10 @@ class AppBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme; // Obtenemos el esquema de colores del tema actual para usarlo en la barra de navegación inferior
+    final colorScheme = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final authUser = authState is AuthAuthenticated ? authState.user : null;
+    final effectiveAdmin = isAdmin || authUser?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true;
 
     return Container(
       decoration: BoxDecoration(
@@ -53,7 +59,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(isAuthenticated ? RouteNames.home : RouteNames.login);
                 break;
               case 2:
-                if (isAdmin) {
+                if (effectiveAdmin) {
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
                 } else {
                   context.go(RouteNames.profile);
@@ -83,9 +89,9 @@ class AppBottomNavigationBar extends StatelessWidget {
                     icon: Icon(Icons.calendar_month_rounded),
                     label: 'Calendario',
                   ),
-                  if (isAdmin)
+                  if (effectiveAdmin)
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.sports_handball_outlined),
+                      icon: Icon(Icons.sports_outlined),
                       label: 'Árbitros',
                     ),
                   BottomNavigationBarItem(
