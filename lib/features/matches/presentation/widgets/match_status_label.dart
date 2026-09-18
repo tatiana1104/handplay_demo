@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
+String matchStatusLabel(String? status) {
+  return switch (status?.trim().toLowerCase()) {
+    'live' || 'en vivo' || 'playing' || 'jugando' || 'en curso' || 'en_curso' => 'En curso',
+    'postponed' || 'aplazado' || 'rescheduled' => 'Aplazado',
+    'finished' || 'finalizado' || 'completed' => 'Finalizado',
+    _ => 'Programado',
+  };
+}
+
+Color matchStatusColor(BuildContext context, String? status) {
+  final colors = Theme.of(context).colorScheme;
+  return switch (matchStatusLabel(status)) {
+    'En curso' => AppColors.brandDark,
+    'Aplazado' => Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight,
+    'Finalizado' => colors.onSurfaceVariant,
+    _ => Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+  };
+}
+
 class MatchStatusLabel extends StatelessWidget {
   const MatchStatusLabel({super.key, required this.status});
 
@@ -9,18 +28,8 @@ class MatchStatusLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final normalized = status?.toLowerCase();
-    final label = normalized == 'playing' || normalized == 'jugando'
-        ? 'Jugando'
-        : normalized == 'finished' || normalized == 'finalizado'
-            ? 'Finalizado'
-            : 'Por iniciar';
-    final colorScheme = Theme.of(context).colorScheme;
-    final color = label == 'Jugando'
-        ? AppColors.brandDark
-        : label == 'Finalizado'
-            ? colorScheme.onSurfaceVariant
-            : (Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight);
+    final label = matchStatusLabel(status);
+    final color = matchStatusColor(context, status);
 
     return Container(
       width: double.infinity,

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/match_status_label.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -108,11 +110,11 @@ class _CalendarDay extends StatelessWidget {
                           constraints: const BoxConstraints(maxWidth: 120),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: _statusColor(match['status']?.toString()),
+                            color: matchStatusColor(context, match['status']?.toString()),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            _statusLabel(match['status']?.toString()),
+                            matchStatusLabel(match['status']?.toString()),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),

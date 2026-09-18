@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../../matches/presentation/widgets/match_status_label.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/route_names.dart';
@@ -38,7 +40,7 @@ class TournamentDetailScreen extends StatelessWidget {
           Text(tournament.name, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            _InfoBadge(label: statusLabel, color: _statusColor(status)),
+            _InfoBadge(label: statusLabel, color: _tournamentStatusColor(status)),
             _InfoBadge(label: _formatLabel(tournament.format), color: colors.primary),
           ]),
           const SizedBox(height: 16),
@@ -413,9 +415,9 @@ class _MatchesSection extends StatelessWidget {
                           child: Container(
                             constraints: const BoxConstraints(maxWidth: 120),
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: _statusColor(status), borderRadius: BorderRadius.circular(5)),
+                            decoration: BoxDecoration(color: matchStatusColor(context, status), borderRadius: BorderRadius.circular(5)),
                             child: Text(
-                              _statusLabel(status),
+                              matchStatusLabel(status),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
@@ -529,16 +531,11 @@ class _TeamMatchLabel extends StatelessWidget {
       );
 }
 
-String _statusLabel(String? status) {
-  final value = status?.toLowerCase();
-  if (value == 'playing' || value == 'jugando') return 'Jugando';
-  if (value == 'finished' || value == 'finalizado') return 'Finalizado';
-  return 'Por iniciar';
-}
-
-Color _statusColor(String? status) {
-  final label = _statusLabel(status);
-  return label == 'Jugando' ? Colors.green.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.amber.shade700;
+Color _tournamentStatusColor(String? status) {
+  final value = status?.trim().toLowerCase();
+  if (value == 'active' || value == 'playing' || value == 'jugando' || value == 'en_curso') return Colors.green.shade700;
+  if (value == 'finished' || value == 'finalizado') return Colors.blueGrey;
+  return Colors.amber.shade700;
 }
 
 Color _teamColorFromValue(dynamic value, Color fallback) {
