@@ -221,16 +221,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                         child: FilledButton.icon(
                           onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer),
                           style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white.withValues(alpha: 0.16)
-                                : Colors.black.withValues(alpha: 0.08),
-                            foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
                             minimumSize: const Size.fromHeight(40),
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
-                          icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
-                          label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronometro'),
+                          icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+                          label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar'),
                         ),
                       ),
                       const SizedBox(width: 8),
