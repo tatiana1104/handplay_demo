@@ -55,16 +55,23 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       return;
     }
     setState(() {
-      _name.text = _firstValue(existing, ['name', 'displayName', 'nombre']) ?? '';
-      _number.text = _firstValue(existing, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber']) ?? '';
-      _position.text = _firstValue(existing, ['position', 'posicion']) ?? '';
-      _gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
-      _club.text = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name']) ?? '';
+      final name = _firstValue(existing, ['name', 'displayName', 'nombre', 'fullName']);
+      final number = _firstValue(existing, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
+      final position = _normalizePosition(_firstValue(existing, ['position', 'posicion', 'playerPosition', 'posicionJugador']));
+      final gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
+      final club = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name', 'clubes']);
+      if (name != null) _name.text = name;
+      if (number != null) _number.text = number;
+      if (position != null) _position.text = position;
+      if (gender != null) _gender = _normalizeGender(gender);
+      if (club != null) _club.text = club;
     });
   }
 
   Future<void> _submit() async {
-    await _loadExistingPlayer();
+    if (_number.text.trim().isEmpty || _position.text.trim().isEmpty || _gender == null) {
+      await _loadExistingPlayer();
+    }
     if (!_formKey.currentState!.validate()) return;
     final number = int.parse(_number.text.trim());
     if (widget.usedNumbers.contains(number)) {
@@ -83,6 +90,20 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       'gender': _gender ?? _firstValue(existing ?? {}, ['gender', 'genero', 'sex', 'sexo']) ?? '',
       'club': _club.text.trim().isNotEmpty ? _club.text.trim() : (_firstValue(existing ?? {}, ['club', 'clubName', 'club al que pertenece', 'club_name']) ?? ''),
     });
+  }
+
+  String? _normalizePosition(String? value) {
+    if (value == null) return null;
+    final normalized = value.trim().toLowerCase();
+    return positions.firstWhere(
+      (item) => item.toLowerCase() == normalized || normalized.contains(item.toLowerCase()),
+      orElse: () => '',
+    ).isEmpty ? null : positions.firstWhere((item) => item.toLowerCase() == normalized || normalized.contains(item.toLowerCase()));
+  }
+
+  String _normalizeGender(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized.startsWith('f') || normalized == 'female' ? 'femenino' : 'masculino';
   }
 
   String? _firstValue(Map<String, dynamic> data, List<String> keys) {
