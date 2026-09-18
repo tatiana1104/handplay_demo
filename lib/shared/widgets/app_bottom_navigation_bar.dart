@@ -74,7 +74,7 @@ class AppBottomNavigationBar extends StatelessWidget {
           // La navegación pública no expone Perfil; después del login se
           // reemplaza el acceso de sesión por Perfil.
           items: isAuthenticated
-              ? const [
+              ? [
                   BottomNavigationBarItem(
                     icon: Icon(Icons.home_rounded),
                     label: 'Home',
