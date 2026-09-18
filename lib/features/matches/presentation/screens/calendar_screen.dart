@@ -8,7 +8,6 @@ import '../../../../core/routing/route_names.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
-import '../widgets/match_status_label.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -101,18 +100,44 @@ class _CalendarDay extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 120),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _statusColor(match['status']?.toString()),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Text(
+                            _statusLabel(match['status']?.toString()),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       Row(children: [
                         Expanded(child: _TeamSide(label: 'LOCAL', name: _name(match, true), color: _color(match['homeTeamColor'], Colors.green))),
                         Column(children: [
                           Text(_time(match['date']), style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 3),
-                          Text(match['venue']?.toString() ?? 'Sede por definir', textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelSmall),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 105),
+                            child: Text(
+                              match['venue']?.toString() ?? 'Sede por definir',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            ),
+                          ),
                         ]),
                         Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamSide(label: 'VISITANTE', name: _name(match, false), color: _color(match['awayTeamColor'], Colors.deepOrange), alignEnd: true))),
                       ]),
-                      const SizedBox(height: 7),
-                      Align(alignment: Alignment.centerLeft, child: MatchStatusLabel(status: match['status']?.toString())),
                     ],
                   ),
                 ),
@@ -122,6 +147,18 @@ class _CalendarDay extends StatelessWidget {
       );
 
   String _name(Map<String, dynamic> match, bool home) => match[home ? 'homeTeamName' : 'awayTeamName']?.toString() ?? match[home ? 'homeTeam' : 'awayTeam']?.toString() ?? (home ? 'Equipo local' : 'Equipo visitante');
+
+  String _statusLabel(String? status) => switch (status?.trim().toLowerCase()) {
+        'live' || 'en vivo' || 'playing' || 'jugando' => 'Jugando',
+        'finished' || 'finalizado' || 'completed' => 'Finalizado',
+        _ => 'Programado',
+      };
+
+  Color _statusColor(String? status) => switch (status?.trim().toLowerCase()) {
+        'live' || 'en vivo' || 'playing' || 'jugando' => Colors.green.shade700,
+        'finished' || 'finalizado' || 'completed' => Colors.blueGrey,
+        _ => Colors.amber.shade700,
+      };
   Color _color(dynamic value, Color fallback) {
     if (value is int) return Color(value);
     if (value is String) {
