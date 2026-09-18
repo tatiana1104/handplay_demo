@@ -8,6 +8,7 @@ import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../../domain/entities/app_user.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+import '../../../../core/routing/route_names.dart';
 import 'profile_completion_screen.dart';
 
 /// Vista de la cuenta actualmente autenticada.
@@ -48,8 +49,8 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
         final documentNumber = profile['documentNumber']?.toString() ?? 'No registrado';
-        final shirtNumber = profile['shirtNumber']?.toString() ?? 'No registrado';
-        final position = profile['position']?.toString() ?? 'No registrada';
+        final roles = (profile['roles'] as List?)?.whereType<String>().toSet().toList() ?? user.roles;
+        final hasRole = (String role) => roles.any((item) => item.trim().toLowerCase() == role);
         final role = user.roles.contains('jugador') ? 'jugador' : (user.roles.isNotEmpty ? user.roles.first : 'jugador');
         final hasRequiredProfileData = profile['documentNumber']?.toString().trim().isNotEmpty == true &&
             (role != 'jugador' || (profile['shirtNumber'] != null && profile['position']?.toString().trim().isNotEmpty == true)) &&
@@ -97,40 +98,20 @@ class ProfileScreen extends StatelessWidget {
               subtitle: Text(displayName),
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.admin_panel_settings_outlined),
-              title: const Text('Tipo de cuenta'),
-              subtitle: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(FirebaseAuth.instance.currentUser?.uid)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  final firestoreRoles = (snapshot.data?.data()?['roles'] as List?)
-                      ?.whereType<String>()
-                      .toSet()
-                      .toList();
-                  final roles = firestoreRoles == null || firestoreRoles.isEmpty
-                      ? user?.roles ?? const ['jugador']
-                      : firestoreRoles;
-                  return Text(roles.map(_roleLabel).join(', '));
-                },
-              ),
-            ),
-          ),
           Card(child: ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Número de documento'), subtitle: Text(documentNumber))),
-          if (user.roles.contains('jugador')) ...[
-            Card(child: ListTile(leading: const Icon(Icons.confirmation_number_outlined), title: const Text('Número de camiseta'), subtitle: Text(shirtNumber))),
-            Card(child: ListTile(leading: const Icon(Icons.sports_handball_outlined), title: const Text('Posición'), subtitle: Text(position))),
-          ],
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.email_outlined),
-              title: const Text('Correo electrónico'),
-              subtitle: Text(email),
-            ),
+          Card(child: ListTile(leading: const Icon(Icons.email_outlined), title: const Text('Correo electrónico'), subtitle: Text(email))),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => context.go(RouteNames.recoverPassword),
+            icon: const Icon(Icons.lock_reset_outlined),
+            label: const Text('Cambiar contraseña'),
           ),
+          if (hasRole('entrenador'))
+            _roleButton(context, 'Ficha de entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['teamName', 'specialty', 'experience'])),
+          if (hasRole('arbitro') || hasRole('árbitro') || hasRole('referee'))
+            _roleButton(context, 'Ficha de árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'experience', 'phone'])),
+          if (hasRole('jugador'))
+            _roleButton(context, 'Ficha de jugador', Icons.person_outline, () => _showRoleSheet(context, 'Ficha de jugador', profile, ['shirtNumber', 'position', 'teamName'])),
           const SizedBox(height: 24),
           OutlinedButton.icon(
             onPressed: () => context.read<AuthBloc>().add(
@@ -144,6 +125,41 @@ class ProfileScreen extends StatelessWidget {
     );
       },
     );
+  }
+
+  Widget _roleButton(BuildContext context, String label, IconData icon, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: OutlinedButton.icon(onPressed: onPressed, icon: Icon(icon), label: Text(label)),
+    );
+  }
+
+  void _showRoleSheet(BuildContext context, String title, Map<String, dynamic> profile, List<String> fields) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          shrinkWrap: true,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            for (final field in fields)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(_fieldLabel(field)),
+                subtitle: Text(profile[field]?.toString().trim().isNotEmpty == true ? profile[field].toString() : 'No registrado'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _fieldLabel(String field) {
+    const labels = {'teamName': 'Equipo', 'specialty': 'Especialidad', 'experience': 'Experiencia', 'category': 'Categoría', 'phone': 'Teléfono', 'shirtNumber': 'Número de camiseta', 'position': 'Posición'};
+    return labels[field] ?? field;
   }
 
   String _displayName(AppUser? user) {

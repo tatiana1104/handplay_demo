@@ -226,6 +226,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: completar perfil conserva los roles existentes del documento `users/{uid}` antes de actualizarlo, evitando que las reglas de Firestore rechacen la escritura por pérdida de roles previos.
   - `HEAD`: la sección `Planilla digital` de Partido en vivo solo se muestra a usuarios con rol `arbitro`, `árbitro` o `referee`, normalizando mayúsculas y espacios; los demás roles conservan el marcador y la cronología.
   - `HEAD`: el banner constante se incorporó al listado, detalle y alta de árbitros para conservar la navegación en todas las vistas.
+  - `HEAD`: Perfil muestra únicamente nombre, documento, correo y cambio de contraseña; usuarios con múltiples roles acceden a sus fichas individuales de entrenador, árbitro y jugador mediante botones independientes.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 
