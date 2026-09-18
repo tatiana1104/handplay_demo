@@ -185,11 +185,14 @@ class _ApprovedTeamsScreen extends StatelessWidget {
               final name = data['teamName']?.toString().trim().isNotEmpty == true
                   ? data['teamName'].toString()
                   : 'Equipo sin nombre';
+              final uniformColor = data['uniformColor']?.toString();
+              final teamColor = _uniformColor(uniformColor);
               return Card(
                 margin: EdgeInsets.zero,
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _teamColor(index),
+                    backgroundColor: teamColor,
+                    foregroundColor: _contrastColor(teamColor),
                     child: Text(name.substring(0, 1).toUpperCase()),
                   ),
                   title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -204,7 +207,28 @@ class _ApprovedTeamsScreen extends StatelessWidget {
     );
   }
 
-  Color _teamColor(int index) => [Colors.green, Colors.blue, Colors.deepOrange, Colors.purple][index % 4];
+  Color _uniformColor(String? value) {
+    switch (value?.trim().toLowerCase()) {
+      case 'verde':
+        return Colors.green;
+      case 'azul':
+        return Colors.blue;
+      case 'rojo':
+        return Colors.red;
+      case 'naranja':
+        return Colors.orange;
+      case 'amarillo':
+        return Colors.amber;
+      case 'blanco':
+        return Colors.white;
+      case 'negro':
+        return Colors.black;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 }
 
 class _SectionTitle extends StatelessWidget {
