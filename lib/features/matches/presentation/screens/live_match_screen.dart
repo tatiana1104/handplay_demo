@@ -486,17 +486,27 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
+  ButtonStyle _eventButtonStyle(Color color) => IconButton.styleFrom(
+        backgroundColor: color.withValues(alpha: Theme.of(context).brightness == Brightness.light ? 0.14 : 0.22),
+        foregroundColor: color,
+        minimumSize: const Size(30, 30),
+        maximumSize: const Size(30, 30),
+        padding: EdgeInsets.zero,
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+      );
+
   Widget _eventButton(IconData icon, String event, String playerKey, Color color) => IconButton(
         tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
-        visualDensity: VisualDensity.compact,
+        style: _eventButtonStyle(color),
         onPressed: () => _recordPlayerEvent(playerKey, event),
-        icon: Icon(icon, color: color, size: 20),
+        icon: Icon(icon, color: color, size: 17),
       );
 
   Widget _textEventButton(String label, String event, String playerKey, Color color) => IconButton(
         tooltip: 'Exclusión 2 minutos',
-        visualDensity: VisualDensity.compact,
+        style: _eventButtonStyle(color),
         onPressed: () => _recordPlayerEvent(playerKey, event),
-        icon: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+        icon: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
       );
 }
