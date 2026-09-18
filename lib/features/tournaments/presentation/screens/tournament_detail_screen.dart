@@ -38,6 +38,8 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _StatsGrid(tournament: tournament),
           const SizedBox(height: 18),
+          _MatchesSection(tournament: tournament),
+          const SizedBox(height: 18),
           const _SectionTitle(title: 'Tabla de posiciones', action: 'Ver completa'),
           const SizedBox(height: 8),
           const _StandingRow(position: '1', team: 'La tabla se actualizará', points: '--'),
@@ -110,9 +112,65 @@ class _StatsGrid extends StatelessWidget {
                 ),
               ),
             ),
-            _StatCard(label: 'Categorías', value: '${tournament.categories.length}'),
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('tournaments')
+                  .doc(tournament.id)
+                  .collection('matches')
+                  .snapshots(),
+              builder: (context, matchesSnapshot) {
+                final matches = matchesSnapshot.data?.docs ?? const [];
+                final rounds = matches.map((doc) => (doc.data()['jornada'] ?? doc.data()['round'] ?? 1) as num).toSet().length;
+                final currentRound = matches.isEmpty ? 0 : matches.map((doc) => (doc.data()['jornada'] ?? doc.data()['round'] ?? 1) as num).reduce((a, b) => a > b ? a : b);
+                return _StatCard(label: 'Jornada', value: rounds == 0 ? '0 / 0' : '$currentRound / $rounds');
+              },
+            ),
           ],
         );
+      },
+    );
+  }
+}
+
+class _MatchesSection extends StatelessWidget {
+  const _MatchesSection({required this.tournament});
+  final Tournament tournament;
+
+  @override
+  Widget build(BuildContext context) {
+    final stream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots();
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        final matches = snapshot.data?.docs ?? const [];
+        if (matches.isEmpty) {
+          return const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _SectionTitle(title: 'Partidos'),
+            SizedBox(height: 8),
+            Card(child: ListTile(title: Text('Aún no hay partidos programados.'))),
+          ]);
+        }
+        final grouped = <String, List<Map<String, dynamic>>>{};
+        for (final doc in matches) {
+          final data = doc.data();
+          final date = data['date']?.toString() ?? data['fecha']?.toString() ?? 'Fecha por definir';
+          grouped.putIfAbsent(date, () => []).add(data);
+        }
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const _SectionTitle(title: 'Partidos'),
+          const SizedBox(height: 8),
+          ...grouped.entries.map((entry) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4), child: Text(entry.key, style: Theme.of(context).textTheme.labelMedium)),
+                ...entry.value.map((match) => Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        dense: true,
+                        title: Text('${match['homeTeam'] ?? match['local'] ?? 'Equipo local'}   ${match['homeScore'] ?? '-'} — ${match['awayScore'] ?? '-'}   ${match['awayTeam'] ?? match['visitante'] ?? 'Equipo visitante'}'),
+                        subtitle: Text(match['status']?.toString() ?? 'Programado'),
+                      ),
+                    )),
+              ])),
+        ]);
       },
     );
   }
