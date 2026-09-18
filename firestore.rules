@@ -138,11 +138,17 @@ service cloud.firestore {
           || (signedIn() && resource.data.participantIds.hasAny([request.auth.uid]))
           || (signedIn() && (resource.data.refereeId == request.auth.uid
             || resource.data.refereeOne == request.auth.uid
-            || resource.data.refereeTwo == request.auth.uid));
+            || resource.data.refereeTwo == request.auth.uid
+            || resource.data.timekeeper == request.auth.uid
+            || resource.data.scorer == request.auth.uid));
         allow create: if canManageTournament(tournamentId)
           || (signedIn() && request.resource.data.refereeId == request.auth.uid);
         allow update: if canManageTournament(tournamentId)
-          || (signedIn() && resource.data.refereeId == request.auth.uid);
+          || (signedIn() && (resource.data.refereeId == request.auth.uid
+            || resource.data.refereeOne == request.auth.uid
+            || resource.data.refereeTwo == request.auth.uid
+            || resource.data.timekeeper == request.auth.uid
+            || resource.data.scorer == request.auth.uid));
         allow delete: if canManageTournament(tournamentId);
       }
     }
