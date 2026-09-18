@@ -383,7 +383,8 @@ class _PlayerProfileScreen extends StatelessWidget {
     final goals = player['goals']?.toString() ?? '--';
     final matches = player['matches']?.toString() ?? player['games']?.toString() ?? '--';
     final average = player['average']?.toString() ?? '--';
-    final cards = player['cards']?.toString() ?? '--';
+    final yellowCards = player['yellowCards']?.toString() ?? player['tarjetasAmarillas']?.toString() ?? '0';
+    final redCards = player['redCards']?.toString() ?? player['tarjetasRojas']?.toString() ?? '0';
     final initials = name.trim().isEmpty ? 'J' : name.trim().substring(0, 1).toUpperCase();
 
     return Scaffold(
@@ -407,7 +408,9 @@ class _PlayerProfileScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: _TeamMetric(label: 'Prom.', value: average)),
             const SizedBox(width: 8),
-            Expanded(child: _TeamMetric(label: 'Tarj.', value: cards)),
+            Expanded(child: _CardMetric(label: 'Amarillas', value: yellowCards, color: Colors.amber)),
+            const SizedBox(width: 8),
+            Expanded(child: _CardMetric(label: 'Rojas', value: redCards, color: Colors.red)),
           ]),
           const SizedBox(height: 20),
           Text('Historial de partidos', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
@@ -421,6 +424,29 @@ class _PlayerProfileScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CardMetric extends StatelessWidget {
+  const _CardMetric({required this.label, required this.value, required this.color});
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 5), Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall))]),
+              const SizedBox(height: 4),
+              Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ),
+      );
 }
 
 class _SectionTitle extends StatelessWidget {
