@@ -88,6 +88,12 @@ class _HandPlayAppState extends State<HandPlayApp> {
           return RouteNames.login;
         }
 
+        // El detalle del torneo es de solo lectura y puede ser consultado por
+        // cuentas públicas, administradores y usuarios autenticados.
+        if (state.matchedLocation == RouteNames.tournamentDetail) {
+          return null;
+        }
+
         if (state.matchedLocation == RouteNames.splash) {
           return isAuthenticated ? RouteNames.profile : RouteNames.home;
         }
