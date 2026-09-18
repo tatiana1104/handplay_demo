@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -62,6 +63,7 @@ class AuthRemoteDataSource {
       await user.updateDisplayName(name.trim());
       await user.reload();
       user = _firebaseAuth.currentUser ?? user;
+      await _ensureUserProfile(user, name: name.trim());
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
@@ -121,10 +123,27 @@ class AuthRemoteDataSource {
       if (user == null) {
         throw const ServerException('No se pudo iniciar sesión con Google.');
       }
+      await _ensureUserProfile(user);
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
     }
+  }
+
+  Future<void> _ensureUserProfile(fb.User user, {String? name}) async {
+    final ref = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final existing = await ref.get();
+    final data = existing.data();
+    final existingRoles = (data?['roles'] as List?)?.whereType<String>().toList();
+    await ref.set({
+      'uid': user.uid,
+      'email': user.email,
+      'nombre': name?.isNotEmpty == true ? name : (data?['nombre'] ?? user.displayName ?? ''),
+      'roles': existingRoles == null || existingRoles.isEmpty ? ['jugador'] : existingRoles,
+      'rol': data?['rol'] ?? (existingRoles?.isNotEmpty == true ? existingRoles!.first : 'jugador'),
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
