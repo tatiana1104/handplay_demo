@@ -100,15 +100,25 @@ class ChangePasswordScreen extends StatefulWidget {
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _current = TextEditingController();
   final _next = TextEditingController();
+  final _confirmation = TextEditingController();
   bool _saving = false;
 
   @override
-  void dispose() { _current.dispose(); _next.dispose(); super.dispose(); }
+  void dispose() {
+    _current.dispose();
+    _next.dispose();
+    _confirmation.dispose();
+    super.dispose();
+  }
 
   Future<void> _change() async {
     final user = FirebaseAuth.instance.currentUser;
     final email = user?.email;
     if (user == null || email == null) return;
+    if (_current.text.isEmpty || _next.text.length < 6 || _next.text != _confirmation.text) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verifica la contraseña actual, usa al menos 6 caracteres y confirma la nueva contraseña.')));
+      return;
+    }
     setState(() => _saving = true);
     try {
       await user.reauthenticateWithCredential(EmailAuthProvider.credential(email: email, password: _current.text));
@@ -125,7 +135,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     body: ListView(padding: const EdgeInsets.all(24), children: [
       TextField(controller: _current, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña actual', border: OutlineInputBorder())),
       const SizedBox(height: 14),
-      TextField(controller: _next, obscureText: true, decoration: const InputDecoration(labelText: 'Nueva contraseña', border: OutlineInputBorder())),
+      TextField(controller: _next, obscureText: true, decoration: const InputDecoration(labelText: 'Nueva contraseña', helperText: 'Mínimo 6 caracteres', border: OutlineInputBorder())),
+      const SizedBox(height: 14),
+      TextField(controller: _confirmation, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmar nueva contraseña', border: OutlineInputBorder())),
       const SizedBox(height: 20),
       FilledButton(onPressed: _saving ? null : _change, child: Text(_saving ? 'Actualizando...' : 'Actualizar contraseña')),
     ]),
