@@ -171,9 +171,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(children: [
-                Text(
-                  _isTimekeeper && _isScorer ? 'Cronometrista y anotador' : (_isTimekeeper ? 'Cronometrista' : 'Anotador'),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Controles del partido', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
@@ -181,10 +181,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
                 ],
-                if (_canUseScoreSheet) ...[
-                  const SizedBox(height: 10),
-                  const Align(alignment: Alignment.centerLeft, child: Text('Planilla completa: goles, tarjetas, exclusiones, sustituciones y tiempos muertos.')),
-                ],
+
               ]),
             ),
           ),
