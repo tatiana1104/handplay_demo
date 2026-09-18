@@ -37,14 +37,9 @@ class AppBottomNavigationBar extends StatelessWidget {
     final isPublicRole = normalizedRoles.contains('publico') || normalizedRoles.contains('public') || normalizedRoles.contains('público');
     final hasAuthenticatedSession = authUser != null && !isPublicRole;
     final effectiveAdmin = hasAuthenticatedSession && (isAdmin || normalizedRoles.contains('admin') || normalizedRoles.contains('admin_liga'));
-    final currentLocation = GoRouterState.of(context).matchedLocation;
-    final routeSelectedIndex = currentLocation == RouteNames.calendar
-        ? 1
-        : currentLocation == RouteNames.profile
-            ? (effectiveAdmin ? 3 : 2)
-            : currentLocation == RouteNames.home
-                ? 0
-                : selectedIndex;
+    // Las vistas abiertas con Navigator.push no tienen GoRouterState en su subárbol.
+    // Por eso el contexto de cada pantalla se expresa mediante selectedIndex.
+    final routeSelectedIndex = selectedIndex;
 
     return Container(
       decoration: BoxDecoration(
