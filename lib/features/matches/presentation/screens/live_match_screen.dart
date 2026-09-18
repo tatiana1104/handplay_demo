@@ -215,7 +215,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
-                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cron����metro')),
+                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronometro')),
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
