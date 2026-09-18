@@ -62,7 +62,9 @@ class _HandPlayAppState extends State<HandPlayApp> {
     super.initState();
     _authBloc = sl<AuthBloc>();
     _router = GoRouter(
-      initialLocation: RouteNames.splash,
+      // Home es público y permite mostrar contenido inmediatamente mientras
+      // Firebase resuelve la sesión en segundo plano.
+      initialLocation: RouteNames.home,
       refreshListenable: GoRouterRefreshStream(_authBloc.stream),
       redirect: (context, state) {
         final authState = _authBloc.state;
@@ -86,11 +88,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
           RouteNames.recoverPassword,
         }.contains(state.matchedLocation);
 
-        if (isInitial) {
-          return state.matchedLocation == RouteNames.splash
-              ? null
-              : RouteNames.splash;
-        }
+    if (isInitial) {
+      // No bloquear la vista pública esperando la respuesta de Firebase.
+      return isPublicRoute ? null : RouteNames.home;
+    }
 
         // Visitantes y cuentas con rol público solo pueden navegar por las
         // pantallas informativas; nunca deben ser enviados a Perfil o Login.
