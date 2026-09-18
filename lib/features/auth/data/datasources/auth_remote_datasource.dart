@@ -165,8 +165,6 @@ class AuthRemoteDataSource {
     final pendingRoles = _rolesFromProfile(pendingData);
     final currentRoles = _rolesFromProfile(data);
     final existingRoles = {...pendingRoles, ...currentRoles};
-    final isCoach = existingRoles.contains('entrenador') || existingRoles.contains('coach');
-    final isPlayer = existingRoles.contains('jugador') || existingRoles.contains('player');
     final roles = {
       ...existingRoles,
       if (existingRoles.isEmpty) 'jugador',
@@ -180,7 +178,7 @@ class AuthRemoteDataSource {
       'nombre': FieldValue.delete(),
       'telefono': FieldValue.delete(),
       'nivel': FieldValue.delete(),
-      'rol': pendingData?['rol'] ?? mergedData['rol'] ?? (isCoach ? 'entrenador' : (isPlayer ? 'jugador' : 'jugador')),
+      'rol': FieldValue.delete(),
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],

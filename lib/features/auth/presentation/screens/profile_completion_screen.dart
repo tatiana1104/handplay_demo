@@ -66,8 +66,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       existingRoles.add(normalizedRole);
       await profileRef.set({
       'uid': uid,
-      'roles': existingRoles.toList()..sort(),
-      'rol': normalizedRole,
+      'roles': {...existingRoles, normalizedRole}.toList()..sort(),
+      'rol': FieldValue.delete(),
       'profileCompletedByRole': {
         ...((existingData['profileCompletedByRole'] as Map?)?.map((key, value) => MapEntry(key.toString(), value)) ?? const <String, dynamic>{}),
         normalizedRole: true,

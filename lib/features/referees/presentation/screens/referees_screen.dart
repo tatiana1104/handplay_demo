@@ -514,7 +514,7 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
       roles.add('arbitro');
       await userRef.set({
         'uid': existingData['uid'] ?? userRef.id,
-        'rol': primaryRole ?? 'arbitro',
+        'rol': FieldValue.delete(),
         'displayName': _name.text.trim().isNotEmpty ? _name.text.trim() : (data.data()?['displayName'] ?? ''),
         'email': _email.text.trim().toLowerCase(),
         'phone': _phone.text.trim(),
