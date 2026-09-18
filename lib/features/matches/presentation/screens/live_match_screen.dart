@@ -375,7 +375,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         title: Text(name),
         subtitle: Text('${goals + (events['goal'] ?? 0)} goles'),
         trailing: Wrap(spacing: 2, children: [
-          _eventButton(Icons.sports_handball, 'goal', key, Colors.white),
+          _eventButton(
+                    Icons.sports_handball,
+                    'goal',
+                    key,
+                    Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                  ),
           _textEventButton("2'", 'exclusion', key, Colors.amber),
           _eventButton(Icons.square, 'yellowCard', key, Colors.amber),
           _eventButton(Icons.square, 'redCard', key, Colors.red),
