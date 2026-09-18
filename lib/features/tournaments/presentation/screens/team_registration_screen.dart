@@ -63,7 +63,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       final club = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name', 'clubes']);
       if (name != null) _name.text = name;
       if (number != null) _number.text = number;
-      if (position != null) _position.text = position;
+      if (position != null && _position.text.trim().isEmpty) _position.text = position;
       if (gender != null) _gender = _normalizeGender(gender);
       if (club != null) _club.text = club;
       if (number == null || position == null) {
@@ -97,12 +97,34 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   }
 
   String? _normalizePosition(String? value) {
-    if (value == null) return null;
+    if (value == null || value.trim().isEmpty) return null;
     final normalized = value.trim().toLowerCase();
+    const aliases = <String, String>{
+      'portero': 'Portero',
+      'arquero': 'Portero',
+      'guardameta': 'Portero',
+      'extremo': 'Extremo',
+      'ala': 'Extremo',
+      'lateral': 'Lateral',
+      'defensa lateral': 'Lateral',
+      'central': 'Central',
+      'defensa central': 'Central',
+      'defensor': 'Central',
+      'defensa': 'Central',
+      'pivote': 'Pivote',
+      'pivot': 'Pivote',
+      'medio': 'Pivote',
+      'mediocampista': 'Pivote',
+      'volante': 'Pivote',
+    };
+    if (aliases.containsKey(normalized)) return aliases[normalized];
+    for (final entry in aliases.entries) {
+      if (normalized.contains(entry.key)) return entry.value;
+    }
     return positions.firstWhere(
-      (item) => item.toLowerCase() == normalized || normalized.contains(item.toLowerCase()),
+      (item) => item.toLowerCase() == normalized,
       orElse: () => '',
-    ).isEmpty ? null : positions.firstWhere((item) => item.toLowerCase() == normalized || normalized.contains(item.toLowerCase()));
+    ).isEmpty ? null : positions.firstWhere((item) => item.toLowerCase() == normalized);
   }
 
   String _normalizeGender(String value) {
