@@ -157,7 +157,6 @@ class _CalendarDay extends StatelessWidget {
         _ => 'Programado',
       };
 
-  Color _statusColor(String? status) => matchStatusColor(context, status);
   Color _color(dynamic value, Color fallback) {
     if (value is int) return Color(value);
     if (value is String) {

@@ -127,11 +127,15 @@ class _AccreditationFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: selected ? colorScheme.primary.withValues(alpha: .22) : colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: selected ? colorScheme.primary.withValues(alpha: .45) : colorScheme.outlineVariant.withValues(alpha: .5)),
-      child: InkWell(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: selected ? colorScheme.primary.withValues(alpha: .22) : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: selected ? colorScheme.primary.withValues(alpha: .45) : colorScheme.outlineVariant.withValues(alpha: .5)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
