@@ -6,6 +6,12 @@ class MatchRepository {
   MatchRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchTournamentMatchDocuments(String tournamentId) => _firestore
+      .collection('tournaments')
+      .doc(tournamentId)
+      .collection('matches')
+      .snapshots();
+
   Stream<List<MatchModel>> watchTournamentMatches(String tournamentId) => _firestore
       .collection('tournaments')
       .doc(tournamentId)

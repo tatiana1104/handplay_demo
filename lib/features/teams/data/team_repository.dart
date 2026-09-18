@@ -6,6 +6,13 @@ class TeamRepository {
   TeamRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchTournamentRegistrationDocuments(String tournamentId) => _firestore
+      .collection('tournaments')
+      .doc(tournamentId)
+      .collection('registrations')
+      .where('status', isEqualTo: 'approved')
+      .snapshots();
+
   Stream<List<TeamRegistrationModel>> watchTournamentTeams(String tournamentId) => _firestore
       .collection('tournaments')
       .doc(tournamentId)

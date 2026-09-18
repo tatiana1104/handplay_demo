@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/tournament_models.dart';
+import '../../../teams/data/team_repository.dart';
+import '../../../matches/data/match_repository.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
 
@@ -318,7 +320,7 @@ class _MatchesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots();
+    final stream = MatchRepository().watchTournamentMatchDocuments(tournament.id);
     final teamsStream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots();
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: stream,
@@ -522,12 +524,7 @@ class _ApprovedTeamsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stream = FirebaseFirestore.instance
-        .collection('tournaments')
-        .doc(tournament.id)
-        .collection('registrations')
-        .where('status', isEqualTo: 'approved')
-        .snapshots();
+    final stream = TeamRepository().watchTournamentRegistrationDocuments(tournament.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Equipos inscritos')),

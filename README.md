@@ -197,7 +197,7 @@ La información se organiza por dominio y no se concentra en una pantalla:
 - `core/`: configuración transversal, rutas, errores, tema y dependencias.
 - `shared/`: widgets compartidos como el banner inferior.
 
-Las pantallas deben coordinar datos y composición visual; los modelos, acceso a Firestore y widgets específicos permanecen dentro de su feature.
+Las pantallas deben coordinar datos y composición visual; los modelos, acceso a Firestore y widgets específicos permanecen dentro de su feature. Como parte de esta etapa, `TeamRepository` centraliza las inscripciones aprobadas y `MatchRepository` centraliza la lectura de partidos; las pantallas de torneo ya consumen esos repositorios.
 
 ### ⬜ Sprint 4 — Partido en vivo
 
