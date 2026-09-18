@@ -162,14 +162,14 @@ class AuthRemoteDataSource {
       }
     }
     final mergedData = {...?pendingData, ...?data};
-    final pendingRoles = (pendingData?['roles'] as List?)?.map((value) => value.toString().trim().toLowerCase()).toSet() ?? <String>{};
-    final currentRoles = (data?['roles'] as List?)?.map((value) => value.toString().trim().toLowerCase()).toSet() ?? <String>{};
-    final existingRoles = [...pendingRoles, ...currentRoles];
-    final isCoach = existingRoles?.contains('entrenador') == true || existingRoles?.contains('coach') == true;
-    final isPlayer = existingRoles?.contains('jugador') == true || existingRoles?.contains('player') == true;
+    final pendingRoles = _rolesFromProfile(pendingData);
+    final currentRoles = _rolesFromProfile(data);
+    final existingRoles = {...pendingRoles, ...currentRoles};
+    final isCoach = existingRoles.contains('entrenador') || existingRoles.contains('coach');
+    final isPlayer = existingRoles.contains('jugador') || existingRoles.contains('player');
     final roles = {
-      ...?existingRoles,
-      if (!isCoach && (existingRoles == null || existingRoles.isEmpty)) 'jugador',
+      ...existingRoles,
+      if (existingRoles.isEmpty) 'jugador',
     };
     await ref.set({
       'uid': user.uid,
@@ -184,6 +184,9 @@ class AuthRemoteDataSource {
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
+      if (mergedData['category'] != null) 'category': mergedData['category'],
+      if (mergedData['experience'] != null) 'experience': mergedData['experience'],
+      if (mergedData['phone'] != null) 'phone': mergedData['phone'],
       if (mergedData['nivel'] != null) 'nivel': mergedData['nivel'],
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
@@ -199,6 +202,18 @@ class AuthRemoteDataSource {
         'nivel': FieldValue.delete(),
       });
     }
+  }
+
+  Set<String> _rolesFromProfile(Map<String, dynamic>? profile) {
+    if (profile == null) return <String>{};
+    final roles = (profile['roles'] as List?)
+            ?.map((value) => value.toString().trim().toLowerCase())
+            .where((value) => value.isNotEmpty)
+            .toSet() ??
+        <String>{};
+    final primaryRole = profile['rol']?.toString().trim().toLowerCase();
+    if (primaryRole != null && primaryRole.isNotEmpty) roles.add(primaryRole);
+    return roles;
   }
 
   Future<void> sendPasswordResetEmail(String email) async {

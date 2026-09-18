@@ -519,6 +519,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         'email': _email.text.trim().toLowerCase(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
+        'documentNumber': _document.text.trim(),
+        'category': _accreditation,
         'correo': FieldValue.delete(),
         'nombre': FieldValue.delete(),
         'telefono': FieldValue.delete(),
