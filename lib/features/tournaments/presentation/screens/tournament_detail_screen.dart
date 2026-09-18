@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../matches/presentation/widgets/match_status_label.dart';
 import 'package:go_router/go_router.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 import '../../../../core/routing/route_names.dart';
 
@@ -28,6 +30,9 @@ class TournamentDetailScreen extends StatelessWidget {
     final statusLabel = isFinished ? 'Finalizado' : isPlaying ? 'Jugando' : 'Por iniciar';
     final registrationClosed = tournament.registrationDeadline != null && DateTime.now().isAfter(tournament.registrationDeadline!);
     final colors = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final roles = authState is AuthAuthenticated ? authState.user.roles.map((role) => role.toLowerCase()).toSet() : const <String>{};
+    final canRegisterTeam = !roles.contains('admin') && !roles.contains('administrador') && !roles.contains('arbitro') && !roles.contains('árbitro');
 
     return Scaffold(
       appBar: AppBar(title: Text(tournament.name.isEmpty ? 'Detalle del torneo' : tournament.name)),
@@ -58,7 +63,7 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
-          if (tournament.publicRegistration)
+          if (tournament.publicRegistration && canRegisterTeam)
             FilledButton.icon(
               onPressed: registrationClosed
                   ? null

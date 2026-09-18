@@ -300,15 +300,21 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   }
 
   Future<void> _addPlayer() async {
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      builder: (_) => _PlayerDialog(
-        usedNumbers: _players
+  final result = await Navigator.of(context).push<Map<String, String>>(
+    MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Agregar jugador')),
+        body: SafeArea(
+          child: _PlayerDialog(
+  usedNumbers: _players
             .map((player) => int.tryParse(player['number'] ?? ''))
             .whereType<int>()
             .toSet(),
-        tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
+  tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
+          ),
+        ),
       ),
+    ),
     );
     if (!mounted || result == null) return;
     setState(() => _players.add(result));
@@ -581,7 +587,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
               title: 'Datos del equipo',
               children: [
                 _field(_team, 'Nombre del equipo *', 'Halcones FC'),
-                _field(_club, 'Club o clubes asociados', 'Puede quedar vacío si es independiente', required: false),
+                _field(_club, 'Clubes asociados', 'Escribe varios separados por coma', required: false, maxLines: 2),
               ],
             ),
         _sectionCard(
@@ -594,6 +600,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           ],
         ),
         const SizedBox(height: 10),
+        /* Logo del equipo deshabilitado temporalmente.
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
@@ -613,7 +620,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
               ),
             ],
           ),
-        ),
+        ), */
         const SizedBox(height: 8),
         _sectionCard(
           theme,
@@ -638,7 +645,6 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        Text('Jugadores inscritos (${_players.length})', style: theme.textTheme.titleSmall),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Jugadores inscritos (${_players.length})', style: theme.textTheme.titleSmall), TextButton.icon(onPressed: _addPlayer, icon: const Icon(Icons.add), label: const Text('Agregar'))]),
         ..._players.asMap().entries.map(
           (entry) => ListTile(
@@ -701,10 +707,11 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         ),
       );
 
-  Widget _field(TextEditingController controller, String label, String hint, {bool required = true, bool email = false}) => Padding(
+  Widget _field(TextEditingController controller, String label, String hint, {bool required = true, bool email = false, int maxLines = 1}) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: TextFormField(
           controller: controller,
+          maxLines: maxLines,
           keyboardType: email ? TextInputType.emailAddress : TextInputType.text,
           decoration: InputDecoration(labelText: label, hintText: hint),
           validator: (value) {
