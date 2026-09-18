@@ -140,13 +140,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Future<void> _stopAndAdvancePeriod() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     final currentPeriod = (_match['period'] as num?)?.toInt() ?? 1;
-    final nextPeriod = currentPeriod < 4 ? currentPeriod + 1 : currentPeriod;
+    final homeScore = (_match['homeScore'] as num?)?.toInt() ?? 0;
+    final awayScore = (_match['awayScore'] as num?)?.toInt() ?? 0;
+    final isTied = homeScore == awayScore;
+    final canAdvance = currentPeriod < 2 || isTied;
+    final nextPeriod = canAdvance ? currentPeriod + 1 : currentPeriod;
+    final nextStatus = canAdvance ? 'paused' : 'finished';
     _timer?.cancel();
     await _saveMatch({
       'period': nextPeriod,
       'elapsedSeconds': 0,
-      'status': 'paused',
-      'periodStartedAt': FieldValue.serverTimestamp(),
+      'status': nextStatus,
+      'periodStartedAt': canAdvance ? FieldValue.serverTimestamp() : null,
+      'finishedAt': canAdvance ? null : FieldValue.serverTimestamp(),
     });
     if (!mounted) return;
     setState(() {
@@ -182,7 +188,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           Expanded(child: Text(away.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 6),
-        Center(child: Text('Tiempo ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min')),
+        Center(child: Text((_match['period'] as num? ?? 1) <= 2 ? 'Período ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min' : 'Desempate ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min')),
         if (_canOperate) ...[
           const SizedBox(height: 14),
           Card(
@@ -200,10 +206,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                   OutlinedButton.icon(
                     onPressed: _match['status'] == 'finished' ? null : _stopAndAdvancePeriod,
                     icon: const Icon(Icons.stop_circle_outlined),
-                    label: Text(((_match['period'] as num?)?.toInt() ?? 1) < 4 ? 'Parar funcionamiento y pasar al siguiente período' : 'Parar funcionamiento'),
+                    label: Text(((_match['period'] as num?)?.toInt() ?? 1) < 2 || ((_match['homeScore'] as num?)?.toInt() ?? 0) == ((_match['awayScore'] as num?)?.toInt() ?? 0) ? 'Parar y pasar al siguiente período' : 'Parar y finalizar partido'),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
+                  Wrap(
+                    spacing: 8,
+                    children: <int>{1, 2, if (((_match['period'] as num?)?.toInt() ?? 1) > 2) (_match['period'] as num).toInt()}
+                        .map((period) => ChoiceChip(
+                              label: Text(period <= 2 ? 'Período $period' : 'Desempate $period'),
+                              selected: (_match['period'] ?? 1) == period,
+                              onSelected: (_) => _changePeriod(period),
+                            ))
+                        .toList(),
+                  ),
                 ],
 
               ]),
