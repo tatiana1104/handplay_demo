@@ -61,10 +61,15 @@ class ProfileScreen extends StatelessWidget {
             int.tryParse(profile['shirtNumber'].toString()) != null &&
             profile['position']?.toString().trim().isNotEmpty == true;
         final hasRequiredProfileData = hasDocument && (role != 'jugador' || hasPlayerData);
+        final completedByRole = (profile['profileCompletedByRole'] as Map?)?.map(
+              (key, value) => MapEntry(key.toString().trim().toLowerCase(), value == true || value.toString().toLowerCase() == 'true'),
+            ) ??
+            const <String, bool>{};
         final profileCompleted = profile['profileCompleted'] == true ||
             profile['profileComplete'] == true ||
             profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
             profile['profileComplete']?.toString().toLowerCase() == 'true' ||
+            completedByRole[role] == true ||
             hasRequiredProfileData;
         final profileReadyToEvaluate = snapshot.connectionState == ConnectionState.active || snapshot.connectionState == ConnectionState.done;
         if (profileReadyToEvaluate && !snapshot.hasError && !profileCompleted) {

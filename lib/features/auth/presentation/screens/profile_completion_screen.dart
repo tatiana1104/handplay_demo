@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/routing/route_names.dart';
 
 class ProfileCompletionScreen extends StatefulWidget {
   const ProfileCompletionScreen({super.key, required this.role});
@@ -52,15 +55,20 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                     'player' || 'jugador' => 'jugador',
                     'coach' || 'entrenador' => 'entrenador',
                     'referee' || 'arbitro' || 'árbitro' => 'arbitro',
+                    'public' || 'publico' || 'público' => 'publico',
                     _ => role.trim().toLowerCase(),
                   })
-              .where((role) => ['jugador', 'entrenador', 'arbitro', 'admin', 'admin_liga'].contains(role))
+              .where((role) => ['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga'].contains(role))
               .toSet() ?? <String>{};
       existingRoles.add(normalizedRole);
       await profileRef.set({
       'uid': uid,
       'roles': existingRoles.toList(),
-      'rol': existingData['rol'] ?? normalizedRole,
+      'rol': normalizedRole,
+      'profileCompletedByRole': {
+        ...((existingData['profileCompletedByRole'] as Map?)?.map((key, value) => MapEntry(key.toString(), value)) ?? const <String, dynamic>{}),
+        normalizedRole: true,
+      },
       'email': currentUser.email,
       'nombre': existingData['nombre'] ?? currentUser.displayName ?? '',
       'documentNumber': _documentController.text.trim(),
@@ -80,7 +88,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil guardado correctamente')));
-      Navigator.of(context).pop();
+      context.go(RouteNames.profile);
     } on FirebaseException catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
