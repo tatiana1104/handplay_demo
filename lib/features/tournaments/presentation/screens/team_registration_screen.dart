@@ -55,11 +55,11 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       return;
     }
     setState(() {
-      _name.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? '';
-      _number.text = existing['number']?.toString() ?? existing['shirtNumber']?.toString() ?? existing['numeroCamiseta']?.toString() ?? '';
-      _position.text = existing['position']?.toString() ?? existing['posicion']?.toString() ?? '';
-      _gender = existing['gender']?.toString() ?? existing['genero']?.toString();
-      _club.text = existing['club']?.toString() ?? existing['clubName']?.toString() ?? existing['club al que pertenece']?.toString() ?? '';
+      _name.text = _firstValue(existing, ['name', 'displayName', 'nombre']) ?? '';
+      _number.text = _firstValue(existing, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber']) ?? '';
+      _position.text = _firstValue(existing, ['position', 'posicion']) ?? '';
+      _gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
+      _club.text = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name']) ?? '';
     });
   }
 
@@ -78,28 +78,49 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     Navigator.of(context).pop({
       'name': _name.text.trim().isNotEmpty ? _name.text.trim() : (existing?['name'] ?? ''),
       'document': document,
-      'number': _number.text.trim().isNotEmpty ? _number.text.trim() : (existing?['number'] ?? existing?['shirtNumber'] ?? ''),
-      'position': _position.text.trim().isNotEmpty ? _position.text.trim() : (existing?['position'] ?? ''),
-      'gender': _gender ?? existing?['gender'] ?? '',
-      'club': _club.text.trim().isNotEmpty ? _club.text.trim() : (existing?['club'] ?? existing?['clubName'] ?? ''),
+      'number': _number.text.trim().isNotEmpty ? _number.text.trim() : (_firstValue(existing ?? {}, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber']) ?? ''),
+      'position': _position.text.trim().isNotEmpty ? _position.text.trim() : (_firstValue(existing ?? {}, ['position', 'posicion']) ?? ''),
+      'gender': _gender ?? _firstValue(existing ?? {}, ['gender', 'genero', 'sex', 'sexo']) ?? '',
+      'club': _club.text.trim().isNotEmpty ? _club.text.trim() : (_firstValue(existing ?? {}, ['club', 'clubName', 'club al que pertenece', 'club_name']) ?? ''),
     });
+  }
+
+  String? _firstValue(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>?> _findProfile(String document) async {
     final firestore = FirebaseFirestore.instance;
+    final merged = <String, dynamic>{};
+    var found = false;
     for (final collection in [
       firestore.collection('profile_directory'),
       firestore.collection('users'),
       firestore.collection('referees'),
     ]) {
-      final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
-      if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
-      for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula']) {
-        final byNumber = await collection.where(field, isEqualTo: document).limit(1).get();
-        if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      try {
+        final queries = <Future<QuerySnapshot<Map<String, dynamic>>>>[
+          collection.where('document', isEqualTo: document).limit(1).get(),
+          for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula'])
+            collection.where(field, isEqualTo: document).limit(1).get(),
+        ];
+        for (final snapshot in await Future.wait(queries)) {
+          if (snapshot.docs.isEmpty) continue;
+          found = true;
+          for (final entry in snapshot.docs.first.data().entries) {
+            final value = entry.value?.toString().trim();
+            if (value != null && value.isNotEmpty) merged[entry.key] = entry.value;
+          }
+        }
+      } on FirebaseException {
+        continue;
       }
     }
-    return null;
+    return found ? merged : null;
   }
 
   @override
