@@ -22,7 +22,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   final Map<String, String> _officialNames = {};
   bool _showOfficials = true;
   Timer? _timer;
+  Timer? _suspensionTimer;
   int _elapsedSeconds = 0;
+  final List<Map<String, dynamic>> _activeSuspensions = [];
   bool _isPaused = true;
   String? _selectedRoster;
 
@@ -94,6 +96,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _suspensionTimer?.cancel();
     super.dispose();
   }
 
@@ -336,6 +339,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           ),
         ],
         const SizedBox(height: 18),
+        if (_activeSuspensions.isNotEmpty) ...[
+          _section('Suspensiones activas', _activeSuspensions.map(_suspensionCard).toList()),
+          const SizedBox(height: 12),
+        ],
         if (_isReferee) _section('Planilla digital', [
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _registrationStream,
@@ -441,6 +448,28 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   String _teamName(String nameKey, String idKey) => _match[nameKey]?.toString() ?? _match[idKey]?.toString() ?? 'Equipo';
 
+  Widget _suspensionCard(Map<String, dynamic> suspension) {
+    final remaining = (suspension['endsAt'] as DateTime).difference(DateTime.now()).inSeconds.clamp(0, 120);
+    final minutes = remaining ~/ 60;
+    final seconds = (remaining % 60).toString().padLeft(2, '0');
+    final team = suspension['team'] == 'home' ? _teamName('homeTeamName', 'homeTeam') : _teamName('awayTeamName', 'awayTeam');
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.45),
+      child: ListTile(
+        dense: true,
+        leading: CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.amber.shade700,
+          child: Text('$minutes:$seconds', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black)),
+        ),
+        title: Row(children: [Expanded(child: Text(suspension['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w700))), const Icon(Icons.circle, size: 9, color: Colors.green)]),
+        subtitle: Text('Exclusión de 2 minutos · $team'),
+        trailing: const Text('Excluido', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
   Widget _rosterTeamButton(String side, String teamName) => OutlinedButton.icon(
     onPressed: () => setState(() => _selectedRoster = _selectedRoster == side ? null : side),
     style: OutlinedButton.styleFrom(
@@ -458,11 +487,25 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   final Map<String, Map<String, int>> _playerEvents = {};
 
-  Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome}) async {
+  void _startSuspensionCountdown() {
+    _suspensionTimer?.cancel();
+    _suspensionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final now = DateTime.now();
+      setState(() => _activeSuspensions.removeWhere((item) => (item['endsAt'] as DateTime).isBefore(now)));
+    });
+  }
+
+  Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome, String? playerName}) async {
     if (!_canUseScoreSheet) return;
     final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
     final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
+    final suspensionEndsAt = DateTime.now().add(const Duration(minutes: 2));
     final eventData = {'type': event, 'player': playerKey, 'team': isHome == true ? 'home' : isHome == false ? 'away' : null, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
+    if (event == 'exclusion') {
+      _activeSuspensions.add({'name': playerName ?? playerKey, 'player': playerKey, 'team': isHome == true ? 'home' : 'away', 'endsAt': suspensionEndsAt});
+      _startSuspensionCountdown();
+    }
     await _saveMatch({'events': FieldValue.arrayUnion([eventData]), if (event == 'goal') 'homeScore': nextHomeScore, if (event == 'goal') 'awayScore': nextAwayScore});
     final currentEvents = (_match['events'] as List?)?.toList() ?? <dynamic>[];
     currentEvents.add(eventData);
@@ -488,10 +531,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     key,
                     Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
                     isHome,
+                    name,
                   ),
-          _textEventButton("2'", 'exclusion', key, Colors.amber, isHome),
-          _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome),
-          _eventButton(Icons.square, 'redCard', key, Colors.red, isHome),
+          _textEventButton("2'", 'exclusion', key, Colors.amber, isHome, name),
+          _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome, name),
+          _eventButton(Icons.square, 'redCard', key, Colors.red, isHome, name),
         ]),
       ),
     );
@@ -507,17 +551,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       );
 
-  Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome) => IconButton(
+  Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome, String playerName) => IconButton(
         tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome),
+        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: name),
         icon: Icon(icon, color: color, size: 24),
       );
 
-  Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome) => IconButton(
+  Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome, String playerName) => IconButton(
         tooltip: 'Exclusión 2 minutos',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome),
+        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: name),
         icon: Text(label, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w700)),
       );
 }
