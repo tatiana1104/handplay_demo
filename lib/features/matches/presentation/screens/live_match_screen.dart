@@ -29,8 +29,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   void initState() {
     super.initState();
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
-    _isPaused = _match['status'] != 'playing';
-    if (_match['status'] == 'playing') _startLocalTimer();
+    _isPaused = !_isLiveStatus(_match['status']?.toString());
+    if (_isLiveStatus(_match['status']?.toString())) _startLocalTimer();
     _loadOfficialNames();
     _loadTeamNames();
   }
@@ -123,7 +123,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Future<void> _startMatch() async {
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
     setState(() => _isPaused = false);
-    await _saveMatch({'status': 'playing', 'startedAt': FieldValue.serverTimestamp(), 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds});
+    await _saveMatch({'status': 'en_curso', 'startedAt': FieldValue.serverTimestamp(), 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds});
     _startLocalTimer();
   }
 
@@ -177,7 +177,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
-                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((_match['status'] != 'playing' && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronómetro')),
+                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronómetro')),
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
                 ],
@@ -233,15 +233,18 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
-  String _statusLabel(String? status) {
-    switch (status) {
-      case 'playing': return 'EN VIVO';
-      case 'finished': return 'FINALIZADO';
-      default: return 'POR INICIAR';
-    }
+  bool _isLiveStatus(String? status) {
+    final value = status?.trim().toLowerCase();
+    return value == 'en_curso' || value == 'en curso' || value == 'en_vivo' || value == 'en vivo' || value == 'playing' || value == 'live' || value == 'jugando';
   }
 
-  Color _statusColor(String? status) => status == 'playing' ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
+  String _statusLabel(String? status) {
+    if (_isLiveStatus(status)) return 'EN VIVO';
+    if (status == 'finished' || status == 'finalizado') return 'FINALIZADO';
+    return 'POR INICIAR';
+  }
+
+  Color _statusColor(String? status) => _isLiveStatus(status) ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
 
   String _elapsedLabel() {
     final seconds = _elapsedSeconds > 0 ? _elapsedSeconds : ((_match['elapsedSeconds'] as num?)?.toInt() ?? 0);
