@@ -68,6 +68,7 @@ class _HandPlayAppState extends State<HandPlayApp> {
         final isPublicRoute = <String>{
           RouteNames.splash,
           RouteNames.home,
+          RouteNames.calendar,
           RouteNames.login,
           RouteNames.register,
           RouteNames.recoverPassword,
