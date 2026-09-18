@@ -364,7 +364,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     final number = data['number']?.toString() ?? '--';
                     final name = data['name']?.toString() ?? data['fullName']?.toString() ?? 'Jugador';
                     return _playerRow('#$number', name, 0);
-                  }).toList(),
+                  }).toList()),
           ),
         ),
       ],
