@@ -137,6 +137,20 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  Future<void> _finishMatch() async {
+    if (!_isTimekeeper || _match['status'] == 'finished') return;
+    _timer?.cancel();
+    await _saveMatch({
+      'status': 'finished',
+      'elapsedSeconds': _elapsedSeconds,
+      'finishedAt': FieldValue.serverTimestamp(),
+    });
+    if (!mounted) return;
+    setState(() {
+      _isPaused = true;
+    });
+  }
+
   Future<void> _stopAndAdvancePeriod() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     final currentPeriod = (_match['period'] as num?)?.toInt() ?? 1;
@@ -203,10 +217,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                   const SizedBox(height: 8),
                   FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cron����metro')),
                   const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: _match['status'] == 'finished' ? null : _stopAndAdvancePeriod,
-                    icon: const Icon(Icons.stop_circle_outlined),
-                    label: Text(((_match['period'] as num?)?.toInt() ?? 1) < 2 || ((_match['homeScore'] as num?)?.toInt() ?? 0) == ((_match['awayScore'] as num?)?.toInt() ?? 0) ? 'Parar y pasar al siguiente período' : 'Parar y finalizar partido'),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _match['status'] == 'finished' ? null : _finishMatch,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red.shade400,
+                        side: BorderSide(color: Colors.red.shade400),
+                      ),
+                      icon: const Icon(Icons.stop_circle_outlined),
+                      label: const Text('Terminar partido'),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
