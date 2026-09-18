@@ -54,12 +54,25 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
       controller.dispose();
       if (rejectionReason == null || rejectionReason!.isEmpty) return;
     }
-    await _registrations.doc(id).update({
+    final registrationRef = _registrations.doc(id);
+    final batch = FirebaseFirestore.instance.batch();
+    batch.update(registrationRef, {
       'status': status,
       'reviewedAt': FieldValue.serverTimestamp(),
       if (status == 'rejected') 'rejectionReason': rejectionReason,
       if (status == 'approved') 'rejectionReason': FieldValue.delete(),
     });
+    final teamRef = FirebaseFirestore.instance
+        .collection('tournaments')
+        .doc(widget.tournamentId)
+        .collection('teams')
+        .doc(id);
+    batch.set(teamRef, {
+      'registrationId': id,
+      'status': status,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    await batch.commit();
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(status == 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.')));
   }
 
