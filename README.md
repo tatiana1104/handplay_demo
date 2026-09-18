@@ -212,6 +212,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
 - `f8bd046`: controles de gol, exclusión, tarjeta amarilla y tarjeta roja.
   - `HEAD`: formulario de finalización de perfil después del inicio de sesión, con datos específicos para jugadores.
   - `HEAD`: árbitros visibles para cualquier usuario autenticado; calendario y detalle de partidos accesibles públicamente; el banner público muestra `Iniciar sesión` en lugar de `Perfil`.
+  - `HEAD`: corrección de sintaxis en `profile_screen.dart` al añadir la coma del `AppBar`.
 
 
 ### 🟨 Sprint 4 — Partido en vivo (en progreso)

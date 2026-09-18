@@ -50,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
           return ProfileCompletionScreen(role: role);
         }
         return Scaffold(
-      appBar: AppBar(title: const Text('Perfil'))
+      appBar: AppBar(title: const Text('Perfil')),
       // La barra inferior se mantiene también en el perfil para que todos
       // los roles puedan regresar al home o consultar las demás secciones.
       bottomNavigationBar: AppBottomNavigationBar(
