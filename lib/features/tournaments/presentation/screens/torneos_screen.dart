@@ -449,7 +449,7 @@ class _StatusPill extends StatelessWidget {
             ? colors.onSurfaceVariant
             : (Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight);
     return DecoratedBox(
-      decoration: BoxDecoration(color: color.withValues(alpha: .16), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: color.withValues(alpha: .16), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: .28))),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),

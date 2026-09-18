@@ -32,17 +32,17 @@ class MatchStatusLabel extends StatelessWidget {
     final color = matchStatusColor(context, status);
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: .16),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: .28)),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
       ),

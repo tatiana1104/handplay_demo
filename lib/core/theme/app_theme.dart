@@ -140,7 +140,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: brand,
+          side: BorderSide(color: brand.withValues(alpha: .45)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
       ),
       // Botones principales (ElevatedButton): fondo verde de marca.
@@ -155,8 +157,9 @@ class AppTheme {
               ? const Color(0xFF0F1210)
               : Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         ),
       ),
 
