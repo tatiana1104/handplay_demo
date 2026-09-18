@@ -21,7 +21,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   bool get _canStart {
     final state = context.read<AuthBloc>().state;
     if (state is! AuthAuthenticated) return false;
-    return state.user.roles.any((role) => role == 'cronometrista' || role == 'anotador');
+    final uid = state.user.uid;
+    return uid == _match['timekeeper'] || uid == _match['scorer'];
   }
 
   Future<void> _startMatch() async {

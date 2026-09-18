@@ -206,6 +206,8 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
 - [ ] Planilla digital.
 - [ ] Bloqueo de planillas aprobadas.
 
+Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
+
 ### ⬜ Sprint 6 — Automatizaciones
 Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos.
 ### ⬜ Sprint 5 — Estadísticas
