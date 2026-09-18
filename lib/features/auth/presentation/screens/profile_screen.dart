@@ -64,6 +64,9 @@ class ProfileScreen extends StatelessWidget {
                         : normalizedRoles.contains('admin')
                             ? 'admin'
                             : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
+        final isPublicProfile = normalizedRoles.contains('publico') ||
+            normalizedRoles.contains('public') ||
+            normalizedRoles.contains('público');
         final hasDocument = profile['documentNumber']?.toString().trim().isNotEmpty == true;
         final hasPlayerData = profile['shirtNumber'] != null &&
             int.tryParse(profile['shirtNumber'].toString()) != null &&
@@ -73,7 +76,8 @@ class ProfileScreen extends StatelessWidget {
               (key, value) => MapEntry(key.toString().trim().toLowerCase(), value == true || value.toString().toLowerCase() == 'true'),
             ) ??
             const <String, bool>{};
-        final profileCompleted = profile['profileCompleted'] == true ||
+        final profileCompleted = isPublicProfile ||
+            profile['profileCompleted'] == true ||
             profile['profileComplete'] == true ||
             profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
             profile['profileComplete']?.toString().toLowerCase() == 'true' ||
