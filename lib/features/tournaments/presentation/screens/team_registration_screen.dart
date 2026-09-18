@@ -47,7 +47,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   static const positions = ['Portero', 'Extremo', 'Lateral', 'Central', 'Pivote'];
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final number = int.parse(_number.text.trim());
     if (widget.usedNumbers.contains(number)) {
@@ -56,14 +56,24 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       );
       return;
     }
+    final document = _document.text.trim();
+    final existing = await _findProfile(document);
     Navigator.of(context).pop({
-      'name': _name.text.trim(),
-      'document': _document.text.trim(),
-      'number': _number.text.trim(),
-      'position': _position.text.trim(),
-      'gender': _gender!,
-      'club': _club.text.trim(),
+      'name': _name.text.trim().isNotEmpty ? _name.text.trim() : (existing?['name'] ?? ''),
+      'document': document,
+      'number': _number.text.trim().isNotEmpty ? _number.text.trim() : (existing?['number'] ?? existing?['shirtNumber'] ?? ''),
+      'position': _position.text.trim().isNotEmpty ? _position.text.trim() : (existing?['position'] ?? ''),
+      'gender': _gender ?? existing?['gender'] ?? '',
+      'club': _club.text.trim().isNotEmpty ? _club.text.trim() : (existing?['club'] ?? existing?['clubName'] ?? ''),
     });
+  }
+
+  Future<Map<String, dynamic>?> _findProfile(String document) async {
+    final directory = FirebaseFirestore.instance.collection('profile_directory');
+    final result = await directory.where('document', isEqualTo: document).limit(1).get();
+    if (result.docs.isNotEmpty) return result.docs.first.data();
+    final users = await FirebaseFirestore.instance.collection('users').where('document', isEqualTo: document).limit(1).get();
+    return users.docs.isEmpty ? null : users.docs.first.data();
   }
 
   @override
@@ -296,6 +306,22 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
       final batch = firestore.batch();
+      for (final player in enrichedPlayers) {
+        final document = player['document']?.toString().trim() ?? '';
+        if (document.isEmpty) continue;
+        final playerMatches = await profileDirectory.where('document', isEqualTo: document).limit(1).get();
+        final playerRef = playerMatches.docs.isEmpty ? profileDirectory.doc('document_$document') : playerMatches.docs.first.reference;
+        batch.set(playerRef, {
+          'name': player['name'] ?? '',
+          'document': document,
+          'number': player['number'] ?? '',
+          'position': player['position'] ?? '',
+          'gender': player['gender'] ?? '',
+          'club': player['club'] ?? '',
+          'roles': ['jugador'],
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
       batch.set(
         registration,
         {
@@ -353,7 +379,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       }
     } on FirebaseException catch (error) {
       final message = switch (error.code) {
-        'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y verifica que el torneo tenga inscripción pública.',
+        'permission-denied' => 'Firebase rechazó la inscripción. Publica firestore.rules y verifica que el torneo tenga inscripción p��blica.',
         'deadline-exceeded' => error.message ?? 'La conexión con Firebase tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.',
         'unavailable' => 'Firebase no está disponible temporalmente. Comprueba tu conexión e inténtalo de nuevo.',
         _ => error.message ?? 'No se pudo enviar la solicitud.',

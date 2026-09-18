@@ -18,10 +18,10 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
 
   Future<void> _setStatus(BuildContext context, String id, String status) async {
     String? rejectionReason;
+    final currentSnapshot = await _registrations.doc(id).get();
+    final current = currentSnapshot.data() ?? <String, dynamic>{};
     if (status == 'rejected') {
-      final currentSnapshot = await _registrations.doc(id).get();
       final allRegistrations = await _registrations.get();
-      final current = currentSnapshot.data() ?? <String, dynamic>{};
       final currentCreatedAt = current['createdAt'];
       final currentDate = currentCreatedAt is Timestamp ? currentCreatedAt.toDate() : DateTime.now();
       final older = allRegistrations.docs
@@ -72,6 +72,27 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
       'status': status,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    if (status == 'approved') {
+      final currentPlayers = (current['players'] as List?)?.whereType<Map>().map((player) => Map<String, dynamic>.from(player)).toList() ?? const <Map<String, dynamic>>[];
+      final profiles = FirebaseFirestore.instance.collection('profile_directory');
+      final users = FirebaseFirestore.instance.collection('users');
+      final coachDocument = current['coachDocument']?.toString().trim() ?? '';
+      final coachEmail = current['coachEmail']?.toString().trim().toLowerCase() ?? '';
+      final coachMatches = await profiles.where('document', isEqualTo: coachDocument).limit(1).get();
+      final coachRef = coachMatches.docs.isEmpty ? profiles.doc('document_$coachDocument') : coachMatches.docs.first.reference;
+      batch.set(coachRef, {'roles': FieldValue.arrayUnion(['entrenador']), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      if (coachEmail.isNotEmpty) {
+        final userMatches = await users.where('email', isEqualTo: coachEmail).limit(1).get();
+        if (userMatches.docs.isNotEmpty) batch.set(userMatches.docs.first.reference, {'roles': FieldValue.arrayUnion(['entrenador']), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      }
+      for (final player in currentPlayers) {
+        final document = player['document']?.toString().trim() ?? '';
+        if (document.isEmpty) continue;
+        final playerMatches = await profiles.where('document', isEqualTo: document).limit(1).get();
+        final playerRef = playerMatches.docs.isEmpty ? profiles.doc('document_$document') : playerMatches.docs.first.reference;
+        batch.set(playerRef, {'roles': FieldValue.arrayUnion(['jugador']), 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+      }
+    }
     await batch.commit();
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(status == 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.')));
   }
