@@ -107,7 +107,7 @@ class AppTheme {
         elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: border.withValues(alpha: 0.8)),
         ),
       ),
@@ -123,8 +123,8 @@ class AppTheme {
         labelStyle: TextStyle(color: secondaryText),
         hintStyle: TextStyle(color: secondaryText),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: border, width: 0.5),
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: border, width: 0.7),
         ),
       ),
 
@@ -133,14 +133,14 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: brand,
           side: BorderSide(color: brand.withValues(alpha: 0.65)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: brand,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       // Botones principales (ElevatedButton): fondo verde de marca.
@@ -168,8 +168,9 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: brightness == Brightness.dark ? AppColors.darkBrandSoft : AppColors.lightBrandSoft,
         side: BorderSide.none,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        labelStyle: TextStyle(color: onSurface, fontWeight: FontWeight.w600),
+        labelStyle: TextStyle(color: onSurface, fontSize: 12, fontWeight: FontWeight.w600),
       ),
       useMaterial3: true,
     );

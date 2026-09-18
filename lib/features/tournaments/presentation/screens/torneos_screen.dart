@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/routing/route_names.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -443,15 +444,15 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final color = status == _TournamentStatus.playing
-        ? Colors.green
+        ? (Theme.of(context).brightness == Brightness.dark ? AppColors.brandDark : AppColors.brandLight)
         : status == _TournamentStatus.finished
             ? colors.onSurfaceVariant
-            : Colors.amber;
+            : (Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight);
     return DecoratedBox(
-      decoration: BoxDecoration(color: color.withValues(alpha: .18), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: color.withValues(alpha: .16), borderRadius: BorderRadius.circular(6)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(label, style: TextStyle(fontSize: 11, color: color)),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
       ),
     );
   }
