@@ -428,22 +428,56 @@ class _MatchesSection extends StatelessWidget {
                             ],
                           ),
                           Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(label: 'VISITANTE', name: away, color: awayColor, alignEnd: true))),
-                          if (isAdmin)
-                            PopupMenuButton<String>(
-                              tooltip: 'Administrar partido',
-                              onSelected: (action) async {
-                                if (action == 'edit') {
-                                  await Navigator.of(context).push(MaterialPageRoute(builder: (_) => _NewMatchScreen(tournament: tournament, match: match, matchId: match['id']?.toString())));
-                                } else if (action == 'delete') {
-                                  final confirmed = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(title: const Text('Eliminar partido'), content: const Text('Esta acción no se puede deshacer.'), actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')), FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar'))]));
-                                  if (confirmed == true && context.mounted) {
-                                    await FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').doc(match['id']?.toString()).delete();
-                                  }
-                                }
-                              },
-                              itemBuilder: (_) => const [PopupMenuItem(value: 'edit', child: Text('Editar información')), PopupMenuItem(value: 'delete', child: Text('Eliminar partido'))],
-                            ),
                         ]),
+                        if (isAdmin) ...[
+                          const Divider(height: 20),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              TextButton.icon(
+                                onPressed: () async {
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => _NewMatchScreen(
+                                        tournament: tournament,
+                                        match: match,
+                                        matchId: match['id']?.toString(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.edit_outlined, size: 17),
+                                label: const Text('Editar'),
+                              ),
+                              TextButton.icon(
+                                onPressed: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: const Text('Eliminar partido'),
+                                      content: const Text('Esta acción no se puede deshacer.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true && context.mounted) {
+                                    await FirebaseFirestore.instance
+                                        .collection('tournaments')
+                                        .doc(tournament.id)
+                                        .collection('matches')
+                                        .doc(match['id']?.toString())
+                                        .delete();
+                                  }
+                                },
+                                icon: const Icon(Icons.delete_outline, size: 17),
+                                label: const Text('Eliminar'),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
