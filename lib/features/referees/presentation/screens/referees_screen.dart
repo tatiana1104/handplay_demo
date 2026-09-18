@@ -356,7 +356,19 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     if (!_formKey.currentState!.validate() || !_searched) return;
     setState(() => _loading = true);
     try {
-      final userRef = _userRef ?? FirebaseFirestore.instance.collection('users').doc();
+      var userRef = _userRef;
+      if (userRef == null && _email.text.trim().isNotEmpty) {
+        final email = _email.text.trim().toLowerCase();
+        final emailMatches = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .limit(1)
+            .get();
+        if (emailMatches.docs.isNotEmpty) {
+          userRef = emailMatches.docs.first.reference;
+        }
+      }
+      userRef ??= FirebaseFirestore.instance.collection('users').doc();
       final data = await userRef.get();
       final roles = List<String>.from(data.data()?['roles'] ?? const <String>[]);
       if (!roles.contains('arbitro')) roles.add('arbitro');
@@ -364,7 +376,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         'uid': data.data()?['uid'] ?? userRef.id,
         'rol': 'arbitro',
         'displayName': _name.text.trim(),
-        'email': _email.text.trim(),
+        'email': _email.text.trim().toLowerCase(),
+        'correo': _email.text.trim().toLowerCase(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
         'accreditation': _accreditation,

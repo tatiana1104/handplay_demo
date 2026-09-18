@@ -133,10 +133,28 @@ class AuthRemoteDataSource {
   }
 
   Future<void> _ensureUserProfile(fb.User user, {String? name}) async {
-    final ref = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final users = FirebaseFirestore.instance.collection('users');
+    final ref = users.doc(user.uid);
     final existing = await ref.get().timeout(const Duration(seconds: 5));
     final data = existing.data();
-    final existingRoles = (data?['roles'] as List?)?.whereType<String>().toList();
+    final email = user.email?.trim().toLowerCase();
+    Map<String, dynamic>? pendingData;
+    DocumentReference<Map<String, dynamic>>? pendingRef;
+    if (email != null && email.isNotEmpty) {
+      final pending = await users.where('email', isEqualTo: email).limit(5).get();
+      for (final candidate in pending.docs) {
+        if (candidate.id != user.uid && candidate.data()['roles'] is List) {
+          final roles = (candidate.data()['roles'] as List).map((value) => value.toString().toLowerCase()).toList();
+          if (roles.contains('arbitro') || roles.contains('entrenador')) {
+            pendingRef = candidate.reference;
+            pendingData = candidate.data();
+            break;
+          }
+        }
+      }
+    }
+    final mergedData = {...?pendingData, ...?data};
+    final existingRoles = (mergedData['roles'] as List?)?.map((value) => value.toString()).toList();
     final isCoach = existingRoles?.contains('entrenador') == true;
     final roles = {
       ...?existingRoles,
@@ -145,12 +163,23 @@ class AuthRemoteDataSource {
     await ref.set({
       'uid': user.uid,
       'email': user.email,
-      'nombre': name?.isNotEmpty == true ? name : (data?['nombre'] ?? user.displayName ?? ''),
+      'nombre': name?.isNotEmpty == true ? name : (mergedData['nombre'] ?? user.displayName ?? ''),
       'roles': roles.toList(),
-      'rol': data?['rol'] ?? (isCoach ? 'entrenador' : 'jugador'),
+      'rol': mergedData['rol'] ?? (isCoach ? 'entrenador' : 'jugador'),
+      if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
+      if (mergedData['document'] != null) 'document': mergedData['document'],
+      if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
+      if (mergedData['nivel'] != null) 'nivel': mergedData['nivel'],
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    if (pendingRef != null) {
+      await pendingRef.update({
+        'linkedUid': user.uid,
+        'linkedAt': FieldValue.serverTimestamp(),
+        'roles': FieldValue.arrayRemove(['arbitro', 'entrenador']),
+      });
+    }
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
