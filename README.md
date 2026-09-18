@@ -23,7 +23,28 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 | Inyección de dependencias | `get_it` |
 | Manejo de errores funcional | `dartz` (`Either<Failure, T>`) |
 
-## Arquitectura
+## Arquitectura actual
+
+La aplicación usa **Clean Architecture + Feature-First**, con Firebase como backend y un flujo de autenticación centralizado en `AuthBloc`. La navegación está controlada por `go_router`, que escucha los cambios del bloc y resuelve splash, inicio público, autenticación y perfil sin depender de temporizadores.
+
+Cada feature mantiene sus responsabilidades separadas:
+
+- `data/`: Firebase Auth/Firestore, datasources, modelos y repositorios.
+- `domain/`: entidades, contratos y casos de uso.
+- `presentation/`: BLoCs, pantallas y widgets de cada flujo.
+- `core/`: rutas, constantes, tema, errores e inyección con `get_it`.
+- `shared/`: componentes transversales, especialmente el banner inferior persistente.
+
+El documento `users/{uid}` es la fuente de datos del perfil multirol; conserva `roles`, `rol`, correo y datos específicos de jugador, entrenador o árbitro. Calendario y partidos consumen sus repositorios y resuelven los nombres de equipos a partir de las inscripciones. En partido en vivo, la planilla digital se renderiza únicamente para roles de árbitro.
+
+### Flujo de arranque y sesión
+
+1. `main.dart` inicializa Firebase y registra dependencias sin bloquear el primer frame por el permiso de notificaciones.
+2. `AuthBloc` escucha `authStateChanges` como única fuente de verdad.
+3. `GoRouter` permanece en splash solo mientras el estado es inicial/loading; después redirige a Home público o Perfil.
+4. El splash no usa un `Timer`: evita carreras y esperas artificiales al iniciar sesión.
+
+### Estructura de carpetas
 
 Clean Architecture + Feature-First:
 
@@ -77,8 +98,7 @@ firebase deploy --only "firestore:rules" --project handplaydemo
 flutter run
 ```
 
-Después de correr `flutterfire configure`, descomenta las líneas marcadas
-con `TODO(Sprint 1)` en `lib/main.dart` para inicializar Firebase.
+`main.dart` inicializa Firebase con `DefaultFirebaseOptions`; después de ejecutar `flutterfire configure`, verifica que `lib/firebase_options.dart` esté generado para la plataforma objetivo. No es necesario descomentar código adicional en `main.dart`.
 
 ## Estado de avance
 
@@ -228,6 +248,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: el banner constante se incorporó al listado, detalle y alta de árbitros para conservar la navegación en todas las vistas.
   - `HEAD`: Perfil muestra únicamente nombre, documento, correo y cambio de contraseña; usuarios con múltiples roles acceden a sus fichas individuales de entrenador, árbitro y jugador mediante botones independientes.
   - `HEAD`: se corrigieron errores de compilación: navegación de cambio de contraseña con `go_router` y argumento `bottomNavigationBar` duplicado en el detalle de árbitro.
+  - `HEAD`: arquitectura y documentación sincronizadas con el flujo multirol actual; AuthBloc/GoRouter controlan la sesión, el splash espera el estado real sin temporizador y los permisos secundarios no bloquean el arranque.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 

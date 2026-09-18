@@ -26,12 +26,14 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.requestPermission(
+  FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
     sound: true,
     provisional: false,
-  );
+  ).catchError((error) {
+    debugPrint('[v0] No se pudo solicitar permiso de notificaciones: $error');
+  });
   FirebaseMessaging.onMessage.listen((message) {
     debugPrint('[v0] Notificación recibida: ${message.notification?.title}');
   });
@@ -78,6 +80,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
 
         if (!isAuthenticated && !isPublicRoute) {
           return RouteNames.login;
+        }
+
+        if (state.matchedLocation == RouteNames.splash) {
+          return isAuthenticated ? RouteNames.profile : RouteNames.home;
         }
 
         if (isAuthenticated &&
