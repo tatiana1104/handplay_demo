@@ -374,7 +374,7 @@ class _MatchesSection extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 10),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: InkWell(
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LiveMatchScreen(matchId: match['id']?.toString() ?? '', match: {...match, 'tournamentId': tournament.id}))),
+                      onTap: () => context.go(RouteNames.liveMatch, extra: {...match, 'id': match['id']?.toString() ?? '', 'tournamentId': tournament.id})),
                       child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

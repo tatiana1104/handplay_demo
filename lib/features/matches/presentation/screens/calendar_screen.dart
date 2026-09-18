@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/routing/route_names.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../widgets/match_status_label.dart';
-import 'live_match_screen.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -95,7 +97,7 @@ class _CalendarDay extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 10),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LiveMatchScreen(matchId: match['matchId'].toString(), match: match))),
+                  onTap: () => context.go(RouteNames.liveMatch, extra: {...match, 'id': match['matchId'].toString()}),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                   child: Column(
