@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/referees/presentation/screens/referees_screen.dart';
-import '../../features/matches/presentation/screens/calendar_screen.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 
@@ -63,7 +62,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 GoRouter.of(context).go(RouteNames.home);
                 break;
               case 1:
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
+                GoRouter.of(context).go(RouteNames.calendar);
                 break;
               case 2:
                 if (effectiveAdmin) {
