@@ -8,6 +8,7 @@ import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../../domain/entities/app_user.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
+import 'profile_completion_screen.dart';
 
 /// Vista de la cuenta actualmente autenticada.
 /// Firebase Auth es la fuente de verdad para el correo y el nombre visible.
@@ -40,8 +41,16 @@ class ProfileScreen extends StatelessWidget {
       ? 'Usuario'
       : user.roles.map(_roleLabel).join(', ');
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Perfil')),
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+      builder: (context, snapshot) {
+        final profile = snapshot.data?.data() ?? const <String, dynamic>{};
+        final role = user?.roles.contains('jugador') == true ? 'jugador' : (user?.roles.isNotEmpty == true ? user!.roles.first : 'jugador');
+        if (snapshot.hasData && profile['profileCompleted'] != true) {
+          return ProfileCompletionScreen(role: role);
+        }
+        return Scaffold(
+      appBar: AppBar(title: const Text('Perfil'))
       // La barra inferior se mantiene también en el perfil para que todos
       // los roles puedan regresar al home o consultar las demás secciones.
       bottomNavigationBar: AppBottomNavigationBar(
@@ -118,6 +127,8 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+      },
     );
   }
 
