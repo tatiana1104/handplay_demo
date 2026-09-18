@@ -44,14 +44,15 @@ class TournamentDetailScreen extends StatelessWidget {
     final roles = authState is AuthAuthenticated
         ? authState.user.roles.map(_normalizeRole).toSet()
         : const <String>{};
-    // Un usuario puede tener varios roles: basta uno administrativo o de árbitro
-    // para ocultar la inscripción del equipo.
-    final canRegisterTeam = !roles.any(
-      (role) => role == 'admin' ||
-          role == 'admin_liga' ||
-          role == 'administrador' ||
-          role == 'arbitro',
+    // Jugador o entrenador tienen prioridad y pueden inscribir equipo,
+    // aunque también tengan el rol de árbitro.
+    final hasPlayerOrCoachRole = roles.any(
+      (role) => role == 'jugador' || role == 'player' || role == 'entrenador' || role == 'coach',
     );
+    final hasBlockedRole = roles.any(
+      (role) => role == 'admin' || role == 'admin_liga' || role == 'administrador' || role == 'arbitro',
+    );
+    final canRegisterTeam = hasPlayerOrCoachRole || !hasBlockedRole;
 
     return Scaffold(
       appBar: AppBar(title: Text(tournament.name.isEmpty ? 'Detalle del torneo' : tournament.name)),
