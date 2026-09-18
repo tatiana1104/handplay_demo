@@ -38,7 +38,7 @@ class TournamentDetailScreen extends StatelessWidget {
           Text(tournament.name, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            _InfoBadge(label: statusLabel, color: isPlaying ? Colors.green : isFinished ? colors.onSurfaceVariant : Colors.amber),
+            _InfoBadge(label: statusLabel, color: _statusColor(status)),
             _InfoBadge(label: _formatLabel(tournament.format), color: colors.primary),
           ]),
           const SizedBox(height: 16),
@@ -529,7 +529,7 @@ String _statusLabel(String? status) {
 
 Color _statusColor(String? status) {
   final label = _statusLabel(status);
-  return label == 'Jugando' ? Colors.orange.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.green.shade700;
+  return label == 'Jugando' ? Colors.green.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.amber.shade700;
 }
 
 Color _teamColorFromValue(dynamic value, Color fallback) {
