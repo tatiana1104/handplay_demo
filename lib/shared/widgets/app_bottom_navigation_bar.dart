@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // Importamos la librería `go_router` para poder navegar entre pantallas usando rutas definidas en `RouteNames`
+import 'package:go_router/go_router.dart';
+
+import '../../features/referees/presentation/screens/referees_screen.dart'; // Importamos la librería `go_router` para poder navegar entre pantallas usando rutas definidas en `RouteNames`
 
 import '../../core/routing/route_names.dart'; // Importamos los nombres de ruta de la app, como `RouteNames.home`, para poder navegar a la pantalla de inicio desde la barra de navegación inferior
 
 class AppBottomNavigationBar extends StatelessWidget {
   final int selectedIndex; // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
   final bool isAuthenticated; // Cambia las acciones disponibles para visitantes.
+  final bool isAdmin;
   final ValueChanged<int>? onTap; // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
 
   /// Constructor de la barra de navegación inferior, con parámetros opcionales `selectedIndex` y `onTap`.
@@ -13,6 +16,7 @@ class AppBottomNavigationBar extends StatelessWidget {
     super.key, 
     this.selectedIndex = 0, // Índice del elemento seleccionado en la barra de navegación inferior (0 = Home, 1 = Calendario, 2 = Perfil)
     this.isAuthenticated = true,
+    this.isAdmin = false,
     this.onTap, // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
   });
 
@@ -49,6 +53,13 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(isAuthenticated ? RouteNames.home : RouteNames.login);
                 break;
               case 2:
+                if (isAdmin) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
+                } else {
+                  context.go(RouteNames.profile);
+                }
+                break;
+              case 3:
                 context.go(RouteNames.profile);
                 break;
             }
@@ -72,6 +83,11 @@ class AppBottomNavigationBar extends StatelessWidget {
                     icon: Icon(Icons.calendar_month_rounded),
                     label: 'Calendario',
                   ),
+                  if (isAdmin)
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.sports_handball_outlined),
+                      label: 'Árbitros',
+                    ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person_rounded),
                     label: 'Perfil',

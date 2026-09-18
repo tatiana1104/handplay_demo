@@ -110,7 +110,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 ### ✅ Sprint 2 — Torneos y equipos (completado)
 
 ### 🟨 Sprint 3 — Calendario y árbitros (en progreso)
-- [x] Banner de administrador con acceso al listado de árbitros.
+- [x] Barra de navegación inferior del administrador con acceso al listado de árbitros; los demás roles conservan Home, Calendario y Perfil.
 - [x] Listado inicial de árbitros registrados.
 - [ ] Generación de calendario.
 - [ ] Asignación de árbitros.

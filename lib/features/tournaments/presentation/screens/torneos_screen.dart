@@ -25,7 +25,11 @@ class TorneosScreen extends StatelessWidget {
     final authState = context.watch<AuthBloc>().state;
     final user = authState is AuthAuthenticated ? authState.user : null;
 
-    return Scaffold(
+    return FutureBuilder<IdTokenResult?>(
+      future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
+      builder: (context, roleSnapshot) {
+        final isAdmin = _hasAdminRole(roleSnapshot.data?.claims);
+        return Scaffold(
       appBar: AppBar(
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,6 +43,7 @@ class TorneosScreen extends StatelessWidget {
       bottomNavigationBar: AppBottomNavigationBar(
         selectedIndex: 0,
         isAuthenticated: user != null,
+        isAdmin: isAdmin,
       ),
       body: FutureBuilder<IdTokenResult?>(
         future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
@@ -186,9 +191,11 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
           FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar')),
         ],
       ),
+        );
+      },
     );
-    if (confirmed == true) await TournamentRepository().deleteTournament(tournament.id);
   }
+}
 
   bool _matchesFilter(Tournament tournament, _TournamentFilter filter) {
     switch (filter) {
