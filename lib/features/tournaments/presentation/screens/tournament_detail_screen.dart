@@ -269,21 +269,74 @@ class _MatchesSection extends StatelessWidget {
           const _SectionTitle(title: 'Partidos'),
           const SizedBox(height: 8),
           ...grouped.entries.map((entry) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4), child: Text(entry.key, style: Theme.of(context).textTheme.labelMedium)),
-                ...entry.value.map((match) => Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        dense: true,
-                        title: Text('${match['homeTeam'] ?? match['local'] ?? 'Equipo local'}   ${match['homeScore'] ?? '-'} — ${match['awayScore'] ?? '-'}   ${match['awayTeam'] ?? match['visitante'] ?? 'Equipo visitante'}'),
-                        subtitle: Text(match['status']?.toString() ?? 'Programado'),
-                      ),
-                    )),
+                Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4), child: Text(_matchDateLabel(entry.key), style: Theme.of(context).textTheme.labelMedium)),
+                ...entry.value.map((match) {
+                  final home = match['homeTeam'] ?? match['local'] ?? 'Equipo local';
+                  final away = match['awayTeam'] ?? match['visitante'] ?? 'Equipo visitante';
+                  final time = match['time']?.toString() ?? _matchTimeLabel(match['date']);
+                  final status = match['status']?.toString() ?? 'scheduled';
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          Expanded(child: _TeamMatchLabel(name: away, color: Colors.deepOrange)),
+                          Text(time, style: Theme.of(context).textTheme.bodySmall),
+                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: home, color: Colors.green))),
+                        ]),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(color: status == 'scheduled' ? Colors.green.shade700 : Colors.black26, borderRadius: BorderRadius.circular(5)),
+                          child: Text(status == 'scheduled' ? 'Cargar resultado' : 'Finalizado', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                        ),
+                      ]),
+                    ),
+                  );
+                }),
               ])),
         ]);
       },
     );
   }
 }
+
+class _TeamMatchLabel extends StatelessWidget {
+  const _TeamMatchLabel({required this.name, required this.color});
+  final String name;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 4),
+          Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+        ],
+      );
+}
+
+String _matchDateLabel(String value) {
+  final parsed = DateTime.tryParse(value);
+  if (parsed == null) return value;
+  return 'Fecha ${parsed.day} de ${_monthName(parsed.month)}';
+}
+
+String _matchTimeLabel(dynamic value) {
+  if (value is Timestamp) {
+    final date = value.toDate();
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+  return 'Hora por definir';
+}
+
+String _monthName(int month) => const [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    ][month - 1];
 
 class _StatCard extends StatelessWidget {
   const _StatCard({required this.label, required this.value, this.onTap});
