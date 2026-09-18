@@ -148,6 +148,47 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     await _saveLevel();
   }
 
+  Future<void> _removeRefereeRole() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar rol de árbitro'),
+        content: const Text('Se eliminarán únicamente los datos y el rol de árbitro. Sus roles de jugador o entrenador no se modificarán.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final userRef = FirebaseFirestore.instance.collection('users').doc(widget.refereeId);
+      final snapshot = await userRef.get();
+      final data = snapshot.data() ?? {};
+      final roles = (data['roles'] as List?)?.map((role) => role.toString().trim().toLowerCase()).toSet() ?? <String>{};
+      roles.removeAll({'arbitro', 'referee'});
+      final primaryRole = data['rol']?.toString().trim().toLowerCase();
+      final nextPrimaryRole = primaryRole == 'arbitro' || primaryRole == 'referee'
+          ? (roles.contains('jugador') ? 'jugador' : roles.contains('entrenador') ? 'entrenador' : roles.firstOrNull)
+          : primaryRole;
+      await userRef.update({
+        'roles': roles.toList(),
+        'rol': nextPrimaryRole ?? FieldValue.delete(),
+        'accreditation': FieldValue.delete(),
+        'refereeId': FieldValue.delete(),
+        'refereeProfile': FieldValue.delete(),
+        'nivel': FieldValue.delete(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rol de árbitro eliminado sin afectar los demás roles.')));
+        context.pop();
+      }
+    } on FirebaseException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo eliminar: ${error.code}')));
+    }
+  }
+
   Future<void> _saveLevel() async {
     setState(() => _saving = true);
     try {
@@ -178,7 +219,17 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     final authState = context.watch<AuthBloc>().state;
     final isAdmin = authState is AuthAuthenticated && authState.user.roles.any((role) => role == 'admin' || role == 'admin_liga');
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil del árbitro')),
+      appBar: AppBar(
+        title: const Text('Perfil del árbitro'),
+        actions: [
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Eliminar rol de árbitro',
+              onPressed: _saving ? null : _removeRefereeRole,
+              icon: const Icon(Icons.delete_outline),
+            ),
+        ],
+      ),
       bottomNavigationBar: AppBottomNavigationBar(
         selectedIndex: 2,
         isAuthenticated: authState is AuthAuthenticated,
