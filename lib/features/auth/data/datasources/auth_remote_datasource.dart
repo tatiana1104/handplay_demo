@@ -150,21 +150,31 @@ class AuthRemoteDataSource {
     final email = user.email?.trim().toLowerCase();
     Map<String, dynamic>? pendingData;
     DocumentReference<Map<String, dynamic>>? pendingRef;
+    final document = data?['document']?.toString().trim().isNotEmpty == true
+        ? data!['document'].toString().trim()
+        : data?['documentNumber']?.toString().trim();
+    final queries = <Query<Map<String, dynamic>>>[];
     if (email != null && email.isNotEmpty) {
-      final snapshots = await Future.wait([
-        users.where('email', isEqualTo: email).limit(5).get(),
-        users.where('correo', isEqualTo: email).limit(5).get(),
-      ]);
+      queries.add(users.where('email', isEqualTo: email).limit(5));
+      queries.add(users.where('correo', isEqualTo: email).limit(5));
+    }
+    if (document != null && document.isNotEmpty) {
+      queries.add(users.where('document', isEqualTo: document).limit(5));
+      queries.add(users.where('documentNumber', isEqualTo: document).limit(5));
+    }
+    if (queries.isNotEmpty) {
+      final snapshots = await Future.wait(queries.map((query) => query.get()));
       final candidates = {
         for (final snapshot in snapshots)
           for (final candidate in snapshot.docs)
             if (candidate.id != user.uid) candidate.id: candidate,
       }.values;
       for (final candidate in candidates) {
-        if (candidate.id == user.uid) continue;
         final candidateData = candidate.data();
         final candidateRoles = _rolesFromProfile(candidateData);
-        if (candidateRoles.intersection({'arbitro', 'árbitro', 'referee', 'entrenador', 'coach', 'jugador', 'player'}).isNotEmpty) {
+        final hasRoleProfile = candidateRoles.intersection({'arbitro', 'árbitro', 'referee', 'entrenador', 'coach'}).isNotEmpty;
+        final hasRefereeData = candidateData['accreditation'] != null || candidateData['category'] != null;
+        if (hasRoleProfile || hasRefereeData) {
           pendingRef = candidate.reference;
           pendingData = candidateData;
           break;
