@@ -110,10 +110,30 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     }
   }
 
-  Future<void> _advanceLevel() async {
+  Future<void> _selectNextLevel() async {
     final nextLevel = _nextLevel;
     if (nextLevel == null) return;
-    setState(() => _level = nextLevel);
+    final selectedLevel = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Agregar acreditación'),
+        content: DropdownButtonFormField<String>(
+          value: nextLevel,
+          decoration: const InputDecoration(
+            labelText: 'Nivel disponible',
+            border: OutlineInputBorder(),
+          ),
+          items: [DropdownMenuItem(value: nextLevel, child: Text(_label(nextLevel)))],
+          onChanged: (value) => Navigator.of(dialogContext).pop(value),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(nextLevel), child: const Text('Continuar')),
+        ],
+      ),
+    );
+    if (selectedLevel == null || !mounted) return;
+    setState(() => _level = selectedLevel);
     await _saveLevel();
   }
 
@@ -162,7 +182,7 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
               if (_nextLevel != null)
                 IconButton(
                   tooltip: 'Habilitar ${_label(_nextLevel!)}',
-                  onPressed: _saving ? null : _advanceLevel,
+                  onPressed: _saving ? null : _selectNextLevel,
                   icon: const Icon(Icons.add_circle_outline),
                 ),
             ],
@@ -171,7 +191,7 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
             margin: EdgeInsets.zero,
             child: ListTile(
               dense: true,
-              title: Text('Curso Liga Caquetá 2024'),
+              title: Text('Acreditación ${_label(_level)}'),
               trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
             ),
           ),
