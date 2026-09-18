@@ -151,13 +151,13 @@ class AuthRemoteDataSource {
             if (candidate.id != user.uid) candidate.id: candidate,
       }.values;
       for (final candidate in candidates) {
-        if (candidate.id != user.uid && candidate.data()['roles'] is List) {
-          final roles = (candidate.data()['roles'] as List).map((value) => value.toString().toLowerCase()).toList();
-          if (roles.contains('arbitro') || roles.contains('entrenador') || roles.contains('jugador') || roles.contains('player')) {
-            pendingRef = candidate.reference;
-            pendingData = candidate.data();
-            break;
-          }
+        if (candidate.id == user.uid) continue;
+        final candidateData = candidate.data();
+        final candidateRoles = _rolesFromProfile(candidateData);
+        if (candidateRoles.intersection({'arbitro', 'árbitro', 'referee', 'entrenador', 'coach', 'jugador', 'player'}).isNotEmpty) {
+          pendingRef = candidate.reference;
+          pendingData = candidateData;
+          break;
         }
       }
     }
@@ -187,6 +187,10 @@ class AuthRemoteDataSource {
       if (mergedData['category'] != null) 'category': mergedData['category'],
       if (mergedData['experience'] != null) 'experience': mergedData['experience'],
       if (mergedData['phone'] != null) 'phone': mergedData['phone'],
+      if (mergedData['documentNumber'] != null) 'documentNumber': mergedData['documentNumber'],
+      if (mergedData['shirtNumber'] != null) 'shirtNumber': mergedData['shirtNumber'],
+      if (mergedData['position'] != null) 'position': mergedData['position'],
+      if (mergedData['teamName'] != null) 'teamName': mergedData['teamName'],
       if (mergedData['nivel'] != null) 'nivel': mergedData['nivel'],
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
