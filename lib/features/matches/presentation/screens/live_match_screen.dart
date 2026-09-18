@@ -137,6 +137,23 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  Future<void> _resetToSecondPeriod() async {
+    if (!_isTimekeeper) return;
+    _timer?.cancel();
+    await _saveMatch({
+      'period': 2,
+      'elapsedSeconds': 0,
+      'status': 'paused',
+      'finishedAt': null,
+      'periodStartedAt': FieldValue.serverTimestamp(),
+    });
+    if (!mounted) return;
+    setState(() {
+      _elapsedSeconds = 0;
+      _isPaused = true;
+    });
+  }
+
   Future<void> _finishMatch() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     _timer?.cancel();
@@ -231,7 +248,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _match['status'] == 'finished' ? null : _finishMatch,
+                          onPressed: _resetToSecondPeriod,
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.red.withValues(alpha: 0.14),
                             foregroundColor: Colors.red.shade300,
@@ -241,7 +258,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           icon: Icon(Icons.stop_circle_outlined, color: Colors.red.shade400),
-                          label: const Text('Restablecer'),
+                          label: const Text('Período 2'),
                         ),
                       ),
                     ],
