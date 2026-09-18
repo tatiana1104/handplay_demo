@@ -219,6 +219,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _team = TextEditingController();
   final _club = TextEditingController();
+  final _clubs = <String>[];
   final _coach = TextEditingController();
   final _coachDocument = TextEditingController();
   final _phone = TextEditingController();
@@ -316,7 +317,19 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     setState(() => _players.add(result));
   }
 
+  void _addClub() {
+    final club = _club.text.trim();
+    if (club.isEmpty || _clubs.any((item) => item.toLowerCase() == club.toLowerCase())) return;
+    setState(() {
+      _clubs.add(club);
+      _club.clear();
+    });
+  }
+
+  void _removeClub(String club) => setState(() => _clubs.remove(club));
+
   Future<void> _submit() async {
+    _addClub();
     final deadline = widget.tournament.registrationDeadline;
     if (deadline != null && DateTime.now().isAfter(deadline)) {
       _show('El periodo de inscripción terminó. Las solicitudes ya enviadas sí pueden modificarse.');
@@ -382,7 +395,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'tournamentId': widget.tournament.id,
         'registrationId': registration.id,
         'teamName': _team.text.trim(),
-        'clubName': _club.text.trim(),
+        'clubName': _clubs.join(', '),
+      'clubs': List<String>.from(_clubs),
         'coachName': existingCoach?['nombre'] ?? existingCoach?['name'] ?? _coach.text.trim(),
         'coachDocument': existingCoach?['document'] ?? existingCoach?['documentNumber'] ?? coachDocument,
         'coachPhone': existingCoach?['phone'] ?? _phone.text.trim(),
@@ -583,7 +597,24 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
               title: 'Datos del equipo',
               children: [
                 _field(_team, 'Nombre del equipo *', 'Halcones FC'),
-                _field(_club, 'Clubes asociados', 'Escribe varios separados por coma', required: false, maxLines: 2),
+                Text('Clubes asociados', style: theme.textTheme.labelLarge),
+                const SizedBox(height: 8),
+                if (_clubs.isNotEmpty)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _clubs.map((club) => InputChip(label: Text(club), onDeleted: () => _removeClub(club))).toList(),
+                  ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _club,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _addClub(),
+                  decoration: InputDecoration(
+                    hintText: 'Selecciona o escribe un club',
+                    suffixIcon: IconButton(onPressed: _addClub, icon: const Icon(Icons.add_circle_outline), tooltip: 'Agregar club'),
+                  ),
+                ),
               ],
             ),
             _sectionCard(
