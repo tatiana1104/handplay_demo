@@ -49,10 +49,17 @@ class ProfileScreen extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
-        final documentNumber = profile['documentNumber']?.toString() ?? 'No registrado';
-        final roles = (profile['roles'] as List?)?.whereType<String>().toSet().toList() ?? user.roles;
+        final documentNumber = profile['document']?.toString() ?? profile['documentNumber']?.toString() ?? 'No registrado';
+        final roles = (profile['roles'] as List?)
+                ?.map((value) => value.toString().trim().toLowerCase())
+                .where((value) => value.isNotEmpty)
+                .toSet()
+                .toList() ??
+            user.roles;
         final hasRole = (String role) => roles.any((item) => item.trim().toLowerCase() == role);
         final normalizedRoles = roles.map((item) => item.trim().toLowerCase()).toSet();
+        final currentDisplayName = profile['displayName']?.toString() ?? displayName;
+        final currentEmail = profile['email']?.toString() ?? email;
         final role = normalizedRoles.contains('jugador') || normalizedRoles.contains('player')
             ? 'jugador'
             : normalizedRoles.contains('entrenador') || normalizedRoles.contains('coach')
@@ -108,19 +115,19 @@ class ProfileScreen extends StatelessWidget {
             radius: 42,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             child: Text(
-              displayName.isEmpty ? '?' : displayName[0].toUpperCase(),
+              currentDisplayName.isEmpty ? '?' : currentDisplayName[0].toUpperCase(),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            displayName,
+            currentDisplayName,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            email,
+            currentEmail,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -129,11 +136,11 @@ class ProfileScreen extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('Nombre de la cuenta'),
-              subtitle: Text(displayName),
+              subtitle: Text(currentDisplayName),
             ),
           ),
           Card(child: ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Número de documento'), subtitle: Text(documentNumber))),
-          Card(child: ListTile(leading: const Icon(Icons.email_outlined), title: const Text('Correo electrónico'), subtitle: Text(email))),
+          Card(child: ListTile(leading: const Icon(Icons.email_outlined), title: const Text('Correo electrónico'), subtitle: Text(currentEmail))),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.go(RouteNames.recoverPassword),
