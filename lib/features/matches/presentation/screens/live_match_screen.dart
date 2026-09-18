@@ -113,9 +113,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         ),
         const SizedBox(height: 18),
         _section('Planilla digital', [
-          _playerRow('#7', 'Jugador local', 0),
-          _playerRow('#11', 'Jugador local', 0),
-          _playerRow('#9', 'Jugador visitante', 0),
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _registrationStream,
+            builder: (context, snapshot) {
+              final registrations = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? const <Map<String, dynamic>>[];
+              final home = _teamRoster(registrations, 'homeTeam', 'homeTeamId');
+              final away = _teamRoster(registrations, 'awayTeam', 'awayTeamId');
+              return Column(children: [
+                _teamRosterButton(_teamName('homeTeamName', 'homeTeam'), home),
+                const SizedBox(height: 8),
+                _teamRosterButton(_teamName('awayTeamName', 'awayTeam'), away),
+              ]);
+            },
+          ),
         ]),
         const SizedBox(height: 18),
         Text('Cronología', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
@@ -138,6 +148,33 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final seconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
     return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
   }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>>? get _registrationStream {
+    final tournamentId = _match['tournamentId']?.toString();
+    if (tournamentId == null || tournamentId.isEmpty) return null;
+    return FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
+  }
+
+  List<dynamic> _teamRoster(List<Map<String, dynamic>> registrations, String teamKey, String idKey) {
+    final id = _match[idKey]?.toString() ?? _match[teamKey]?.toString();
+    final registration = registrations.firstWhere((item) => item['id']?.toString() == id || item['teamId']?.toString() == id || item['teamName']?.toString() == _match['${teamKey}Name']?.toString(), orElse: () => <String, dynamic>{});
+    return registration['players'] is List ? List<dynamic>.from(registration['players'] as List) : const [];
+  }
+
+  String _teamName(String nameKey, String idKey) => _match[nameKey]?.toString() ?? _match[idKey]?.toString() ?? 'Equipo';
+
+  Widget _teamRosterButton(String teamName, List<dynamic> players) => ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+        title: Text(teamName, style: const TextStyle(fontWeight: FontWeight.w700)),
+        children: players.isEmpty
+            ? [const ListTile(title: Text('No hay jugadores inscritos'))]
+            : players.map((player) {
+                final data = player is Map ? player : <String, dynamic>{'name': player};
+                final number = data['number']?.toString() ?? '--';
+                final name = data['name']?.toString() ?? data['fullName']?.toString() ?? 'Jugador';
+                return _playerRow('#$number', name, 0);
+              }).toList(),
+      );
 
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
   Widget _official(String role, dynamic name) => ListTile(dense: true, title: Text(role), trailing: Text(name?.toString() ?? 'Sin asignar'));
