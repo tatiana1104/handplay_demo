@@ -24,12 +24,18 @@ class AppBottomNavigationBar extends StatelessWidget {
     this.onTap, // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
   });
 
+  int _safeSelectedIndex(int index, bool authenticated, bool admin) {
+    final itemCount = authenticated ? (admin ? 4 : 3) : 3;
+    return index >= 0 && index < itemCount ? index : 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final authUser = authState is AuthAuthenticated ? authState.user : null;
-    final effectiveAdmin = isAdmin || authUser?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true;
+    final hasAuthenticatedSession = authUser != null && isAuthenticated && !authUser.roles.any((role) => role == 'publico' || role == 'public');
+    final effectiveAdmin = hasAuthenticatedSession && (isAdmin || authUser.roles.any((role) => role == 'admin' || role == 'admin_liga'));
 
     return Container(
       decoration: BoxDecoration(
@@ -43,7 +49,7 @@ class AppBottomNavigationBar extends StatelessWidget {
       ),
       child: SafeArea(
         child: BottomNavigationBar(
-          currentIndex: selectedIndex, // Índice del elemento seleccionado en la barra de navegación inferior
+          currentIndex: _safeSelectedIndex(selectedIndex, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
           onTap: (index) { // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior
             if (onTap != null) { 
               onTap!(index);  // Si se proporcionó un callback `onTap`, lo llamamos con el índice del elemento tocado y salimos de la función para no ejecutar la navegación por defecto.
@@ -61,7 +67,7 @@ class AppBottomNavigationBar extends StatelessWidget {
                 if (effectiveAdmin) {
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
                 } else {
-                  context.go(isAuthenticated ? RouteNames.profile : RouteNames.login);
+                  context.go(hasAuthenticatedSession ? RouteNames.profile : RouteNames.login);
                 }
                 break;
               case 3:
@@ -78,7 +84,7 @@ class AppBottomNavigationBar extends StatelessWidget {
           elevation: 0, // Elevación de la barra de navegación inferior (0 = sin sombra)
           // La navegación pública no expone Perfil; después del login se
           // reemplaza el acceso de sesión por Perfil.
-          items: isAuthenticated
+          items: hasAuthenticatedSession
               ? [
                   const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
                   const BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Calendario'),
