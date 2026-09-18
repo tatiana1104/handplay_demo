@@ -204,7 +204,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
       });
       if (mounted) Navigator.of(context).pop();
     } on FirebaseException catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar: ${error.code}')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el partido: ${error.code}. Verifica que las reglas Firestore estén publicadas.')));
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
