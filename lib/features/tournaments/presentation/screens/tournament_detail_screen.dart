@@ -263,10 +263,16 @@ class _MatchesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots();
+    final teamsStream = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots();
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: stream,
-      builder: (context, snapshot) {
+      builder: (context, snapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: teamsStream,
+        builder: (context, teamsSnapshot) {
         final matches = snapshot.data?.docs ?? const [];
+        final teamsById = <String, Map<String, dynamic>>{
+          for (final doc in teamsSnapshot.data?.docs ?? const []) doc.id: doc.data(),
+        };
         if (matches.isEmpty) {
           return const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _SectionTitle(title: 'Partidos'),
@@ -277,7 +283,15 @@ class _MatchesSection extends StatelessWidget {
         final grouped = <String, List<Map<String, dynamic>>>{};
         for (final doc in matches) {
           final data = doc.data();
-          final date = data['date']?.toString() ?? data['fecha']?.toString() ?? 'Fecha por definir';
+          final date = _matchDateKey(data['date'] ?? data['fecha']);
+          final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
+          final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
+          final homeRegistration = teamsById[homeId];
+          final awayRegistration = teamsById[awayId];
+          data['homeTeamName'] = _registrationTeamName(homeRegistration, data['homeTeamName'] ?? homeId ?? 'Equipo local');
+          data['awayTeamName'] = _registrationTeamName(awayRegistration, data['awayTeamName'] ?? awayId ?? 'Equipo visitante');
+          data['homeTeamColor'] = homeRegistration?['uniformColor'] ?? data['homeTeamColor'];
+          data['awayTeamColor'] = awayRegistration?['uniformColor'] ?? data['awayTeamColor'];
           grouped.putIfAbsent(date, () => []).add(data);
         }
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -315,7 +329,8 @@ class _MatchesSection extends StatelessWidget {
                 }),
               ])),
         ]);
-      },
+        },
+      ),
     );
   }
 }
@@ -352,19 +367,29 @@ Color _teamColorFromValue(dynamic value, Color fallback) {
   return fallback;
 }
 
+String _registrationTeamName(Map<String, dynamic>? registration, dynamic fallback) {
+  if (registration == null) return fallback.toString();
+  return registration['teamName']?.toString() ?? registration['clubName']?.toString() ?? registration['name']?.toString() ?? fallback.toString();
+}
+
+String _matchDateKey(dynamic value) {
+  if (value is Timestamp) return value.toDate().toIso8601String();
+  return value?.toString() ?? 'Fecha por definir';
+}
+
 String _matchDateLabel(String value) {
   final parsed = DateTime.tryParse(value);
   if (parsed == null) return value;
-  return 'Fecha ${parsed.day} de ${_monthName(parsed.month)}';
+  return '${_weekdayName(parsed.weekday)} ${parsed.day} de ${_monthName(parsed.month)}';
 }
 
 String _matchTimeLabel(dynamic value) {
-  if (value is Timestamp) {
-    final date = value.toDate();
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
+  final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
+  if (date != null) return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   return 'Hora por definir';
 }
+
+String _weekdayName(int weekday) => const ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][weekday];
 
 String _monthName(int month) => const [
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
