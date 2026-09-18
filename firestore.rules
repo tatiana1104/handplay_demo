@@ -54,6 +54,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Los perfiles de árbitros pueden consultarse para completar inscripciones.
+    match /referees/{refereeId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
     // Directorio de perfiles para reutilizar datos en inscripciones.
     match /profile_directory/{profileId} {
       allow read: if true;
