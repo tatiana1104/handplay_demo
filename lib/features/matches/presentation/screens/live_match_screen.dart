@@ -177,7 +177,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                 ),
                 if (_isTimekeeper) ...[
                   const SizedBox(height: 8),
-                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cronómetro')),
+                  FilledButton.icon(onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer), icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause), label: Text(_isPaused ? 'Iniciar / reanudar' : 'Pausar cron��metro')),
                   const SizedBox(height: 8),
                   Wrap(spacing: 8, children: [1, 2, 3, 4].map((period) => ChoiceChip(label: Text('Período $period'), selected: (_match['period'] ?? 1) == period, onSelected: (_) => _changePeriod(period))).toList()),
                 ],
@@ -186,6 +186,25 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             ),
           ),
         ],
+        const SizedBox(height: 18),
+        if (_isReferee) _section('Planilla digital', [
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: _registrationStream,
+            builder: (context, snapshot) {
+              final registrations = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? const <Map<String, dynamic>>[];
+              final home = _teamRoster(registrations, 'homeTeam', 'homeTeamId');
+              final away = _teamRoster(registrations, 'awayTeam', 'awayTeamId');
+              return Column(children: [
+                _teamRosterButton(_teamName('homeTeamName', 'homeTeam'), home),
+                const SizedBox(height: 8),
+                _teamRosterButton(_teamName('awayTeamName', 'awayTeam'), away),
+              ]);
+            },
+          ),
+        ]),
+        const SizedBox(height: 18),
+        Text('Cronología', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        ...events.map((event) => ListTile(dense: true, leading: Text('${event['minute'] ?? "--"}\''), title: Text(event['description']?.toString() ?? 'Evento'))),
         const SizedBox(height: 18),
         Card(
           margin: EdgeInsets.zero,
@@ -210,25 +229,6 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             ),
           ]),
         ),
-        const SizedBox(height: 18),
-        if (_isReferee) _section('Planilla digital', [
-          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: _registrationStream,
-            builder: (context, snapshot) {
-              final registrations = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? const <Map<String, dynamic>>[];
-              final home = _teamRoster(registrations, 'homeTeam', 'homeTeamId');
-              final away = _teamRoster(registrations, 'awayTeam', 'awayTeamId');
-              return Column(children: [
-                _teamRosterButton(_teamName('homeTeamName', 'homeTeam'), home),
-                const SizedBox(height: 8),
-                _teamRosterButton(_teamName('awayTeamName', 'awayTeam'), away),
-              ]);
-            },
-          ),
-        ]),
-        const SizedBox(height: 18),
-        Text('Cronología', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-        ...events.map((event) => ListTile(dense: true, leading: Text('${event['minute'] ?? "--"}\''), title: Text(event['description']?.toString() ?? 'Evento'))),
       ]),
     );
   }
