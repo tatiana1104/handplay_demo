@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../widgets/match_status_label.dart';
 
 class LiveMatchScreen extends StatefulWidget {
   const LiveMatchScreen({super.key, required this.matchId, required this.match});
@@ -65,8 +64,6 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           _official('Mesa - Cronometrista', _match['timekeeperName'] ?? _match['timekeeper']),
           _official('Mesa - Anotador', _match['scorerName'] ?? _match['scorer']),
         ]),
-        const SizedBox(height: 14),
-        MatchStatusLabel(status: _match['status']?.toString()),
         const SizedBox(height: 18),
         _section('Planilla digital', [
           _playerRow('#7', 'Jugador local', 0),
