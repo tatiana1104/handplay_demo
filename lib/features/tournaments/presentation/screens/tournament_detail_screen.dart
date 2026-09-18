@@ -40,13 +40,11 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 18),
           const _SectionTitle(title: 'Tabla de posiciones', action: 'Ver completa'),
           const SizedBox(height: 8),
-          const _StandingRow(position: '1', team: 'Equipos registrados', points: '--'),
-          const _StandingRow(position: '2', team: 'La tabla se actualizará', points: '--'),
+          const _StandingRow(position: '1', team: 'La tabla se actualizará', points: '--'),
           const SizedBox(height: 18),
           const _SectionTitle(title: 'Destacados'),
           const SizedBox(height: 8),
-          const _HighlightCard(icon: Icons.emoji_events_outlined, title: 'Máximo goleador', subtitle: 'Los resultados aparecerán aquí', value: '-- goles'),
-          const _HighlightCard(icon: Icons.shield_outlined, title: 'Valla menos vencida', subtitle: 'Se calcula al iniciar los partidos', value: '-- goles'),
+          _Highlights(tournament: tournament),
           const SizedBox(height: 18),
           const _SectionTitle(title: 'Información del torneo'),
           const SizedBox(height: 8),
@@ -248,6 +246,47 @@ class _StandingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(child: ListTile(dense: true, leading: Text(position), title: Text(team), trailing: Text(points, style: const TextStyle(fontWeight: FontWeight.bold))));
+}
+
+class _Highlights extends StatelessWidget {
+  const _Highlights({required this.tournament});
+
+  final Tournament tournament;
+
+  bool get _isMixed => tournament.categories.any((category) => category.toLowerCase().contains('mixto'));
+
+  @override
+  Widget build(BuildContext context) => Column(
+        children: [
+          if (_isMixed)
+            const _HighlightCard(
+              icon: Icons.emoji_events_outlined,
+              title: 'Máximo goleador masculino',
+              subtitle: 'Tabla de goleadores masculino',
+              value: '-- goles',
+            )
+          else
+            const _HighlightCard(
+              icon: Icons.emoji_events_outlined,
+              title: 'Máximo goleador',
+              subtitle: 'Los resultados aparecerán aquí',
+              value: '-- goles',
+            ),
+          if (_isMixed)
+            const _HighlightCard(
+              icon: Icons.emoji_events_outlined,
+              title: 'Máxima goleadora femenina',
+              subtitle: 'Tabla de goleadoras femenino',
+              value: '-- goles',
+            ),
+          const _HighlightCard(
+            icon: Icons.shield_outlined,
+            title: 'Valla menos vencida',
+            subtitle: 'Tabla de porteros, sin importar el género',
+            value: '-- goles',
+          ),
+        ],
+      );
 }
 
 class _HighlightCard extends StatelessWidget {
