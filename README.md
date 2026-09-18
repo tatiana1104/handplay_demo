@@ -165,7 +165,7 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Los estados de partido están normalizados como `Por iniciar`, `Jugando` y `Finalizado` en jornadas y calendario global.
 - [x] Se evita guardar un partido cuando un árbitro de campo pertenece a la plantilla del equipo local o visitante; se muestra una alerta visual con el nombre del árbitro y el equipo en conflicto.
 - [x] Las reglas Firestore permiten al administrador del torneo gestionar la subcolección anidada `tournaments/{id}/matches` y leer partidos/inscripciones para el calendario global.
-- [ ] Generación automática de calendario.
+- [ ] Generación automática de calendario (planificada para Sprint 6: automatizaciones).
 - [x] Asignación manual de árbitros.
 - [x] Asignación manual de mesa.
 - [x] Validación de conflictos de interés entre árbitros de campo y equipos participantes.
@@ -189,6 +189,9 @@ firebase deploy --only "firestore:rules" --project handplaydemo
 La creación manual de partidos, calendario global, presentación de equipos/colores, estados y validación de conflictos ya está implementada. Pendiente: generación automática de jornadas.
 
 ### ⬜ Sprint 4 — Partido en vivo
+
+### ⬜ Sprint 6 — Automatizaciones
+Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos.
 ### ⬜ Sprint 5 — Estadísticas
 ### ⬜ Sprint 6 — Gemini y notificaciones
 ### ⬜ Sprint 7 — Pruebas y publicación
