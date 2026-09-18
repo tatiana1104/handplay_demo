@@ -215,6 +215,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: corrección de sintaxis en `profile_screen.dart` al añadir la coma del `AppBar`.
   - `HEAD`: calendario y partidos públicos, árbitros visibles según permiso y botón de árbitros exclusivo para administradores.
   - `HEAD`: resolución de nombres de equipos en el calendario y detalle usando inscripciones aprobadas y los identificadores `id`, `registrationId`, `teamId`, `teamUid` o `uid`; regreso a Home desde el banner constante.
+  - `HEAD`: navegación consistente del banner para visitantes, usuarios y administradores; Perfil vuelve a funcionar para roles no administradores; el formulario de perfil persiste correo, documento y datos específicos del rol.
 
 
 ### 🟨 Sprint 4 — Partido en vivo (en progreso)

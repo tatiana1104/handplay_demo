@@ -61,12 +61,12 @@ class AppBottomNavigationBar extends StatelessWidget {
               case 2:
                 if (effectiveAdmin) {
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen()));
-                } else if (!isAuthenticated) {
-                  context.go(RouteNames.login);
+                } else {
+                  context.go(isAuthenticated ? RouteNames.profile : RouteNames.login);
                 }
                 break;
               case 3:
-                context.go(RouteNames.profile);
+                if (effectiveAdmin) context.go(RouteNames.profile);
                 break;
             }
           },

@@ -41,8 +41,10 @@ class ProfileScreen extends StatelessWidget {
       ? 'Usuario'
       : user.roles.map(_roleLabel).join(', ');
 
+    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
         final role = user?.roles.contains('jugador') == true ? 'jugador' : (user?.roles.isNotEmpty == true ? user!.roles.first : 'jugador');

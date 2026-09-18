@@ -31,6 +31,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     if (uid == null) return;
     setState(() => _saving = true);
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'email': FirebaseAuth.instance.currentUser?.email,
       'documentNumber': _documentController.text.trim(),
       if (widget.role == 'jugador') ...{
         'shirtNumber': int.parse(_shirtController.text.trim()),
