@@ -19,11 +19,20 @@ class MatchStatusLabel extends StatelessWidget {
             ? Colors.blueGrey
             : Colors.green.shade700;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11)),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
