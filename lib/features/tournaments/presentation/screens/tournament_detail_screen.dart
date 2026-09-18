@@ -18,6 +18,15 @@ import 'team_registration_screen.dart';
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
+String _normalizeRole(String role) => role
+    .trim()
+    .toLowerCase()
+    .replaceAll('á', 'a')
+    .replaceAll('é', 'e')
+    .replaceAll('í', 'i')
+    .replaceAll('ó', 'o')
+    .replaceAll('ú', 'u');
+
 class TournamentDetailScreen extends StatelessWidget {
   const TournamentDetailScreen({required this.tournament, super.key});
 
@@ -32,8 +41,17 @@ class TournamentDetailScreen extends StatelessWidget {
     final registrationClosed = tournament.registrationDeadline != null && DateTime.now().isAfter(tournament.registrationDeadline!);
     final colors = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
-    final roles = authState is AuthAuthenticated ? authState.user.roles.map((role) => role.toLowerCase()).toSet() : const <String>{};
-    final canRegisterTeam = !roles.contains('admin') && !roles.contains('administrador') && !roles.contains('arbitro') && !roles.contains('árbitro');
+    final roles = authState is AuthAuthenticated
+        ? authState.user.roles.map(_normalizeRole).toSet()
+        : const <String>{};
+    // Un usuario puede tener varios roles: basta uno administrativo o de árbitro
+    // para ocultar la inscripción del equipo.
+    final canRegisterTeam = !roles.any(
+      (role) => role == 'admin' ||
+          role == 'admin_liga' ||
+          role == 'administrador' ||
+          role == 'arbitro',
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(tournament.name.isEmpty ? 'Detalle del torneo' : tournament.name)),
