@@ -195,31 +195,24 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
               trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
             ),
           ),
-          if (_level != 'municipal')
+          if (_level == 'departamental' || _level == 'nacional')
             Card(
               margin: const EdgeInsets.only(top: 6),
               child: ListTile(
                 dense: true,
-                title: Text('Acreditación ${_label(_level)}'),
+                title: const Text('Acreditación Municipal (básico)'),
                 trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
               ),
             ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: _levels.contains(_level) ? _level : 'municipal',
-            decoration: const InputDecoration(
-              labelText: 'Acreditación o nivel',
-              hintText: 'Selecciona el nivel del árbitro',
-              prefixIcon: Icon(Icons.workspace_premium_outlined),
-              border: OutlineInputBorder(),
+          if (_level == 'nacional')
+            Card(
+              margin: const EdgeInsets.only(top: 6),
+              child: ListTile(
+                dense: true,
+                title: const Text('Acreditación Departamental (intermedio)'),
+                trailing: Text('Vigente', style: TextStyle(color: Colors.green.shade400, fontWeight: FontWeight.w600)),
+              ),
             ),
-            isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded),
-            items: _levels.map((level) => DropdownMenuItem(value: level, child: Text(_label(level)))).toList(),
-            onChanged: _saving ? null : (value) => setState(() => _level = value ?? 'municipal'),
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(onPressed: _saving ? null : _saveLevel, icon: const Icon(Icons.save_outlined), label: Text(_saving ? 'Guardando...' : 'Guardar nivel')),
         ],
       ),
     );
