@@ -52,7 +52,8 @@ class AppBottomNavigationBar extends StatelessWidget {
 
             switch (index) { // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
               case 0:
-                context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el primer elemento (índice 0) de la barra de navegación inferior
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                context.go(RouteNames.home);
                 break;
               case 1:
                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));

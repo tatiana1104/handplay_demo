@@ -14,7 +14,7 @@ class CalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
-    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
+    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').where('status', isEqualTo: 'approved').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       bottomNavigationBar: AppBottomNavigationBar(
@@ -36,6 +36,8 @@ class CalendarScreen extends StatelessWidget {
               if (doc.data()['id'] != null) doc.data()['id'].toString(): doc.data(),
               if (doc.data()['teamId'] != null) doc.data()['teamId'].toString(): doc.data(),
               if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
+              if (doc.data()['team'] != null) doc.data()['team'].toString(): doc.data(),
+              if (doc.data()['uid'] != null) doc.data()['uid'].toString(): doc.data(),
             },
           };
           final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
@@ -133,9 +135,10 @@ class _CalendarDay extends StatelessWidget {
   }
 
   String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
-  if (registration == null) return fallback.toString();
-  return registration['teamName']?.toString() ?? registration['clubName']?.toString() ?? registration['name']?.toString() ?? fallback.toString();
-}
+    if (registration == null) return fallback.toString();
+    final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
+    return name?.toString().trim().isNotEmpty == true ? name.toString().trim() : fallback.toString();
+  }
 
 DateTime _dateValue(dynamic value) => value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '') ?? DateTime(9999);
 
