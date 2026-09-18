@@ -314,7 +314,7 @@ class _MatchesSection extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
-                          Expanded(child: _TeamMatchLabel(name: home, color: homeColor)),
+                          Expanded(child: _TeamMatchLabel(label: 'LOCAL', name: home, color: homeColor)),
                           Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -332,7 +332,7 @@ class _MatchesSection extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: away, color: awayColor))),
+                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(label: 'VISITANTE', name: away, color: awayColor, alignEnd: true))),
                         ]),
                         const SizedBox(height: 6),
                         Container(
@@ -353,17 +353,24 @@ class _MatchesSection extends StatelessWidget {
 }
 
 class _TeamMatchLabel extends StatelessWidget {
-  const _TeamMatchLabel({required this.name, required this.color});
+  const _TeamMatchLabel({required this.label, required this.name, required this.color, this.alignEnd = false});
+  final String label;
   final String name;
   final Color color;
+  final bool alignEnd;
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 4),
-          Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            if (!alignEnd) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            if (!alignEnd) const SizedBox(width: 4),
+            Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+            if (alignEnd) const SizedBox(width: 4),
+            if (alignEnd) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          ]),
         ],
       );
 }

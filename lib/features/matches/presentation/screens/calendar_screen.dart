@@ -73,13 +73,13 @@ class _CalendarDay extends StatelessWidget {
                   child: Column(
                     children: [
                       Row(children: [
-                        Expanded(child: _Team(name: _name(match, true), color: _color(match['homeTeamColor'], Colors.green))),
+                        Expanded(child: _TeamSide(label: 'LOCAL', name: _name(match, true), color: _color(match['homeTeamColor'], Colors.green))),
                         Column(children: [
                           Text(_time(match['date']), style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 3),
                           Text(match['venue']?.toString() ?? 'Sede por definir', textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelSmall),
                         ]),
-                        Expanded(child: Align(alignment: Alignment.centerRight, child: _Team(name: _name(match, false), color: _color(match['awayTeamColor'], Colors.deepOrange)))),
+                        Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamSide(label: 'VISITANTE', name: _name(match, false), color: _color(match['awayTeamColor'], Colors.deepOrange), alignEnd: true))),
                       ]),
                       const SizedBox(height: 7),
                       Align(alignment: Alignment.centerLeft, child: _StatusLabel(status: match['status'])),
@@ -136,10 +136,25 @@ class _StatusLabel extends StatelessWidget {
   }
 }
 
-class _Team extends StatelessWidget {
-  const _Team({required this.name, required this.color});
+class _TeamSide extends StatelessWidget {
+  const _TeamSide({required this.label, required this.name, required this.color, this.alignEnd = false});
+  final String label;
   final String name;
   final Color color;
+  final bool alignEnd;
+
   @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 4), Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)))]);
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            if (!alignEnd) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            if (!alignEnd) const SizedBox(width: 4),
+            Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+            if (alignEnd) const SizedBox(width: 4),
+            if (alignEnd) Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          ]),
+        ],
+      );
 }
