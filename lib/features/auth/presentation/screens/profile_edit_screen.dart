@@ -23,10 +23,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late final TextEditingController _specialty;
   bool _saving = false;
 
+  late final Set<String> _roles;
+  bool get _isPlayer => _roles.contains('jugador') || _roles.contains('player');
+  bool get _isCoach => _roles.contains('entrenador') || _roles.contains('coach');
+  bool get _isReferee => _roles.contains('arbitro') || _roles.contains('referee') || _roles.contains('árbitro');
+
   @override
   void initState() {
     super.initState();
     String value(String key) => widget.initialData[key]?.toString() ?? '';
+    final storedRoles = (widget.initialData['roles'] as List?)?.map((role) => role.toString().trim().toLowerCase()) ?? const <String>[];
+    final primaryRole = value('rol').trim().toLowerCase();
+    _roles = {...storedRoles, if (primaryRole.isNotEmpty) primaryRole};
+    if (_roles.isEmpty) _roles.add('jugador');
     _name = TextEditingController(text: value('displayName').isNotEmpty ? value('displayName') : value('nombre'));
     _phone = TextEditingController(text: value('phone'));
     _document = TextEditingController(text: value('document').isNotEmpty ? value('document') : value('documentNumber'));
@@ -48,17 +57,28 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).set({
+      final updates = <String, dynamic>{
         'displayName': _name.text.trim(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
-        'shirtNumber': int.tryParse(_shirtNumber.text.trim()),
-        'position': _position.text.trim(),
-        'teamName': _teamName.text.trim(),
-        'experience': _experience.text.trim(),
-        'specialty': _specialty.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
+      if (_isPlayer) {
+        updates.addAll({
+          'shirtNumber': int.tryParse(_shirtNumber.text.trim()),
+          'position': _position.text.trim(),
+          'teamName': _teamName.text.trim(),
+        });
+      }
+      if (_isCoach) {
+        updates['teamName'] = _teamName.text.trim();
+        updates['experience'] = _experience.text.trim();
+      }
+      if (_isReferee) {
+        updates['experience'] = _experience.text.trim();
+        updates['specialty'] = _specialty.text.trim();
+      }
+      await FirebaseFirestore.instance.collection('users').doc(widget.userId).set(updates, SetOptions(merge: true));
       await FirebaseAuth.instance.currentUser?.updateDisplayName(_name.text.trim());
       if (mounted) Navigator.of(context).pop(true);
     } on FirebaseException catch (error) {
@@ -67,6 +87,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) setState(() => _saving = false);
     }
   }
+
+  Widget _sectionTitle(BuildContext context, String title) => Padding(
+    padding: const EdgeInsets.only(top: 8, bottom: 12),
+    child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+  );
 
   Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType}) => Padding(
     padding: const EdgeInsets.only(bottom: 14),
@@ -80,11 +105,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _field('Nombre completo', _name),
       _field('Teléfono', _phone, keyboardType: TextInputType.phone),
       _field('Documento', _document),
-      _field('Número de camiseta', _shirtNumber, keyboardType: TextInputType.number),
-      _field('Posición', _position),
-      _field('Equipo', _teamName),
-      _field('Experiencia', _experience),
-      _field('Especialidad', _specialty),
+      if (_isPlayer) ...[
+        _sectionTitle(context, 'Información de jugador'),
+        _field('Número de camiseta', _shirtNumber, keyboardType: TextInputType.number),
+        _field('Posición', _position),
+        _field('Equipo', _teamName),
+      ],
+      if (_isCoach) ...[
+        _sectionTitle(context, 'Información de entrenador'),
+        _field('Equipo', _teamName),
+        _field('Experiencia', _experience),
+      ],
+      if (_isReferee) ...[
+        _sectionTitle(context, 'Información de árbitro'),
+        _field('Experiencia', _experience),
+        _field('Especialidad o certificación', _specialty),
+      ],
       const SizedBox(height: 8),
       FilledButton.icon(onPressed: _saving ? null : _save, icon: const Icon(Icons.save_outlined), label: Text(_saving ? 'Guardando...' : 'Guardar cambios')),
     ]),
