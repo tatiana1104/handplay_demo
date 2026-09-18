@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../domain/models/tournament_models.dart';
 
@@ -194,6 +195,8 @@ class _PlayerDialogState extends State<_PlayerDialog> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _document,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: 'Número de documento *',
                   prefixIcon: const Icon(Icons.credit_card_outlined),
@@ -723,8 +726,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
             TextFormField(
               controller: _coachDocument,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
                 labelText: 'Documento del entrenador *',
                 hintText: '1006514021',
                 prefixIcon: const Icon(Icons.credit_card_outlined),

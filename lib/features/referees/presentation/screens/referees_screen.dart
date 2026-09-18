@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -584,7 +585,7 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              TextFormField(controller: _document, decoration: const InputDecoration(labelText: 'Número de documento', suffixIcon: Icon(Icons.search), border: OutlineInputBorder()), keyboardType: TextInputType.number, onFieldSubmitted: (_) => _findByDocument(), validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa el documento' : null),
+              TextFormField(controller: _document, decoration: const InputDecoration(labelText: 'Número de documento', suffixIcon: Icon(Icons.search), border: OutlineInputBorder()), keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly], onFieldSubmitted: (_) => _findByDocument(), validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa el documento' : null),
               const SizedBox(height: 12),
               FilledButton.icon(onPressed: _loading ? null : _findByDocument, icon: const Icon(Icons.search), label: const Text('Buscar usuario')),
               const SizedBox(height: 20),
