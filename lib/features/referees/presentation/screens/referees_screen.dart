@@ -9,8 +9,15 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
-class RefereesScreen extends StatelessWidget {
+class RefereesScreen extends StatefulWidget {
   const RefereesScreen({super.key});
+
+  @override
+  State<RefereesScreen> createState() => _RefereesScreenState();
+}
+
+class _RefereesScreenState extends State<RefereesScreen> {
+  String _selectedAccreditation = 'all';
 
   @override
   Widget build(BuildContext context) {
@@ -52,17 +59,43 @@ class RefereesScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           final docs = snapshot.data?.docs ?? const [];
           if (docs.isEmpty) return const Center(child: Text('No hay árbitros registrados.'));
+          final certifications = <String>{
+            for (final doc in docs)
+              (doc.data()['accreditation'] ?? doc.data()['nivel'] ?? 'municipal').toString().trim().toLowerCase(),
+          }..removeWhere((value) => value.isEmpty);
+          final visibleDocs = _selectedAccreditation == 'all'
+              ? docs
+              : docs.where((doc) => (doc.data()['accreditation'] ?? doc.data()['nivel'] ?? 'municipal').toString().trim().toLowerCase() == _selectedAccreditation).toList();
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: visibleDocs.length + 1,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final data = docs[index].data();
+              if (index == 0) {
+                final options = ['all', ...certifications.toList()..sort()];
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      for (final option in options) ...[
+                        _AccreditationFilterChip(
+                          label: option == 'all' ? 'Todas' : _accreditationLabel(option),
+                          selected: _selectedAccreditation == option,
+                          onTap: () => setState(() => _selectedAccreditation = option),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                );
+              }
+              final data = visibleDocs[index - 1].data();
               final name = data['displayName']?.toString() ?? data['nombre']?.toString() ?? 'Árbitro sin nombre';
               final accreditation = data['accreditation']?.toString() ?? data['nivel']?.toString() ?? 'municipal';
               return Card(
                 child: ListTile(
-                  onTap: () => context.push(RouteNames.internal, extra: RefereeDetailScreen(refereeId: docs[index].id, data: data)),
+                  onTap: () => context.push(RouteNames.internal, extra: RefereeDetailScreen(refereeId: visibleDocs[index - 1].id, data: data)),
                   leading: CircleAvatar(child: Text(name.substring(0, 1).toUpperCase())),
                   title: Text(name),
                   subtitle: Text(accreditation),
@@ -72,6 +105,38 @@ class RefereesScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+String _accreditationLabel(String value) => switch (value) {
+      'municipal' => 'Municipal',
+      'departamental' => 'Departamental',
+      'nacional' => 'Nacional',
+      _ => value[0].toUpperCase() + value.substring(1),
+    };
+
+class _AccreditationFilterChip extends StatelessWidget {
+  const _AccreditationFilterChip({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Text(label, style: TextStyle(color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant, fontWeight: selected ? FontWeight.w700 : FontWeight.w600, fontSize: 13)),
+        ),
       ),
     );
   }
