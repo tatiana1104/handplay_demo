@@ -590,15 +590,34 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
                 _field(_club, 'Clubes asociados', 'Escribe varios separados por coma', required: false, maxLines: 2),
               ],
             ),
-        _sectionCard(
-          theme,
-          icon: Icons.tune_rounded,
-          title: 'Configuración del torneo',
-          children: [
-            DropdownButtonFormField<String>(value: _category, decoration: const InputDecoration(labelText: 'Categoría *'), items: categories.map((value) => DropdownMenuItem(value: value, child: Text(value.replaceAll('|', ' · ')))).toList(), onChanged: (value) => setState(() => _category = value)),
-            DropdownButtonFormField<String>(value: _color, decoration: const InputDecoration(labelText: 'Color del uniforme *'), items: const ['Verde', 'Azul', 'Rojo', 'Naranja', 'Amarillo', 'Blanco', 'Negro'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _color = value ?? _color)),
-          ],
-        ),
+            _sectionCard(
+              theme,
+              icon: Icons.tune_rounded,
+              title: 'Configuración del torneo',
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: DropdownButtonFormField<String>(
+                    value: _category,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Categoría *'),
+                    items: categories.map((value) => DropdownMenuItem(value: value, child: Text(value.replaceAll('|', ' · '), overflow: TextOverflow.ellipsis))).toList(),
+                    onChanged: (value) => setState(() => _category = value),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: DropdownButtonFormField<String>(
+                    value: _color,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Color del uniforme *'),
+                    items: const ['Verde', 'Azul', 'Rojo', 'Naranja', 'Amarillo', 'Blanco', 'Negro'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+                    onChanged: (value) => setState(() => _color = value ?? _color),
+                  ),
+                ),
+              ],
+            ),
         const SizedBox(height: 10),
         /* Logo del equipo deshabilitado temporalmente.
         Container(
@@ -690,9 +709,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+  child: Column(
+  crossAxisAlignment: CrossAxisAlignment.stretch,
+  children: [
               Row(
                 children: [
                   Icon(icon, size: 19, color: theme.colorScheme.primary),
