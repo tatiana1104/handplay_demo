@@ -104,15 +104,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
-  void _toggleTimer() {
+  Future<void> _toggleTimer() async {
     if (!_isTimekeeper) return;
-    setState(() => _isPaused = !_isPaused);
-    if (_isPaused) {
+    final shouldPause = !_isPaused;
+    setState(() => _isPaused = shouldPause);
+    if (shouldPause) {
       _timer?.cancel();
     } else {
       _startLocalTimer();
     }
-    _saveMatch({'status': _isPaused ? 'paused' : 'playing', 'elapsedSeconds': _elapsedSeconds});
+    await _saveMatch({
+      'status': shouldPause ? 'paused' : 'en_curso',
+      'elapsedSeconds': _elapsedSeconds,
+    });
   }
 
   Future<void> _saveMatch(Map<String, dynamic> data) async {
@@ -122,9 +126,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Future<void> _startMatch() async {
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
-    setState(() => _isPaused = false);
-    await _saveMatch({'status': 'en_curso', 'startedAt': FieldValue.serverTimestamp(), 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds});
+    setState(() {
+      _isPaused = false;
+      _match['status'] = 'en_curso';
+    });
     _startLocalTimer();
+    await _saveMatch({
+      'status': 'en_curso',
+      'startedAt': FieldValue.serverTimestamp(),
+      'period': _match['period'] ?? 1,
+      'elapsedSeconds': _elapsedSeconds,
+    });
   }
 
   Future<void> _changePeriod(int period) async {
