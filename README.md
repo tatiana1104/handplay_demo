@@ -153,7 +153,8 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Barra de navegación inferior global: el acceso a Árbitros aparece en todas las pantallas para `admin`/`admin_liga`, incluido Perfil; los demás roles no lo ven. Se eliminó el botón duplicado del banner superior.
 - [x] El acceso de Árbitros usa un icono deportivo tipo silbato; Flutter Material no incluye un icono de silbato dedicado.
 - [x] Listado inicial de árbitros registrados.
-- [x] Botón Nuevo árbitro con formulario de documento, nombre, correo y teléfono; al buscar un documento existente, carga sus datos y permite agregar el rol `arbitro`.
+- [x] Botón Nuevo árbitro con estilo similar al botón de agregar de Mi torneo.
+- [x] Formulario de documento, nombre, correo y teléfono; si el documento existe carga sus datos y si no existe habilita el formulario para crear el registro y asignar el rol `arbitro`.
 - [ ] Generación de calendario.
 - [ ] Asignación de árbitros.
 - [ ] Asignación de mesa.

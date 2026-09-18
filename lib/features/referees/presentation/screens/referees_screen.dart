@@ -15,11 +15,18 @@ class RefereesScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Listado de árbitros'),
         actions: [
-          IconButton(
-            tooltip: 'Nuevo árbitro',
-            icon: const Icon(Icons.add),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const NewRefereeScreen()),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NewRefereeScreen()),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Nuevo'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                visualDensity: VisualDensity.compact,
+              ),
             ),
           ),
         ],
@@ -68,7 +75,7 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
   final _email = TextEditingController();
   final _phone = TextEditingController();
   bool _loading = false;
-  bool _found = false;
+  bool _searched = false;
   DocumentReference<Map<String, dynamic>>? _userRef;
 
   @override
@@ -97,13 +104,19 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
       }
       if (!mounted) return;
       if (match == null) {
-        setState(() { _found = false; _userRef = null; });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No existe un usuario con ese número de documento.')));
+        setState(() {
+          _searched = true;
+          _userRef = null;
+          _name.clear();
+          _email.clear();
+          _phone.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No existe un usuario. Puedes completar el formulario para registrarlo.')));
         return;
       }
       final data = match.data();
       setState(() {
-        _found = true;
+        _searched = true;
         _userRef = match!.reference;
         _name.text = data['displayName']?.toString() ?? data['nombre']?.toString() ?? '';
         _email.text = data['email']?.toString() ?? data['correo']?.toString() ?? '';
@@ -115,13 +128,14 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate() || _userRef == null) return;
+    if (!_formKey.currentState!.validate() || !_searched) return;
     setState(() => _loading = true);
     try {
-      final data = await _userRef!.get();
+      final userRef = _userRef ?? FirebaseFirestore.instance.collection('users').doc();
+      final data = await userRef.get();
       final roles = List<String>.from(data.data()?['roles'] ?? const <String>[]);
       if (!roles.contains('arbitro')) roles.add('arbitro');
-      await _userRef!.set({
+      await userRef.set({
         'displayName': _name.text.trim(),
         'email': _email.text.trim(),
         'phone': _phone.text.trim(),
@@ -147,14 +161,15 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
               const SizedBox(height: 12),
               FilledButton.icon(onPressed: _loading ? null : _findByDocument, icon: const Icon(Icons.search), label: const Text('Buscar usuario')),
               const SizedBox(height: 20),
-              TextFormField(controller: _name, enabled: _found, decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder()), validator: (value) => value == null || value.trim().isEmpty ? 'Campo requerido' : null),
+              TextFormField(controller: _name, enabled: _searched, decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder()), validator: (value) => value == null || value.trim().isEmpty ? 'Campo requerido' : null),
               const SizedBox(height: 12),
               TextFormField(controller: _email, enabled: _found, decoration: const InputDecoration(labelText: 'Correo', border: OutlineInputBorder()), keyboardType: TextInputType.emailAddress),
               const SizedBox(height: 12),
               TextFormField(controller: _phone, enabled: _found, decoration: const InputDecoration(labelText: 'Número de teléfono', border: OutlineInputBorder()), keyboardType: TextInputType.phone),
               const SizedBox(height: 20),
-              if (!_found) const Text('Busca un usuario existente por documento para cargar sus datos y habilitarlo como árbitro.'),
-              FilledButton.icon(onPressed: _loading || !_found ? null : _save, icon: const Icon(Icons.save_outlined), label: Text(_loading ? 'Guardando...' : 'Guardar árbitro')),
+              if (!_searched) const Text('Busca por documento para cargar los datos existentes o registrar un árbitro nuevo.'),
+              if (_searched && _userRef == null) const Text('Documento no encontrado. Completa los datos para crear el registro del árbitro.'),
+              FilledButton.icon(onPressed: _loading || !_searched ? null : _save, icon: const Icon(Icons.save_outlined), label: Text(_loading ? 'Guardando...' : 'Guardar árbitro')),
             ],
           ),
         ),
