@@ -38,7 +38,9 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       'player' || 'jugador' => 'jugador',
       'coach' || 'entrenador' => 'entrenador',
       'referee' || 'arbitro' || 'árbitro' => 'arbitro',
-      _ => widget.role.trim().toLowerCase(),
+      'public' || 'publico' || 'público' => 'publico',
+      'admin' || 'admin_liga' => widget.role.trim().toLowerCase(),
+      _ => 'jugador',
     };
     try {
       final profileRef = FirebaseFirestore.instance.collection('users').doc(uid);
