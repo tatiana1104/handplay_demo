@@ -173,9 +173,13 @@ class AuthRemoteDataSource {
     };
     await ref.set({
       'uid': user.uid,
-      'email': user.email,
-      'nombre': name?.isNotEmpty == true ? name : (mergedData['nombre'] ?? user.displayName ?? ''),
+      'email': user.email?.trim().toLowerCase(),
+      'displayName': name?.isNotEmpty == true ? name : (mergedData['displayName'] ?? mergedData['nombre'] ?? user.displayName ?? ''),
       'roles': roles.toList(),
+      'correo': FieldValue.delete(),
+      'nombre': FieldValue.delete(),
+      'telefono': FieldValue.delete(),
+      'nivel': FieldValue.delete(),
       'rol': pendingData?['rol'] ?? mergedData['rol'] ?? (isCoach ? 'entrenador' : (isPlayer ? 'jugador' : 'jugador')),
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
       if (mergedData['document'] != null) 'document': mergedData['document'],
@@ -189,6 +193,10 @@ class AuthRemoteDataSource {
         'linkedUid': user.uid,
         'linkedAt': FieldValue.serverTimestamp(),
         'roles': FieldValue.arrayRemove(['arbitro', 'entrenador', 'coach', 'jugador', 'player']),
+        'correo': FieldValue.delete(),
+        'nombre': FieldValue.delete(),
+        'telefono': FieldValue.delete(),
+        'nivel': FieldValue.delete(),
       });
     }
   }
