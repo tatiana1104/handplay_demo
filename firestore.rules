@@ -47,9 +47,11 @@ service cloud.firestore {
     && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga']));
   allow update: if isAdmin()
   || (isSelf(userId)
-    && request.resource.data.uid == resource.data.uid
+    && request.resource.data.uid == userId
     && request.resource.data.roles is list
-    && request.resource.data.roles.hasAll(resource.data.roles));
+    && request.resource.data.roles.size() > 0
+    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga'])
+    && (!('roles' in resource.data) || request.resource.data.roles.hasAll(resource.data.roles)));
       allow delete: if isAdmin();
     }
 

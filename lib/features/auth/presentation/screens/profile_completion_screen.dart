@@ -42,7 +42,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       'coach' || 'entrenador' => 'entrenador',
       'referee' || 'arbitro' || 'árbitro' => 'arbitro',
       'public' || 'publico' || 'público' => 'publico',
-      'admin' || 'admin_liga' => widget.role.trim().toLowerCase(),
+      'admin' => 'admin',
+      'admin_liga' || 'admin liga' => 'admin_liga',
       _ => 'jugador',
     };
     try {
@@ -56,6 +57,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
                     'coach' || 'entrenador' => 'entrenador',
                     'referee' || 'arbitro' || 'árbitro' => 'arbitro',
                     'public' || 'publico' || 'público' => 'publico',
+                    'admin' => 'admin',
+                    'admin_liga' || 'admin liga' => 'admin_liga',
                     _ => role.trim().toLowerCase(),
                   })
               .where((role) => ['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga'].contains(role))
@@ -97,7 +100,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     } on FirebaseException catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el perfil: ${error.message ?? error.code}')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el perfil (${error.code}): ${error.message ?? 'verifica las reglas de Firestore'}')));
     } on FormatException {
       if (!mounted) return;
       setState(() => _saving = false);
