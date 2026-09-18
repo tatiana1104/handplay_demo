@@ -756,6 +756,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           title: 'Datos del entrenador',
           children: [
             _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _coachDocument,
             keyboardType: TextInputType.number,
@@ -770,7 +771,15 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
               onFieldSubmitted: (_) => _loadExistingCoach(),
               validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
             ),
-            Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
+            const SizedBox(height: 14),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')),
+                const SizedBox(width: 12),
+                Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true)),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 10),
