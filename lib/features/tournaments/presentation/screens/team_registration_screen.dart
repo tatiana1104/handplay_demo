@@ -56,8 +56,9 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     }
     setState(() {
       final name = _firstValue(existing, ['name', 'displayName', 'nombre', 'fullName']);
-      final number = _firstValue(existing, ['number', 'shirtNumber', 'shirt_number', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
-      final position = _normalizePosition(_firstValue(existing, ['position', 'player_position', 'playerPosition', 'posicion', 'posicionJugador', 'positionName']));
+      final playerData = existing['player'] is Map ? Map<String, dynamic>.from(existing['player'] as Map) : <String, dynamic>{};
+      final number = _firstValue({...existing, ...playerData}, ['number', 'shirtNumber', 'shirt_number', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
+      final position = _normalizePosition(_firstValue({...existing, ...playerData}, ['position', 'player_position', 'playerPosition', 'posicion', 'posicionJugador', 'positionName']));
       final gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
       final club = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name', 'clubes']);
       if (name != null) _name.text = name;
@@ -65,6 +66,9 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       if (position != null) _position.text = position;
       if (gender != null) _gender = _normalizeGender(gender);
       if (club != null) _club.text = club;
+      if (number == null || position == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil encontrado. Completa los datos deportivos faltantes.')));
+      }
     });
   }
 
@@ -124,10 +128,11 @@ class _PlayerDialogState extends State<_PlayerDialog> {
       firestore.collection('referees'),
     ]) {
       try {
+        final documentValues = <dynamic>{document, int.tryParse(document)}.where((value) => value != null).toList();
         final queries = <Future<QuerySnapshot<Map<String, dynamic>>>>[
-          collection.where('document', isEqualTo: document).limit(1).get(),
-          for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula'])
-            collection.where(field, isEqualTo: document).limit(1).get(),
+          for (final field in ['document', 'documentNumber', 'numeroDocumento', 'numero_documento', 'cedula'])
+            for (final value in documentValues)
+              collection.where(field, isEqualTo: value).limit(5).get(),
         ];
         for (final snapshot in await Future.wait(queries)) {
           if (snapshot.docs.isEmpty) continue;
