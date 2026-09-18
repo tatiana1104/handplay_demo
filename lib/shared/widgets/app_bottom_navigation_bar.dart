@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/referees/presentation/screens/referees_screen.dart';
+import '../../features/matches/presentation/screens/calendar_screen.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 
@@ -54,9 +55,11 @@ class AppBottomNavigationBar extends StatelessWidget {
                 context.go(RouteNames.home); // Navegamos a la pantalla de inicio (lista de torneos) cuando se toca el primer elemento (índice 0) de la barra de navegación inferior
                 break;
               case 1:
-                // Visitantes ven el acceso a sesión; usuarios autenticados ven
-                // la sección secundaria de la app.
-                context.go(isAuthenticated ? RouteNames.home : RouteNames.login);
+                if (isAuthenticated) {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CalendarScreen()));
+                } else {
+                  context.go(RouteNames.login);
+                }
                 break;
               case 2:
                 if (effectiveAdmin) {
