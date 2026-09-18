@@ -269,11 +269,15 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       };
       final firestore = FirebaseFirestore.instance;
       final batch = firestore.batch();
-      batch.set(registration, {
-        ...teamData,
-        'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
-        'termsAccepted': true,
-      });
+      batch.set(
+        registration,
+        {
+          ...teamData,
+          'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
+          'termsAccepted': true,
+        },
+        SetOptions(merge: true),
+      );
       if (isCoachAccount) {
         final userRef = firestore.collection('users').doc(currentUser!.uid);
         final teamRef = firestore
@@ -293,7 +297,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           },
           SetOptions(merge: true),
         );
-        batch.set(teamRef, teamData);
+        batch.set(teamRef, teamData, SetOptions(merge: true));
       }
       await batch.commit().timeout(
         const Duration(seconds: 20),
@@ -484,7 +488,21 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           ),
         ),
         CheckboxListTile(dense: true, contentPadding: EdgeInsets.zero, value: _accepted, onChanged: (value) => setState(() => _accepted = value ?? false), title: const Text('Acepto el reglamento y confirmo que la información es correcta.')),
-        FilledButton(onPressed: _saving ? null : _submit, child: Text(_saving ? 'Enviando...' : 'Enviar solicitud de inscripción')),
+        SafeArea(
+          top: false,
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _saving ? null : _submit,
+              icon: const Icon(Icons.send_outlined),
+              label: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(_saving ? 'Enviando...' : 'Enviar solicitud de inscripción'),
+              ),
+            ),
+          ),
+        ),
       ])),
     );
   }
