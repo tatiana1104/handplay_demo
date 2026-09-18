@@ -143,15 +143,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     await _saveMatch({
       'period': 2,
       'elapsedSeconds': 0,
-      'status': 'paused',
+      'status': 'en_curso',
       'finishedAt': null,
       'periodStartedAt': FieldValue.serverTimestamp(),
+      'startedAt': FieldValue.serverTimestamp(),
     });
     if (!mounted) return;
     setState(() {
       _elapsedSeconds = 0;
-      _isPaused = true;
+      _isPaused = false;
     });
+    _startLocalTimer();
   }
 
   Future<void> _finishMatch() async {
@@ -219,7 +221,14 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           Expanded(child: Text(away.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 6),
-        Center(child: Text((_match['period'] as num? ?? 1) <= 2 ? 'Período ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min' : 'Desempate ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min')),
+        Center(
+          child: Text(
+            ((_match['period'] as num?)?.toInt() ?? 1) <= 2
+                ? 'Período ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min'
+                : 'Desempate ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
         if (_canOperate) ...[
           const SizedBox(height: 14),
           Card(
@@ -258,7 +267,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           icon: Icon(Icons.stop_circle_outlined, color: Colors.red.shade400),
-                          label: const Text('Período 2'),
+                          label: const Text('Iniciar período 2'),
                         ),
                       ),
                     ],
