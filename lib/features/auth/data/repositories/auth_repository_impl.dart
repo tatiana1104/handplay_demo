@@ -27,8 +27,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AppUserModel> _appUserFromFirebaseUser(fb.User firebaseUser) async {
     final token = await firebaseUser.getIdTokenResult();
     final claimRoles = _rolesFromClaims(token.claims);
-    final roles = claimRoles;
-    return AppUserModel.fromFirebaseUser(firebaseUser, roles: roles.isEmpty ? const ['jugador'] : roles);
+    final storedRoles = await remoteDataSource.rolesForUser(firebaseUser.uid);
+    final roles = {...claimRoles, ...storedRoles};
+    return AppUserModel.fromFirebaseUser(firebaseUser, roles: roles.isEmpty ? const ['jugador'] : roles.toList());
   }
 
   static List<String> _rolesFromClaims(Map<String, dynamic>? claims) {

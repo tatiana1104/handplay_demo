@@ -26,6 +26,16 @@ class AuthRemoteDataSource {
 
   Stream<fb.User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
+  Future<List<String>> rolesForUser(String uid) async {
+    final data = (await FirebaseFirestore.instance.collection('users').doc(uid).get()).data();
+    final roles = (data?['roles'] as List?)
+            ?.map((value) => value.toString().trim().toLowerCase())
+            .where((value) => value.isNotEmpty)
+            .toSet() ??
+        <String>{};
+    return roles.toList();
+  }
+
   Future<fb.User> signInWithEmailPassword({
     required String email,
     required String password,
@@ -125,7 +135,7 @@ class AuthRemoteDataSource {
       if (user == null) {
         throw const ServerException('No se pudo iniciar sesión con Google.');
       }
-      unawaited(_ensureUserProfile(user));
+      await _ensureUserProfile(user);
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
