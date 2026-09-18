@@ -50,13 +50,17 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
         final documentNumber = profile['document']?.toString() ?? profile['documentNumber']?.toString() ?? 'No registrado';
-        final roles = (profile['roles'] as List?)
-                ?.map((value) => value.toString().trim().toLowerCase())
-                .where((value) => value.isNotEmpty)
-                .toSet()
-                .toList() ??
-            user.roles;
-        final hasRole = (String role) => roles.any((item) => item.trim().toLowerCase() == role);
+        final roles = <String>{
+          ...user.roles.map((value) => value.trim().toLowerCase()),
+          ...((profile['roles'] as List?) ?? const [])
+              .map((value) => value.toString().trim().toLowerCase())
+              .where((value) => value.isNotEmpty),
+        };
+        final storedPrimaryRole = profile['rol']?.toString().trim().toLowerCase();
+        if (storedPrimaryRole != null && storedPrimaryRole.isNotEmpty) {
+          roles.add(storedPrimaryRole);
+        }
+        final hasRole = (String role) => roles.contains(role);
         final normalizedRoles = roles.map((item) => item.trim().toLowerCase()).toSet();
         final currentDisplayName = profile['displayName']?.toString() ?? displayName;
         final currentEmail = profile['email']?.toString() ?? email;
@@ -150,11 +154,11 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           if (hasRole('entrenador'))
-            _roleButton(context, 'Ficha de entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['teamName', 'specialty', 'experience'])),
+            _roleButton(context, 'Entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['teamName', 'specialty', 'experience'])),
           if (hasRole('arbitro') || hasRole('árbitro') || hasRole('referee'))
-            _roleButton(context, 'Ficha de árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'experience', 'phone'])),
-          if (hasRole('jugador'))
-            _roleButton(context, 'Ficha de jugador', Icons.person_outline, () => _showRoleSheet(context, 'Ficha de jugador', profile, ['shirtNumber', 'position', 'teamName'])),
+            _roleButton(context, 'Árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'experience', 'phone'])),
+          if (hasRole('jugador') || hasRole('player'))
+            _roleButton(context, 'Jugador', Icons.person_outline, () => _showRoleSheet(context, 'Ficha de jugador', profile, ['shirtNumber', 'position', 'teamName'])),
           const SizedBox(height: 24),
           OutlinedButton.icon(
             onPressed: () => context.read<AuthBloc>().add(
