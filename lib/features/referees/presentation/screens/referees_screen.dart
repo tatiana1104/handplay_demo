@@ -57,8 +57,20 @@ class _RefereesScreenState extends State<RefereesScreen> {
         builder: (context, snapshot) {
           if (snapshot.hasError) return const Center(child: Text('No se pudieron cargar los árbitros.'));
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          final docs = snapshot.data?.docs ?? const [];
-          if (docs.isEmpty) return const Center(child: Text('No hay árbitros registrados.'));
+          final rawDocs = snapshot.data?.docs ?? const [];
+          if (rawDocs.isEmpty) return const Center(child: Text('No hay árbitros registrados.'));
+          final uniqueByIdentity = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+          for (final doc in rawDocs) {
+            final data = doc.data();
+            final document = (data['document'] ?? data['documentNumber'] ?? '').toString().trim();
+            final email = (data['email'] ?? data['correo'] ?? '').toString().trim().toLowerCase();
+            final identity = document.isNotEmpty ? 'document:$document' : (email.isNotEmpty ? 'email:$email' : 'id:${doc.id}');
+            final previous = uniqueByIdentity[identity];
+            if (previous == null || _profileCompleteness(data) > _profileCompleteness(previous.data())) {
+              uniqueByIdentity[identity] = doc;
+            }
+          }
+          final docs = uniqueByIdentity.values.toList();
           final certifications = <String>{
             for (final doc in docs)
               (doc.data()['accreditation'] ?? doc.data()['nivel'] ?? 'municipal').toString().trim().toLowerCase(),
@@ -109,6 +121,17 @@ class _RefereesScreenState extends State<RefereesScreen> {
     );
   }
 }
+
+int _profileCompleteness(Map<String, dynamic> data) => [
+      data['displayName'],
+      data['document'],
+      data['documentNumber'],
+      data['email'],
+      data['correo'],
+      data['phone'],
+      data['accreditation'],
+      data['category'],
+    ].where((value) => value != null && value.toString().trim().isNotEmpty).length;
 
 String _accreditationLabel(String value) => switch (value) {
       'municipal' => 'Municipal',
