@@ -6,10 +6,11 @@ import '../../domain/models/tournament_models.dart';
 
 /// Solicitud pública para inscribir un equipo y sus jugadores.
 class TeamRegistrationScreen extends StatefulWidget {
-  const TeamRegistrationScreen({required this.tournament, this.initialRegistration, this.registrationId, super.key});
+  const TeamRegistrationScreen({required this.tournament, this.initialRegistration, this.registrationId, this.rejectionReason, super.key});
   final Tournament tournament;
   final Map<String, dynamic>? initialRegistration;
   final String? registrationId;
+  final String? rejectionReason;
 
   @override
   State<TeamRegistrationScreen> createState() => _TeamRegistrationScreenState();
@@ -385,10 +386,28 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       appBar: AppBar(title: const Text('Inscribir tu equipo')),
       body: Form(
         key: _formKey,
-        child: ListView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-          children: [
+      child: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (widget.rejectionReason?.trim().isNotEmpty == true)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                border: Border.all(color: Theme.of(context).colorScheme.error),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Cambios solicitados:\n${widget.rejectionReason}',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
             Text('${widget.tournament.name} · Liga de Balonmano del Caquetá', style: theme.textTheme.bodySmall),
             const SizedBox(height: 3),
             Text('Inscribe tu equipo', style: theme.textTheme.headlineSmall),

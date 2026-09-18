@@ -382,7 +382,13 @@ class _TournamentCard extends StatelessWidget {
                           ),
                           if (isRejected) ...[
                             const SizedBox(height: 4),
-                            Text(rejectedReason?.isNotEmpty == true ? rejectedReason! : 'Revisa la información y vuelve a enviar la inscripción.'),
+                            Text(
+                              rejectedReason?.isNotEmpty == true ? rejectedReason! : 'Revisa la información y vuelve a enviar la inscripción.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             const Text('Puedes editar los datos indicados y volver a enviar la solicitud.'),
                             const SizedBox(height: 8),
@@ -393,6 +399,7 @@ class _TournamentCard extends StatelessWidget {
                                     tournament: tournament,
                                     registrationId: docs.first.id,
                                     initialRegistration: data,
+                                    rejectionReason: rejectedReason,
                                   ),
                                 ),
                               ),
