@@ -156,6 +156,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   final _team = TextEditingController();
   final _club = TextEditingController();
   final _coach = TextEditingController();
+  final _coachDocument = TextEditingController();
   final _phone = TextEditingController();
   final _email = TextEditingController();
   final _players = <Map<String, String>>[];
@@ -172,6 +173,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     _team.text = data['teamName']?.toString() ?? '';
     _club.text = data['clubName']?.toString() ?? '';
     _coach.text = data['coachName']?.toString() ?? '';
+    _coachDocument.text = data['coachDocument']?.toString() ?? '';
     _phone.text = data['coachPhone']?.toString() ?? '';
     _email.text = data['coachEmail']?.toString() ?? '';
     _category = data['category']?.toString();
@@ -191,7 +193,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
 
   @override
   void dispose() {
-    for (final controller in [_team, _club, _coach, _phone, _email]) controller.dispose();
+    for (final controller in [_team, _club, _coach, _coachDocument, _phone, _email]) controller.dispose();
     super.dispose();
   }
 
@@ -238,6 +240,26 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     setState(() => _saving = true);
     try {
       final coachEmail = _email.text.trim().toLowerCase();
+      final coachDocument = _coachDocument.text.trim();
+      final firestore = FirebaseFirestore.instance;
+      final userByDocument = await firestore.collection('users').where('document', isEqualTo: coachDocument).limit(1).get();
+      final userByDocumentNumber = userByDocument.docs.isEmpty
+          ? await firestore.collection('users').where('documentNumber', isEqualTo: coachDocument).limit(1).get()
+          : userByDocument;
+      final userByEmail = await firestore.collection('users').where('email', isEqualTo: coachEmail).limit(1).get();
+      final existingCoach = userByDocumentNumber.docs.isNotEmpty ? userByDocumentNumber.docs.first : (userByEmail.docs.isNotEmpty ? userByEmail.docs.first : null);
+      final enrichedPlayers = <Map<String, String>>[];
+      for (final player in _players) {
+        final document = player['document']?.trim() ?? '';
+        final matches = await firestore.collection('users').where('document', isEqualTo: document).limit(1).get();
+        final matchesByNumber = matches.docs.isEmpty ? await firestore.collection('users').where('documentNumber', isEqualTo: document).limit(1).get() : matches;
+        final existing = matchesByNumber.docs.isEmpty ? null : matchesByNumber.docs.first.data();
+        enrichedPlayers.add({
+          ...?existing?.map((key, value) => MapEntry(key, value?.toString() ?? '')),
+          ...player,
+          'document': document,
+        });
+      }
       final currentUser = FirebaseAuth.instance.currentUser;
       final isCoachAccount = currentUser?.email?.trim().toLowerCase() == coachEmail;
       final registrations = FirebaseFirestore.instance
@@ -253,13 +275,14 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'registrationId': registration.id,
         'teamName': _team.text.trim(),
         'clubName': _club.text.trim(),
-        'coachName': _coach.text.trim(),
-        'coachPhone': _phone.text.trim(),
-        'coachEmail': coachEmail,
+        'coachName': existingCoach?['nombre'] ?? existingCoach?['name'] ?? _coach.text.trim(),
+        'coachDocument': existingCoach?['document'] ?? existingCoach?['documentNumber'] ?? coachDocument,
+        'coachPhone': existingCoach?['phone'] ?? _phone.text.trim(),
+        'coachEmail': existingCoach?['email'] ?? existingCoach?['correo'] ?? coachEmail,
         'category': _category,
         'uniformColor': _color,
         'logoUrl': null,
-        'players': _players,
+        'players': enrichedPlayers,
         'playerCount': _players.length,
         'status': 'pending',
         if (widget.registrationId == null) 'createdAt': FieldValue.serverTimestamp(),
@@ -267,7 +290,6 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         if (widget.registrationId != null) 'rejectionReason': FieldValue.delete(),
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
-      final firestore = FirebaseFirestore.instance;
       final batch = firestore.batch();
       batch.set(
         registration,
@@ -466,6 +488,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           title: 'Datos del entrenador',
           children: [
             _field(_coach, 'Nombre del entrenador *', 'Carlos Herrera'),
+            _field(_coachDocument, 'Documento del entrenador *', '1006514021'),
             Row(children: [Expanded(child: _field(_phone, 'Teléfono *', '300 123 4567')), const SizedBox(width: 8), Expanded(child: _field(_email, 'Correo *', 'equipo@correo.com', email: true))]),
           ],
         ),
