@@ -47,15 +47,101 @@ class RefereesScreen extends StatelessWidget {
               final name = data['displayName']?.toString() ?? data['nombre']?.toString() ?? 'Árbitro sin nombre';
               final email = data['email']?.toString() ?? '';
               final phone = data['phone']?.toString() ?? data['telefono']?.toString() ?? '';
-              return Card(child: ListTile(
-                leading: CircleAvatar(child: Text(name.substring(0, 1).toUpperCase())),
-                title: Text(name),
-                subtitle: Text([email, phone].where((value) => value.isNotEmpty).join(' · ')),
-                trailing: const Icon(Icons.sports_outlined),
-              ));
+              return Card(
+                child: ListTile(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => RefereeDetailScreen(refereeId: docs[index].id, data: data)),
+                  ),
+                  leading: CircleAvatar(child: Text(name.substring(0, 1).toUpperCase())),
+                  title: Text(name),
+                  subtitle: Text([email, phone].where((value) => value.isNotEmpty).join(' · ')),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class RefereeDetailScreen extends StatefulWidget {
+  const RefereeDetailScreen({required this.refereeId, required this.data, super.key});
+  final String refereeId;
+  final Map<String, dynamic> data;
+
+  @override
+  State<RefereeDetailScreen> createState() => _RefereeDetailScreenState();
+}
+
+class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
+  late String _level;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _level = widget.data['accreditation']?.toString() ?? widget.data['nivel']?.toString() ?? 'municipal';
+  }
+
+  List<String> get _levels {
+    final result = <String>['municipal'];
+    if (_level == 'departamental' || _level == 'nacional') result.add('departamental');
+    if (_level == 'nacional') result.add('nacional');
+    return result;
+  }
+
+  String _label(String value) => switch (value) {
+        'municipal' => 'Municipal (básico)',
+        'departamental' => 'Departamental (intermedio)',
+        'nacional' => 'Nacional (alto)',
+        _ => value,
+      };
+
+  Future<void> _saveLevel() async {
+    setState(() => _saving = true);
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(widget.refereeId).update({
+        'accreditation': _level,
+        'nivel': _level,
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nivel actualizado.')));
+    } on FirebaseException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo actualizar: ${error.code}')));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = widget.data['displayName']?.toString() ?? widget.data['nombre']?.toString() ?? 'Árbitro';
+    final document = widget.data['document']?.toString() ?? widget.data['documentNumber']?.toString() ?? 'No registrado';
+    final email = widget.data['email']?.toString() ?? widget.data['correo']?.toString() ?? 'No registrado';
+    final phone = widget.data['phone']?.toString() ?? widget.data['telefono']?.toString() ?? 'No registrado';
+    return Scaffold(
+      appBar: AppBar(title: const Text('Perfil del árbitro')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CircleAvatar(radius: 32, child: Text(name.substring(0, 1).toUpperCase())),
+          const SizedBox(height: 12),
+          Center(child: Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
+          const SizedBox(height: 20),
+          Card(child: ListTile(title: const Text('Documento'), subtitle: Text(document))),
+          Card(child: ListTile(title: const Text('Correo'), subtitle: Text(email))),
+          Card(child: ListTile(title: const Text('Teléfono'), subtitle: Text(phone))),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _levels.contains(_level) ? _level : 'municipal',
+            decoration: const InputDecoration(labelText: 'Acreditación o nivel', border: OutlineInputBorder()),
+            items: _levels.map((level) => DropdownMenuItem(value: level, child: Text(_label(level)))).toList(),
+            onChanged: _saving ? null : (value) => setState(() => _level = value ?? 'municipal'),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(onPressed: _saving ? null : _saveLevel, icon: const Icon(Icons.save_outlined), label: Text(_saving ? 'Guardando...' : 'Guardar nivel')),
+        ],
       ),
     );
   }
