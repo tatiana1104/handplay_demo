@@ -32,16 +32,31 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     if (uid == null) return;
     setState(() => _saving = true);
     final currentUser = FirebaseAuth.instance.currentUser!;
+    final normalizedRole = switch (widget.role.trim().toLowerCase()) {
+      'player' || 'jugador' => 'jugador',
+      'coach' || 'entrenador' => 'entrenador',
+      'referee' || 'arbitro' || 'árbitro' => 'arbitro',
+      _ => widget.role.trim().toLowerCase(),
+    };
     try {
       final profileRef = FirebaseFirestore.instance.collection('users').doc(uid);
       final existingSnapshot = await profileRef.get();
       final existingData = existingSnapshot.data() ?? const <String, dynamic>{};
-      final existingRoles = (existingData['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
-      existingRoles.add(widget.role);
+      final existingRoles = (existingData['roles'] as List?)
+              ?.whereType<String>()
+              .map((role) => switch (role.trim().toLowerCase()) {
+                    'player' || 'jugador' => 'jugador',
+                    'coach' || 'entrenador' => 'entrenador',
+                    'referee' || 'arbitro' || 'árbitro' => 'arbitro',
+                    _ => role.trim().toLowerCase(),
+                  })
+              .where((role) => ['jugador', 'entrenador', 'arbitro', 'admin', 'admin_liga'].contains(role))
+              .toSet() ?? <String>{};
+      existingRoles.add(normalizedRole);
       await profileRef.set({
       'uid': uid,
       'roles': existingRoles.toList(),
-      'rol': existingData['rol'] ?? widget.role,
+      'rol': existingData['rol'] ?? normalizedRole,
       'email': currentUser.email,
       'nombre': existingData['nombre'] ?? currentUser.displayName ?? '',
       'documentNumber': _documentController.text.trim(),

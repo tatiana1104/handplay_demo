@@ -52,7 +52,9 @@ class ProfileScreen extends StatelessWidget {
         final documentNumber = profile['documentNumber']?.toString() ?? 'No registrado';
         final roles = (profile['roles'] as List?)?.whereType<String>().toSet().toList() ?? user.roles;
         final hasRole = (String role) => roles.any((item) => item.trim().toLowerCase() == role);
-        final role = user.roles.contains('jugador') ? 'jugador' : (user.roles.isNotEmpty ? user.roles.first : 'jugador');
+        final role = roles.any((item) => ['jugador', 'player'].contains(item.trim().toLowerCase()))
+            ? 'jugador'
+            : (roles.isNotEmpty ? roles.first : 'jugador');
         final hasRequiredProfileData = profile['documentNumber']?.toString().trim().isNotEmpty == true &&
             (role != 'jugador' || (profile['shirtNumber'] != null && profile['position']?.toString().trim().isNotEmpty == true)) &&
             profile['email']?.toString().trim().isNotEmpty == true;
