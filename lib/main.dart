@@ -67,6 +67,12 @@ class _HandPlayAppState extends State<HandPlayApp> {
       redirect: (context, state) {
         final authState = _authBloc.state;
         final isAuthenticated = authState is AuthAuthenticated;
+        final normalizedRoles = authState is AuthAuthenticated
+            ? authState.user.roles.map((role) => role.trim().toLowerCase()).toSet()
+            : const <String>{};
+        final isPublicRole = normalizedRoles.contains('publico') ||
+            normalizedRoles.contains('public') ||
+            normalizedRoles.contains('público');
         final isInitial = authState is AuthInitial || authState is AuthLoading;
         // Home es una vista pública: permite conocer la app sin iniciar sesión.
         final isPublicRoute = <String>{
@@ -90,6 +96,10 @@ class _HandPlayAppState extends State<HandPlayApp> {
           return RouteNames.login;
         }
 
+        if (isPublicRole && !isPublicRoute) {
+          return RouteNames.home;
+        }
+
         // El detalle del torneo es de solo lectura y puede ser consultado por
         // cuentas públicas, administradores y usuarios autenticados.
         if (state.matchedLocation == RouteNames.tournamentDetail) {
@@ -97,7 +107,7 @@ class _HandPlayAppState extends State<HandPlayApp> {
         }
 
         if (state.matchedLocation == RouteNames.splash) {
-          return isAuthenticated ? RouteNames.profile : RouteNames.home;
+          return isAuthenticated && !isPublicRole ? RouteNames.profile : RouteNames.home;
         }
 
         if (isAuthenticated &&
