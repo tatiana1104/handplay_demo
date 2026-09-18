@@ -52,7 +52,6 @@ class AppBottomNavigationBar extends StatelessWidget {
 
             switch (index) { // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
               case 0:
-                Navigator.of(context).popUntil((route) => route.isFirst);
                 context.go(RouteNames.home);
                 break;
               case 1:

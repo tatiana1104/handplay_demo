@@ -11,6 +11,12 @@ import 'live_match_screen.dart';
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
+  bool _isRealAuthenticated(BuildContext context) {
+    final state = context.watch<AuthBloc>().state;
+    if (state is! AuthAuthenticated) return false;
+    return !state.user.roles.any((role) => role == 'publico' || role == 'public');
+  }
+
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
@@ -19,7 +25,7 @@ class CalendarScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Calendario')),
       bottomNavigationBar: AppBottomNavigationBar(
         selectedIndex: 1,
-        isAuthenticated: context.watch<AuthBloc>().state is AuthAuthenticated,
+        isAuthenticated: _isRealAuthenticated(context),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
