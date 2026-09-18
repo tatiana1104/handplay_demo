@@ -30,31 +30,28 @@ class TorneosScreen extends StatelessWidget {
       builder: (context, roleSnapshot) {
         final isAdmin = _hasAdminRole(roleSnapshot.data?.claims);
         return Scaffold(
-      appBar: AppBar(
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Liga de Balonmano del Caquetá', style: TextStyle(fontSize: 12)),
-            Text('Mis torneos'),
-          ],
-        ),
-        actions: [if (user != null) _CreateTournamentAction(userId: user.uid)],
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        selectedIndex: 0,
-        isAuthenticated: user != null,
-        isAdmin: isAdmin,
-      ),
-      body: FutureBuilder<IdTokenResult?>(
-        future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
-        builder: (context, snapshot) {
-          return _PublicTournamentList(
-            isAdmin: _hasAdminRole(snapshot.data?.claims),
+          appBar: AppBar(
+            title: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Liga de Balonmano del Caquetá', style: TextStyle(fontSize: 12)),
+                Text('Mis torneos'),
+              ],
+            ),
+            actions: [if (user != null) _CreateTournamentAction(userId: user.uid)],
+          ),
+          bottomNavigationBar: AppBottomNavigationBar(
+            selectedIndex: 0,
+            isAuthenticated: user != null,
+            isAdmin: isAdmin,
+          ),
+          body: _PublicTournamentList(
+            isAdmin: isAdmin,
             adminId: user?.uid,
             coachEmail: user?.email,
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -191,11 +188,10 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
           FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Eliminar')),
         ],
       ),
-        );
-      },
     );
+    if (confirmed != true || !mounted) return;
+    await TournamentRepository().deleteTournament(tournament.id);
   }
-}
 
   bool _matchesFilter(Tournament tournament, _TournamentFilter filter) {
     switch (filter) {
