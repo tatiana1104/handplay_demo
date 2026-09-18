@@ -113,26 +113,26 @@ service cloud.firestore {
             && request.resource.data.status == 'pending');
         allow delete: if canManageTournament(tournamentId);
       }
+
+      // Los partidos pertenecen al torneo y los gestiona su administrador.
+      match /matches/{matchId} {
+        allow read: if canManageTournament(tournamentId)
+          || (signedIn() && resource.data.participantIds.hasAny([request.auth.uid]))
+          || (signedIn() && (resource.data.refereeId == request.auth.uid
+            || resource.data.refereeOne == request.auth.uid
+            || resource.data.refereeTwo == request.auth.uid));
+        allow create: if canManageTournament(tournamentId)
+          || (signedIn() && request.resource.data.refereeId == request.auth.uid);
+        allow update: if canManageTournament(tournamentId)
+          || (signedIn() && resource.data.refereeId == request.auth.uid);
+        allow delete: if canManageTournament(tournamentId);
+      }
     }
 
     // Mantiene compatibilidad con la colección raíz creada en Firebase Console.
     match /teams/{teamId} {
       allow read: if signedIn();
       allow write: if isAdmin();
-    }
-
-  // Los partidos pertenecen al torneo y los gestiona su administrador.
-  match /matches/{matchId} {
-  allow read: if canManageTournament(tournamentId)
-  || (signedIn() && resource.data.participantIds.hasAny([request.auth.uid]))
-  || (signedIn() && (resource.data.refereeId == request.auth.uid
-    || resource.data.refereeOne == request.auth.uid
-    || resource.data.refereeTwo == request.auth.uid));
-  allow create: if canManageTournament(tournamentId)
-  || (signedIn() && request.resource.data.refereeId == request.auth.uid);
-  allow update: if canManageTournament(tournamentId)
-  || (signedIn() && resource.data.refereeId == request.auth.uid);
-  allow delete: if canManageTournament(tournamentId);
     }
   }
 }
