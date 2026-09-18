@@ -64,6 +64,7 @@ class ProfileScreen extends StatelessWidget {
                         : normalizedRoles.contains('admin')
                             ? 'admin'
                             : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
+        final hasPlayerRole = normalizedRoles.contains('jugador') || normalizedRoles.contains('player');
         final isPublicProfile = normalizedRoles.contains('publico') ||
             normalizedRoles.contains('public') ||
             normalizedRoles.contains('público');
@@ -71,12 +72,17 @@ class ProfileScreen extends StatelessWidget {
         final hasPlayerData = profile['shirtNumber'] != null &&
             int.tryParse(profile['shirtNumber'].toString()) != null &&
             profile['position']?.toString().trim().isNotEmpty == true;
-        final hasRequiredProfileData = hasDocument && (role != 'jugador' || hasPlayerData);
+        final hasRequiredProfileData = hasDocument && (!hasPlayerRole || hasPlayerData);
         final completedByRole = (profile['profileCompletedByRole'] as Map?)?.map(
               (key, value) => MapEntry(key.toString().trim().toLowerCase(), value == true || value.toString().toLowerCase() == 'true'),
             ) ??
             const <String, bool>{};
-        final profileCompleted = isPublicProfile ||
+        final completedForAllRoles = isPublicProfile ||
+            normalizedRoles
+                .where((item) => item != 'publico' && item != 'public' && item != 'público')
+                .every((item) => completedByRole[item] == true) ||
+            (profile['profileCompleted'] == true || profile['profileComplete'] == true);
+        final profileCompleted = completedForAllRoles ||
             profile['profileCompleted'] == true ||
             profile['profileComplete'] == true ||
             profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
