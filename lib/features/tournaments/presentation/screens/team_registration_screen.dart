@@ -444,7 +444,11 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final enrichedPlayers = <Map<String, String>>[];
       for (final player in _players) {
         final document = player['document']?.trim() ?? '';
-        final matches = await firestore.collection('profile_directory').where('document', isEqualTo: document).limit(1).get();
+        final documentValues = <dynamic>{document, int.tryParse(document)}.where((value) => value != null).toList();
+        QuerySnapshot<Map<String, dynamic>> matches = await firestore.collection('profile_directory').where('document', isEqualTo: document).limit(1).get();
+        if (matches.docs.isEmpty && documentValues.length > 1) {
+          matches = await firestore.collection('profile_directory').where('document', isEqualTo: documentValues.last).limit(1).get();
+        }
         final matchesByNumber = matches.docs.isEmpty
             ? await firestore.collection('profile_directory').where('documentNumber', isEqualTo: document).limit(1).get()
             : matches;
@@ -488,6 +492,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
       final batch = firestore.batch();
+      // Los jugadores quedan incluidos en la solicitud; el administrador asignará
+      // el rol cuando apruebe la inscripción.
       if (isCoachAccount) {
         for (final player in enrichedPlayers) {
           final document = player['document']?.toString().trim() ?? '';
