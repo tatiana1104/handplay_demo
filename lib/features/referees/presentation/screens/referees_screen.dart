@@ -135,7 +135,14 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _levels.contains(_level) ? _level : 'municipal',
-            decoration: const InputDecoration(labelText: 'Acreditación o nivel', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Acreditación o nivel',
+              hintText: 'Selecciona el nivel del árbitro',
+              prefixIcon: Icon(Icons.workspace_premium_outlined),
+              border: OutlineInputBorder(),
+            ),
+            isExpanded: true,
+            icon: const Icon(Icons.keyboard_arrow_down_rounded),
             items: _levels.map((level) => DropdownMenuItem(value: level, child: Text(_label(level)))).toList(),
             onChanged: _saving ? null : (value) => setState(() => _level = value ?? 'municipal'),
           ),
@@ -288,7 +295,14 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: _availableAccreditations.contains(_accreditation) ? _accreditation : _availableAccreditations.first,
-                decoration: const InputDecoration(labelText: 'Acreditación o nivel', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Acreditación o nivel',
+                  hintText: 'Selecciona el nivel del árbitro',
+                  prefixIcon: Icon(Icons.workspace_premium_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
                 items: _availableAccreditations.map((level) => DropdownMenuItem(value: level, child: Text(_levelLabel(level)))).toList(),
                 onChanged: _searched ? (value) => setState(() => _accreditation = value ?? 'municipal') : null,
               ),
