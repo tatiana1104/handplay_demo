@@ -40,10 +40,14 @@ service cloud.firestore {
       allow read: if isSelf(userId) || isAdmin();
       allow create: if isSelf(userId)
         && request.resource.data.uid == userId
-        && request.resource.data.rol == 'jugador';
+        && request.resource.data.rol in ['jugador', 'entrenador']
+        && request.resource.data.roles is list
+        && request.resource.data.roles.hasOnly(['jugador', 'entrenador']);
       allow update: if isSelf(userId)
         && request.resource.data.uid == resource.data.uid
-        && request.resource.data.rol == resource.data.rol;
+        && request.resource.data.roles is list
+        && request.resource.data.roles.hasOnly(['jugador', 'entrenador'])
+        && request.resource.data.roles.hasAll(resource.data.roles);
       allow delete: if isAdmin();
     }
 

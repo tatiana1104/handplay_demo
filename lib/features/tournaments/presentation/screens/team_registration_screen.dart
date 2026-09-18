@@ -238,12 +238,21 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         'termsAccepted': true,
       });
       if (isCoachAccount) {
+        final userRef = FirebaseFirestore.instance.collection('users').doc(currentUser!.uid);
+        await userRef.set({
+          'uid': currentUser.uid,
+          'email': currentUser.email,
+          'nombre': _coach.text.trim(),
+          'roles': FieldValue.arrayUnion(['entrenador']),
+          'rol': 'entrenador',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('teams').doc(registration.id).set(teamData);
       }
       if (mounted) {
         _show(isCoachAccount
             ? 'Solicitud enviada y equipo vinculado a tu cuenta. Espera la verificación del administrador.'
-            : 'Solicitud enviada. Crea primero una cuenta con este correo para vincular el equipo manualmente.');
+            : 'Solicitud enviada. Inicia sesión con la cuenta de este correo para vincular el equipo y recibir el rol de entrenador.');
         Navigator.of(context).pop();
       }
     } on FirebaseException catch (error) {
