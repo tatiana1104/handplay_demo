@@ -312,6 +312,7 @@ class _TournamentCard extends StatelessWidget {
             .doc(tournament.id)
             .collection('registrations')
             .where('coachEmail', isEqualTo: coachEmail!.trim().toLowerCase())
+            .orderBy('createdAt', descending: true)
             .limit(1)
             .snapshots();
     final status = _statusOf(tournament);

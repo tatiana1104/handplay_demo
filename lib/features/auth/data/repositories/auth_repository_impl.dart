@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
@@ -19,10 +21,17 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<AppUser?> watchAuthState() {
     return remoteDataSource.authStateChanges.asyncMap((user) async {
       if (user == null) return null;
-      final token = await user.getIdTokenResult();
-      final roles = _rolesFromClaims(token.claims);
-      return AppUserModel.fromFirebaseUser(user, roles: roles);
+      return _appUserFromFirebaseUser(user);
     });
+  }
+
+  Future<AppUserModel> _appUserFromFirebaseUser(fb.User firebaseUser) async {
+    final token = await firebaseUser.getIdTokenResult();
+    final claimRoles = _rolesFromClaims(token.claims);
+    final profile = await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get();
+    final profileRoles = (profile.data()?['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
+    final roles = {...claimRoles, ...profileRoles}.toList();
+    return AppUserModel.fromFirebaseUser(firebaseUser, roles: roles.isEmpty ? const ['jugador'] : roles);
   }
 
   static List<String> _rolesFromClaims(Map<String, dynamic>? claims) {
@@ -45,7 +54,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
-      return Right(AppUserModel.fromFirebaseUser(user));
+      return Right(await _appUserFromFirebaseUser(user));
     } on ServerException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (_) {
@@ -65,7 +74,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
-      return Right(AppUserModel.fromFirebaseUser(user));
+      return Right(await _appUserFromFirebaseUser(user));
     } on ServerException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (_) {
@@ -77,7 +86,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, AppUser>> signInWithGoogle() async {
     try {
       final user = await remoteDataSource.signInWithGoogle();
-      return Right(AppUserModel.fromFirebaseUser(user));
+      return Right(await _appUserFromFirebaseUser(user));
     } on ServerException catch (e) {
       return Left(AuthFailure(e.message));
     } catch (_) {

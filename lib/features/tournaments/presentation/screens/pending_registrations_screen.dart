@@ -131,7 +131,7 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [Expanded(child: Text(data['teamName'] as String? ?? 'Equipo sin nombre', style: Theme.of(context).textTheme.titleMedium)), Chip(label: const Text('pendiente'))]),
+                        Row(children: [Expanded(child: Text(data['teamName'] as String? ?? 'Equipo sin nombre', style: Theme.of(context).textTheme.titleMedium)), Chip(label: Text(data['status'] == 'approved' ? 'aprobada' : data['status'] == 'rejected' ? 'rechazada' : 'pendiente'))]),
                         Text('${data['category'] ?? 'Sin categoría'} · ${data['clubName'] ?? 'Club independiente'}'),
                         const SizedBox(height: 6),
                         Text('Color: ${data['uniformColor'] ?? 'Sin definir'} · Entrenador: ${data['coachName'] ?? 'Sin definir'}'),
