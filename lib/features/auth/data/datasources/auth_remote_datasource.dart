@@ -213,6 +213,17 @@ class AuthRemoteDataSource {
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+    await FirebaseFirestore.instance.collection('profile_directory').doc(user.uid).set({
+      'name': name?.isNotEmpty == true ? name : (mergedData['displayName'] ?? mergedData['nombre'] ?? user.displayName ?? ''),
+      'document': mergedData['document'] ?? mergedData['documentNumber'] ?? '',
+      'email': user.email?.trim().toLowerCase() ?? '',
+      'phone': mergedData['phone'] ?? '',
+      'roles': roles.toList(),
+      'shirtNumber': mergedData['shirtNumber'] ?? '',
+      'position': mergedData['position'] ?? '',
+      'teamName': mergedData['teamName'] ?? '',
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
     if (pendingRef != null) {
       await pendingRef.update({
         'linkedUid': user.uid,

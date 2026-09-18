@@ -41,7 +41,6 @@ service cloud.firestore {
   allow create: if isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == userId
-    && request.resource.data.rol in ['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga']
     && request.resource.data.roles is list
     && request.resource.data.roles.size() > 0
     && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga']));
@@ -53,6 +52,13 @@ service cloud.firestore {
     && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga'])
     && (!('roles' in resource.data) || request.resource.data.roles.hasAll(resource.data.roles)));
       allow delete: if isAdmin();
+    }
+
+    // Directorio de perfiles para reutilizar datos en inscripciones.
+    match /profile_directory/{profileId} {
+      allow read: if true;
+      allow create, update: if isSelf(profileId) || isAdmin();
+      allow delete: if isSelf(profileId) || isAdmin();
     }
 
     // Los torneos son visibles para administradores y participantes.
@@ -80,6 +86,8 @@ service cloud.firestore {
           && request.resource.data.teamName is string
           && request.resource.data.coachName is string
           && request.resource.data.coachName.size() > 0
+          && request.resource.data.coachDocument is string
+          && request.resource.data.coachDocument.size() > 0
           && request.resource.data.coachEmail is string
           && request.resource.data.coachEmail.size() > 3
           && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')

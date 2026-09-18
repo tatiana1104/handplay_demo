@@ -231,6 +231,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     if (_players.length > maxPlayers) {
       issues.add('El equipo tiene ${_players.length} jugadores, pero el máximo permitido es $maxPlayers.');
     }
+    if (_coachDocument.text.trim().isEmpty) issues.add('El número de documento del entrenador es obligatorio.');
+    if (_email.text.trim().isEmpty || !_email.text.trim().contains('@')) issues.add('El correo del entrenador es obligatorio y debe ser válido.');
+    final playerDocuments = _players.map((player) => player['document']?.trim()).whereType<String>().where((document) => document.isNotEmpty).toList();
+    if (playerDocuments.toSet().length != playerDocuments.length) issues.add('No puedes registrar dos veces el mismo número de documento.');
     if (!_accepted) issues.add('Debes aceptar el reglamento y confirmar que la información es correcta.');
 
     if (issues.isNotEmpty) {
@@ -242,17 +246,17 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final coachEmail = _email.text.trim().toLowerCase();
       final coachDocument = _coachDocument.text.trim();
       final firestore = FirebaseFirestore.instance;
-      final userByDocument = await firestore.collection('users').where('document', isEqualTo: coachDocument).limit(1).get();
+      final userByDocument = await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get();
       final userByDocumentNumber = userByDocument.docs.isEmpty
-          ? await firestore.collection('users').where('documentNumber', isEqualTo: coachDocument).limit(1).get()
+          ? await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get()
           : userByDocument;
-      final userByEmail = await firestore.collection('users').where('email', isEqualTo: coachEmail).limit(1).get();
+      final userByEmail = await firestore.collection('profile_directory').where('email', isEqualTo: coachEmail).limit(1).get();
       final existingCoach = userByDocumentNumber.docs.isNotEmpty ? userByDocumentNumber.docs.first : (userByEmail.docs.isNotEmpty ? userByEmail.docs.first : null);
       final enrichedPlayers = <Map<String, String>>[];
       for (final player in _players) {
         final document = player['document']?.trim() ?? '';
-        final matches = await firestore.collection('users').where('document', isEqualTo: document).limit(1).get();
-        final matchesByNumber = matches.docs.isEmpty ? await firestore.collection('users').where('documentNumber', isEqualTo: document).limit(1).get() : matches;
+        final matches = await firestore.collection('profile_directory').where('document', isEqualTo: document).limit(1).get();
+        final matchesByNumber = matches;
         final existing = matchesByNumber.docs.isEmpty ? null : matchesByNumber.docs.first.data();
         enrichedPlayers.add({
           ...?existing?.map((key, value) => MapEntry(key, value?.toString() ?? '')),
@@ -269,6 +273,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final registration = widget.registrationId == null
           ? registrations.doc()
           : registrations.doc(widget.registrationId);
+      final profileDirectory = firestore.collection('profile_directory');
       final teamData = {
         'id': registration.id,
         'tournamentId': widget.tournament.id,
@@ -301,6 +306,15 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         SetOptions(merge: true),
       );
       if (isCoachAccount) {
+        final directoryRef = profileDirectory.doc(currentUser!.uid);
+        batch.set(directoryRef, {
+          'name': _coach.text.trim(),
+          'document': coachDocument,
+          'email': coachEmail,
+          'phone': _phone.text.trim(),
+          'roles': ['entrenador'],
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
         final userRef = firestore.collection('users').doc(currentUser!.uid);
         final teamRef = firestore
             .collection('tournaments')
