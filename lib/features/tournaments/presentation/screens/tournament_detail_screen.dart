@@ -187,6 +187,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   String? _refereeTwo;
   String? _timekeeper;
   String? _scorer;
+  List<Map<String, dynamic>> _teamOptions = [];
   bool _saving = false;
 
   @override
@@ -198,7 +199,9 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     final matchDate = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
     try {
       await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('matches').add({
-        'homeTeam': _home, 'awayTeam': _away, 'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
+        'homeTeam': _home, 'homeTeamName': _teamName(_home), 'homeTeamColor': _teamColor(_home),
+        'awayTeam': _away, 'awayTeamName': _teamName(_away), 'awayTeamColor': _teamColor(_away),
+        'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
         'refereeOne': _refereeOne, 'refereeTwo': _refereeTwo, 'timekeeper': _timekeeper, 'scorer': _scorer,
         'status': 'scheduled', 'createdAt': FieldValue.serverTimestamp(),
       });
@@ -208,6 +211,10 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
+  String _teamName(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'name': id ?? 'Equipo'} )['name'].toString();
+
+  dynamic _teamColor(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'color': null})['color'];
+
   @override
   Widget build(BuildContext context) {
     final teams = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
@@ -216,7 +223,15 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
       appBar: AppBar(title: const Text('Nuevo partido')),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: teams, builder: (context, teamSnapshot) {
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: referees, builder: (context, refereeSnapshot) {
-          final teamOptions = (teamSnapshot.data?.docs ?? const []).map((doc) => MapEntry(doc.id, doc.data()['teamName']?.toString() ?? doc.data()['name']?.toString() ?? 'Equipo ${doc.id}')).toList();
+          _teamOptions = (teamSnapshot.data?.docs ?? const []).map((doc) {
+            final data = doc.data();
+            return <String, dynamic>{
+              'id': doc.id,
+              'name': data['teamName']?.toString() ?? data['name']?.toString() ?? data['team']?.toString() ?? 'Equipo ${doc.id}',
+              'color': data['uniformColor'] ?? data['jerseyColor'] ?? data['kitColor'] ?? data['color'],
+            };
+          }).toList();
+          final teamOptions = _teamOptions.map((team) => MapEntry(team['id'].toString(), team['name'].toString())).toList();
           final refereeOptions = (refereeSnapshot.data?.docs ?? const []).map((doc) => MapEntry(doc.id, doc.data()['displayName']?.toString() ?? doc.data()['nombre']?.toString() ?? 'Árbitro')).toList();
           return Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(16), children: [
             _matchDropdown('Equipo local', _home, teamOptions, (value) => setState(() => _home = value)),
@@ -271,8 +286,10 @@ class _MatchesSection extends StatelessWidget {
           ...grouped.entries.map((entry) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4), child: Text(_matchDateLabel(entry.key), style: Theme.of(context).textTheme.labelMedium)),
                 ...entry.value.map((match) {
-                  final home = match['homeTeam'] ?? match['local'] ?? 'Equipo local';
-                  final away = match['awayTeam'] ?? match['visitante'] ?? 'Equipo visitante';
+                  final home = match['homeTeamName']?.toString() ?? match['localName']?.toString() ?? match['homeTeam']?.toString() ?? match['local']?.toString() ?? 'Equipo local';
+                  final away = match['awayTeamName']?.toString() ?? match['visitorName']?.toString() ?? match['awayTeam']?.toString() ?? match['visitante']?.toString() ?? 'Equipo visitante';
+                  final homeColor = _teamColorFromValue(match['homeTeamColor'], Colors.green);
+                  final awayColor = _teamColorFromValue(match['awayTeamColor'], Colors.deepOrange);
                   final time = match['time']?.toString() ?? _matchTimeLabel(match['date']);
                   final status = match['status']?.toString() ?? 'scheduled';
                   return Card(
@@ -282,9 +299,9 @@ class _MatchesSection extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
-                          Expanded(child: _TeamMatchLabel(name: away, color: Colors.deepOrange)),
+                          Expanded(child: _TeamMatchLabel(name: away, color: awayColor)),
                           Text(time, style: Theme.of(context).textTheme.bodySmall),
-                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: home, color: Colors.green))),
+                          Expanded(child: Align(alignment: Alignment.centerRight, child: _TeamMatchLabel(name: home, color: homeColor))),
                         ]),
                         const SizedBox(height: 6),
                         Container(
@@ -317,6 +334,22 @@ class _TeamMatchLabel extends StatelessWidget {
           Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
         ],
       );
+}
+
+Color _teamColorFromValue(dynamic value, Color fallback) {
+  if (value is int) return Color(value);
+  if (value is String) {
+    final normalized = value.replaceFirst('#', '');
+    final hex = int.tryParse(normalized, radix: 16);
+    if (hex != null) return Color(normalized.length <= 6 ? 0xFF000000 | hex : hex);
+    final named = <String, Color>{
+      'rojo': Colors.red, 'azul': Colors.blue, 'verde': Colors.green,
+      'amarillo': Colors.yellow, 'naranja': Colors.orange, 'negro': Colors.black,
+      'blanco': Colors.white, 'morado': Colors.purple,
+    };
+    return named[value.toLowerCase()] ?? fallback;
+  }
+  return fallback;
 }
 
 String _matchDateLabel(String value) {
