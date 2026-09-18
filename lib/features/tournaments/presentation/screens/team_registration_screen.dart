@@ -247,11 +247,15 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       firestore.collection('referees'),
     ];
     for (final collection in collections) {
-      final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
-      if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
-      for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula']) {
-        final byNumber = await collection.where(field, isEqualTo: document).limit(1).get();
-        if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      try {
+        final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
+        if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
+        for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula']) {
+          final byNumber = await collection.where(field, isEqualTo: document).limit(1).get();
+          if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+        }
+      } on FirebaseException {
+        continue;
       }
     }
     return null;
@@ -323,22 +327,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final coachEmail = _email.text.trim().toLowerCase();
       final coachDocument = _coachDocument.text.trim();
       final firestore = FirebaseFirestore.instance;
-      final userByDocument = await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get();
-      final userByDocumentNumber = userByDocument.docs.isEmpty
-          ? await firestore.collection('profile_directory').where('documentNumber', isEqualTo: coachDocument).limit(1).get()
-          : userByDocument;
-      final userByEmail = await firestore.collection('profile_directory').where('email', isEqualTo: coachEmail).limit(1).get();
-      final coachUsersByDocument = await firestore.collection('users').where('document', isEqualTo: coachDocument).limit(1).get();
-      final coachUsersByEmail = await firestore.collection('users').where('email', isEqualTo: coachEmail).limit(1).get();
-      final existingCoach = userByDocumentNumber.docs.isNotEmpty
-          ? userByDocumentNumber.docs.first.data()
-          : userByEmail.docs.isNotEmpty
-              ? userByEmail.docs.first.data()
-              : coachUsersByDocument.docs.isNotEmpty
-                  ? coachUsersByDocument.docs.first.data()
-                  : coachUsersByEmail.docs.isNotEmpty
-                      ? coachUsersByEmail.docs.first.data()
-                      : null;
+      final directoryProfile = await _findProfile(coachDocument);
+      final existingCoach = directoryProfile;
+
       final enrichedPlayers = <Map<String, String>>[];
       for (final player in _players) {
         final document = player['document']?.trim() ?? '';
@@ -385,8 +376,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
       final batch = firestore.batch();
-      for (final player in enrichedPlayers) {
-        final document = player['document']?.toString().trim() ?? '';
+      if (isCoachAccount) {
+        for (final player in enrichedPlayers) {
+          final document = player['document']?.toString().trim() ?? '';
         if (document.isEmpty) continue;
         final playerMatches = await profileDirectory.where('document', isEqualTo: document).limit(1).get();
         final playerRef = playerMatches.docs.isEmpty ? profileDirectory.doc('document_$document') : playerMatches.docs.first.reference;
@@ -399,7 +391,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           'club': player['club'] ?? '',
           'roles': ['jugador'],
           'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+          }, SetOptions(merge: true));
+        }
       }
       batch.set(
         registration,
