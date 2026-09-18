@@ -82,6 +82,7 @@ service cloud.firestore {
           && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
           && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam;
         allow read: if canManageTournament(tournamentId)
+          || resource.data.status == 'approved'
           || (signedIn()
             && resource.data.coachEmail == request.auth.token.email);
         allow update, delete: if canManageTournament(tournamentId);
