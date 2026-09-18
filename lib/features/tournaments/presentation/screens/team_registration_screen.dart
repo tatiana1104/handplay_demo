@@ -94,14 +94,15 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     }
     final document = _document.text.trim();
     final existing = await _findProfile(document);
-    Navigator.of(context).pop({
-      'name': _name.text.trim().isNotEmpty ? _name.text.trim() : (existing?['name'] ?? ''),
+    final playerResult = <String, String>{
+      'name': _name.text.trim().isNotEmpty ? _name.text.trim() : (existing?['name']?.toString() ?? ''),
       'document': document,
       'number': _number.text.trim().isNotEmpty ? _number.text.trim() : (_firstValue(existing ?? {}, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber']) ?? ''),
       'position': _position.text.trim().isNotEmpty ? _position.text.trim() : (_firstValue(existing ?? {}, ['position', 'posicion']) ?? ''),
       'gender': _gender ?? _firstValue(existing ?? {}, ['gender', 'genero', 'sex', 'sexo']) ?? '',
       'club': _club.text.trim().isNotEmpty ? _club.text.trim() : (_firstValue(existing ?? {}, ['club', 'clubName', 'club al que pertenece', 'club_name']) ?? ''),
-    });
+    };
+    Navigator.of(context).pop<Map<String, String>>(playerResult);
   }
 
   String? _normalizePosition(String? value) {
