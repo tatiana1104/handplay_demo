@@ -40,7 +40,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Partido en vivo')),
       body: ListView(padding: const EdgeInsets.all(12), children: [
-        Center(child: Text(_match['status'] == 'playing' ? 'EN VIVO · ${_match['elapsedSeconds'] ?? 0}:00' : 'PARTIDO PROGRAMADO', style: Theme.of(context).textTheme.labelMedium)),
+        Center(child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.circle, size: 8, color: _statusColor(_match['status']?.toString())),
+          const SizedBox(width: 5),
+          Text('${_statusLabel(_match['status']?.toString())} · ${_elapsedLabel()}', style: Theme.of(context).textTheme.labelMedium),
+        ])),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           Expanded(child: Text(home.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
@@ -48,7 +52,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           Expanded(child: Text(away.toString(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
         ]),
         const SizedBox(height: 6),
-        Center(child: Text('Período ${_match['period'] ?? 1}')),
+        Center(child: Text('Tiempo ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min')),
         if (_canStart && _match['status'] != 'playing' && _match['status'] != 'finished') ...[
           const SizedBox(height: 14),
           FilledButton.icon(onPressed: _startMatch, icon: const Icon(Icons.play_arrow), label: const Text('Iniciar partido')),
@@ -72,6 +76,21 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         ...events.map((event) => ListTile(dense: true, leading: Text('${event['minute'] ?? "--"}\''), title: Text(event['description']?.toString() ?? 'Evento'))),
       ]),
     );
+  }
+
+  String _statusLabel(String? status) {
+    switch (status) {
+      case 'playing': return 'EN VIVO';
+      case 'finished': return 'FINALIZADO';
+      default: return 'POR INICIAR';
+    }
+  }
+
+  Color _statusColor(String? status) => status == 'playing' ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
+
+  String _elapsedLabel() {
+    final seconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
+    return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
   }
 
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);

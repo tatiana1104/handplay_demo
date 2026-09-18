@@ -190,6 +190,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   String? _refereeTwo;
   String? _timekeeper;
   String? _scorer;
+  int _halfDurationMinutes = 20;
   List<Map<String, dynamic>> _teamOptions = [];
   List<Map<String, String>> _refereeOptions = [];
   bool _saving = false;
@@ -226,7 +227,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
         'awayTeam': _away, 'awayTeamName': _teamName(_away), 'awayTeamColor': _teamColor(_away),
         'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
         'refereeOne': _refereeOne, 'refereeTwo': _refereeTwo, 'timekeeper': _timekeeper, 'scorer': _scorer,
-        'status': 'scheduled', 'createdAt': FieldValue.serverTimestamp(),
+        'status': 'scheduled', 'halfDurationMinutes': _halfDurationMinutes, 'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) Navigator.of(context).pop();
     } on FirebaseException catch (error) {
@@ -298,6 +299,8 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
             ListTile(title: Text(_date == null ? 'Fecha' : '${_date!.day.toString().padLeft(2, '0')}/${_date!.month.toString().padLeft(2, '0')}/${_date!.year}'), trailing: const Icon(Icons.calendar_today), onTap: () async { final value = await showDatePicker(context: context, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: DateTime.now()); if (value != null) setState(() => _date = value); }),
             ListTile(title: Text(_time == null ? 'Hora' : _time!.format(context)), trailing: const Icon(Icons.schedule), onTap: () async { final value = await showTimePicker(context: context, initialTime: TimeOfDay.now()); if (value != null) setState(() => _time = value); }),
             TextFormField(controller: _venue, decoration: const InputDecoration(labelText: 'Sede / cancha', border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<int>(value: _halfDurationMinutes, decoration: const InputDecoration(labelText: 'Duración de cada tiempo', border: OutlineInputBorder()), items: const [15, 20, 25, 30, 35].map((minutes) => DropdownMenuItem(value: minutes, child: Text('$minutes minutos'))).toList(), onChanged: (value) => setState(() => _halfDurationMinutes = value ?? 20)),
             const SizedBox(height: 16),
             Text('Asignación de jueces', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             _matchDropdown('Árbitro de campo 1', _refereeOne, refereeOptions, (value) => setState(() => _refereeOne = value)),
