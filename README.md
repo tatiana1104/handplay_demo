@@ -199,18 +199,32 @@ La información se organiza por dominio y no se concentra en una pantalla:
 
 Las pantallas deben coordinar datos y composición visual; los modelos, acceso a Firestore y widgets específicos permanecen dentro de su feature. Como parte de esta etapa, `TeamRepository` centraliza las inscripciones aprobadas y `MatchRepository` centraliza la lectura de partidos; las pantallas de torneo ya consumen esos repositorios.
 
-### 🟨 Sprint 4 — Partido en vivo (siguiente)
-- [ ] Marcador en tiempo real.
-- [ ] Registro de goles.
-- [ ] Tarjetas y exclusiones.
-- [ ] Planilla digital.
+#### Historial de commits de implementación
+- `7887698`: detalle de partido en vivo y permiso de inicio por asignación.
+- `3ccadbd`: duración configurable de cada tiempo y estado del marcador.
+- `15bb4cc`: funciones de árbitro derivadas de la asignación del partido.
+- `735a00e`: estado resaltado en el marcador.
+- `7f490f0`: cuatro oficiales visibles: dos árbitros de campo, cronometrista y anotador.
+- `c766d8b`: eliminación del estado duplicado bajo los oficiales.
+- `cbe502e`: resolución de IDs de oficiales a nombres.
+- `e85c4b0`: sección de oficiales plegable.
+- `3ff25c2`: planilla digital con equipos y jugadores.
+- `f8bd046`: controles de gol, exclusión, tarjeta amarilla y tarjeta roja.
+
+### 🟨 Sprint 4 — Partido en vivo (en progreso)
+- [x] Marcador y estado del partido.
+- [x] Registro visual de goles.
+- [x] Controles de tarjetas y exclusiones.
+- [x] Planilla digital con equipos y jugadores inscritos.
 - [ ] Bloqueo de planillas aprobadas.
 
 Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
 
-### ⬜ Sprint 6 — Automatizaciones
-Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos.
 ### ⬜ Sprint 5 — Estadísticas
+
+### ⬜ Sprint 6 — Automatizaciones
+Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos, además de la generación automática de la cronología del partido a partir de goles, exclusiones y tarjetas.
+
 ### ⬜ Sprint 6 — Gemini y notificaciones
 ### ⬜ Sprint 7 — Pruebas y publicación
 
