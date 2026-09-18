@@ -226,7 +226,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
         'homeTeam': _home, 'homeTeamName': _teamName(_home), 'homeTeamColor': _teamColor(_home),
         'awayTeam': _away, 'awayTeamName': _teamName(_away), 'awayTeamColor': _teamColor(_away),
         'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
-        'refereeOne': _refereeOne, 'refereeTwo': _refereeTwo, 'timekeeper': _timekeeper, 'scorer': _scorer,
+        'refereeOne': _refereeOne, 'refereeOneName': _refereeName(_refereeOne ?? ''), 'refereeTwo': _refereeTwo, 'refereeTwoName': _refereeName(_refereeTwo ?? ''), 'timekeeper': _timekeeper, 'timekeeperName': _refereeName(_timekeeper ?? ''), 'scorer': _scorer, 'scorerName': _refereeName(_scorer ?? ''),
         'status': 'scheduled', 'halfDurationMinutes': _halfDurationMinutes, 'createdAt': FieldValue.serverTimestamp(),
       });
       if (mounted) Navigator.of(context).pop();

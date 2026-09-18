@@ -62,7 +62,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         _section('Oficiales del partido', [
           _official('Árb. campo 1', _match['refereeOneName'] ?? _match['refereeOne']),
           _official('Árb. campo 2', _match['refereeTwoName'] ?? _match['refereeTwo']),
-          _official('Mesa', _match['tableOfficialName'] ?? _match['tableOfficial']),
+          _official('Mesa - Cronometrista', _match['timekeeperName'] ?? _match['timekeeper']),
+          _official('Mesa - Anotador', _match['scorerName'] ?? _match['scorer']),
         ]),
         const SizedBox(height: 14),
         MatchStatusLabel(status: _match['status']?.toString()),
