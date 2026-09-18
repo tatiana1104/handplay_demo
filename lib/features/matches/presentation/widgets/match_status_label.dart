@@ -14,10 +14,10 @@ String matchStatusLabel(String? status) {
 Color matchStatusColor(BuildContext context, String? status) {
   final colors = Theme.of(context).colorScheme;
   return switch (matchStatusLabel(status)) {
-    'En curso' => AppColors.brandDark,
-    'Aplazado' => Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight,
+    'En curso' => Theme.of(context).brightness == Brightness.dark ? AppColors.brandDark : AppColors.brandLight,
+    'Aplazado' => colors.error,
     'Finalizado' => colors.onSurfaceVariant,
-    _ => Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+    _ => Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight,
   };
 }
 
