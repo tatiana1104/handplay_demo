@@ -49,13 +49,17 @@ class _PlayerDialogState extends State<_PlayerDialog> {
 
   Future<void> _loadExistingPlayer() async {
     final existing = await _findProfile(_document.text.trim());
-    if (!mounted || existing == null) return;
+    if (!mounted) return;
+    if (existing == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se encontró un perfil con ese documento.')));
+      return;
+    }
     setState(() {
-      _name.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? '';
-      _number.text = existing['number']?.toString() ?? existing['shirtNumber']?.toString() ?? '';
-      _position.text = existing['position']?.toString() ?? '';
-      _gender = existing['gender']?.toString();
-      _club.text = existing['club']?.toString() ?? existing['clubName']?.toString() ?? '';
+      _name.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? '';
+      _number.text = existing['number']?.toString() ?? existing['shirtNumber']?.toString() ?? existing['numeroCamiseta']?.toString() ?? '';
+      _position.text = existing['position']?.toString() ?? existing['posicion']?.toString() ?? '';
+      _gender = existing['gender']?.toString() ?? existing['genero']?.toString();
+      _club.text = existing['club']?.toString() ?? existing['clubName']?.toString() ?? existing['club al que pertenece']?.toString() ?? '';
     });
   }
 
@@ -90,8 +94,10 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     ]) {
       final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
       if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
-      final byNumber = await collection.where('documentNumber', isEqualTo: document).limit(1).get();
-      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula']) {
+        final byNumber = await collection.where(field, isEqualTo: document).limit(1).get();
+        if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      }
     }
     return null;
   }
@@ -243,8 +249,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     for (final collection in collections) {
       final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
       if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
-      final byNumber = await collection.where('documentNumber', isEqualTo: document).limit(1).get();
-      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      for (final field in ['documentNumber', 'numeroDocumento', 'numero_documento', 'cedula']) {
+        final byNumber = await collection.where(field, isEqualTo: document).limit(1).get();
+        if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      }
     }
     return null;
   }
@@ -253,10 +261,14 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     final document = _coachDocument.text.trim();
     if (document.isEmpty) return;
     final existing = await _findProfile(document);
-    if (!mounted || existing == null) return;
+    if (!mounted) return;
+    if (existing == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se encontró un perfil con ese documento.')));
+      return;
+    }
     setState(() {
       _coach.text = existing['name']?.toString() ?? existing['displayName']?.toString() ?? existing['nombre']?.toString() ?? _coach.text;
-      _coachDocument.text = existing['document']?.toString() ?? existing['documentNumber']?.toString() ?? document;
+      _coachDocument.text = existing['document']?.toString() ?? existing['documentNumber']?.toString() ?? existing['numeroDocumento']?.toString() ?? document;
       _phone.text = existing['phone']?.toString() ?? existing['telefono']?.toString() ?? _phone.text;
       _email.text = existing['email']?.toString() ?? existing['correo']?.toString() ?? _email.text;
     });
