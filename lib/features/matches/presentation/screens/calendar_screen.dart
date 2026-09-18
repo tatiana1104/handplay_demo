@@ -132,15 +132,6 @@ String _time(dynamic value) {
 }
 
 
-  @override
-  Widget build(BuildContext context) {
-    final value = status?.toString().toLowerCase();
-    final label = value == 'playing' || value == 'jugando' ? 'Jugando' : value == 'finished' || value == 'finalizado' ? 'Finalizado' : 'Por iniciar';
-    final color = label == 'Jugando' ? Colors.orange.shade700 : label == 'Finalizado' ? Colors.blueGrey : Colors.green.shade700;
-    return DecoratedBox(decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11))));
-  }
-}
-
 class _TeamSide extends StatelessWidget {
   const _TeamSide({required this.label, required this.name, required this.color, this.alignEnd = false});
   final String label;
