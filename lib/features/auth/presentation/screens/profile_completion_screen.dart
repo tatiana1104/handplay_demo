@@ -30,8 +30,13 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     setState(() => _saving = true);
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'email': FirebaseAuth.instance.currentUser?.email,
+    final currentUser = FirebaseAuth.instance.currentUser!;
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'uid': uid,
+      'roles': [widget.role],
+      'rol': widget.role,
+      'email': currentUser.email,
       'documentNumber': _documentController.text.trim(),
       if (widget.role == 'jugador') ...{
         'shirtNumber': int.parse(_shirtController.text.trim()),
@@ -39,8 +44,16 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
       },
       'profileCompleted': true,
       'profileCompletedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-    if (mounted) setState(() => _saving = false);
+      }, SetOptions(merge: true));
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil guardado correctamente')));
+      Navigator.of(context).pop();
+    } on FirebaseException catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar el perfil: ${error.message ?? error.code}')));
+    }
   }
 
   @override

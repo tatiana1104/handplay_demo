@@ -47,6 +47,9 @@ class ProfileScreen extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
+        final documentNumber = profile['documentNumber']?.toString() ?? 'No registrado';
+        final shirtNumber = profile['shirtNumber']?.toString() ?? 'No registrado';
+        final position = profile['position']?.toString() ?? 'No registrada';
         final role = user?.roles.contains('jugador') == true ? 'jugador' : (user?.roles.isNotEmpty == true ? user!.roles.first : 'jugador');
         if (snapshot.hasData && profile['profileCompleted'] != true) {
           return ProfileCompletionScreen(role: role);
@@ -112,6 +115,11 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
+          Card(child: ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Número de documento'), subtitle: Text(documentNumber))),
+          if (user.roles.contains('jugador')) ...[
+            Card(child: ListTile(leading: const Icon(Icons.confirmation_number_outlined), title: const Text('Número de camiseta'), subtitle: Text(shirtNumber))),
+            Card(child: ListTile(leading: const Icon(Icons.sports_handball_outlined), title: const Text('Posición'), subtitle: Text(position))),
+          ],
           Card(
             child: ListTile(
               leading: const Icon(Icons.email_outlined),

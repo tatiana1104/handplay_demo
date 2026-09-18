@@ -219,6 +219,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: evita mostrar UIDs como nombres durante la carga; calendario y detalle muestran nombres guardados o un texto neutral mientras resuelven la inscripción.
   - `HEAD`: el banner público del calendario muestra `Home`, `Calendario` e `Iniciar sesión`; Home navega directamente sin depender del historial de rutas.
   - `HEAD`: el banner calcula la sesión real desde AuthBloc, evita mostrar Perfil a visitantes/rol público y mantiene índices válidos para usuarios, administradores y visitantes.
+  - `HEAD`: completar perfil crea/actualiza `users/{uid}` con `uid`, `roles`, `rol`, correo y datos del jugador; la pantalla Perfil muestra los datos guardados y errores de Firestore.
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 
