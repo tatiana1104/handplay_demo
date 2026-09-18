@@ -292,10 +292,14 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.warning_amber_rounded),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Icon(Icons.warning_amber_rounded),
+            ),
             SizedBox(width: 10),
-            Text('No se puede enviar todavía'),
+            Expanded(child: Text('No se puede enviar todavía')),
           ],
         ),
         content: ConstrainedBox(
