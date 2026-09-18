@@ -64,11 +64,16 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     return _match['${key}Name']?.toString() ?? _officialNames[value] ?? 'Sin nombre';
   }
 
+  bool get _isReferee {
+    final state = context.read<AuthBloc>().state;
+    return state is AuthAuthenticated && state.user.roles.any((role) => role == 'arbitro' || role == 'referee');
+  }
+
   bool get _canStart {
     final state = context.read<AuthBloc>().state;
     if (state is! AuthAuthenticated) return false;
     final uid = state.user.uid;
-    return uid == _match['timekeeper'] || uid == _match['scorer'];
+    return _isReferee && (uid == _match['timekeeper'] || uid == _match['scorer']);
   }
 
   Future<void> _startMatch() async {
@@ -132,7 +137,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           ]),
         ),
         const SizedBox(height: 18),
-        _section('Planilla digital', [
+        if (_isReferee) _section('Planilla digital', [
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _registrationStream,
             builder: (context, snapshot) {
