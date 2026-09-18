@@ -152,6 +152,13 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Future<void> _resetToSecondPeriod() async {
     if (!_isTimekeeper) return;
     _timer?.cancel();
+    _elapsedSeconds = 0;
+    _isPaused = false;
+    _match['period'] = 2;
+    _match['elapsedSeconds'] = 0;
+    _match['status'] = 'en_curso';
+    if (mounted) setState(() {});
+    _startLocalTimer();
     await _saveMatch({
       'period': 2,
       'elapsedSeconds': 0,
@@ -160,12 +167,6 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'periodStartedAt': FieldValue.serverTimestamp(),
       'startedAt': FieldValue.serverTimestamp(),
     });
-    if (!mounted) return;
-    setState(() {
-      _elapsedSeconds = 0;
-      _isPaused = false;
-    });
-    _startLocalTimer();
   }
 
   Future<void> _finishMatch() async {
@@ -236,8 +237,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         Center(
           child: Text(
             ((_match['period'] as num?)?.toInt() ?? 1) <= 2
-                ? 'Período ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min'
-                : 'Desempate ${_match['period'] ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min',
+                ? 'Período ${(_match['period'] as num?)?.toInt() ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min'
+                : 'Desempate ${(_match['period'] as num?)?.toInt() ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min',
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
