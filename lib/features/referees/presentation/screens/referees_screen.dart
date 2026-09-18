@@ -486,49 +486,54 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     setState(() => _loading = true);
     try {
       final users = FirebaseFirestore.instance.collection('users');
-      var userRef = _userRef;
-      if (userRef == null) {
-        final email = _email.text.trim().toLowerCase();
-        final matches = await Future.wait([
-          if (email.isNotEmpty) users.where('email', isEqualTo: email).limit(1).get(),
-          if (email.isNotEmpty) users.where('correo', isEqualTo: email).limit(1).get(),
-          users.where('document', isEqualTo: _document.text.trim()).limit(1).get(),
-        ]);
-        for (final result in matches) {
-          if (result.docs.isNotEmpty) {
-            userRef = result.docs.first.reference;
-            break;
-          }
+      final documentNumber = _document.text.trim();
+      final email = _email.text.trim().toLowerCase();
+      final matches = await Future.wait([
+        if (email.isNotEmpty) users.where('email', isEqualTo: email).get(),
+        if (email.isNotEmpty) users.where('correo', isEqualTo: email).get(),
+        users.where('document', isEqualTo: documentNumber).get(),
+        users.where('documentNumber', isEqualTo: documentNumber).get(),
+      ]);
+      final matchedDocs = <String, DocumentSnapshot<Map<String, dynamic>>>{
+        for (final result in matches)
+          for (final doc in result.docs) doc.id: doc,
+      };
+      if (_userRef != null) {
+        final current = await _userRef!.get();
+        if (current.exists) {
+          matchedDocs[current.id] = current;
         }
       }
-      userRef ??= users.doc();
-      final data = await userRef.get();
-      final existingData = data.data() ?? <String, dynamic>{};
-      final roles = (existingData['roles'] as List?)
-              ?.map((role) => role.toString().trim().toLowerCase())
-              .where((role) => role.isNotEmpty)
-              .toSet() ??
-          <String>{};
-      final primaryRole = existingData['rol']?.toString().trim().toLowerCase();
-      if (primaryRole != null && primaryRole.isNotEmpty) roles.add(primaryRole);
-      roles.add('arbitro');
-      await userRef.set({
-        'uid': existingData['uid'] ?? userRef.id,
-        'rol': FieldValue.delete(),
-        'displayName': _name.text.trim().isNotEmpty ? _name.text.trim() : (data.data()?['displayName'] ?? ''),
-        'email': _email.text.trim().toLowerCase(),
-        'phone': _phone.text.trim(),
-        'document': _document.text.trim(),
-        'documentNumber': _document.text.trim(),
-        'category': _accreditation,
-        'correo': FieldValue.delete(),
-        'nombre': FieldValue.delete(),
-        'telefono': FieldValue.delete(),
-        'nivel': FieldValue.delete(),
-        'accreditation': _accreditation,
-        'roles': roles.toList(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      if (matchedDocs.isEmpty) {
+        final newRef = users.doc();
+        matchedDocs[newRef.id] = await newRef.get();
+      }
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in matchedDocs.values) {
+        final existingData = doc.data() ?? <String, dynamic>{};
+        final roles = (existingData['roles'] as List?)
+                ?.map((role) => role.toString().trim().toLowerCase())
+                .where((role) => role.isNotEmpty)
+                .toSet() ??
+            <String>{};
+        final primaryRole = existingData['rol']?.toString().trim().toLowerCase();
+        if (primaryRole != null && primaryRole.isNotEmpty) roles.add(primaryRole);
+        roles.add('arbitro');
+        batch.set(doc.reference, {
+          'uid': existingData['uid'] ?? doc.id,
+          'rol': FieldValue.delete(),
+          'displayName': _name.text.trim().isNotEmpty ? _name.text.trim() : (existingData['displayName'] ?? ''),
+          'email': email,
+          'phone': _phone.text.trim(),
+          'document': documentNumber,
+          'documentNumber': documentNumber,
+          'category': _accreditation,
+          'accreditation': _accreditation,
+          'roles': roles.toList(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      await batch.commit();
       if (mounted) Navigator.pop(context);
     } on FirebaseException catch (error) {
       if (mounted) {
