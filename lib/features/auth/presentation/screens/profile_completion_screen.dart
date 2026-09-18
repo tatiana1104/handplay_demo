@@ -43,6 +43,7 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
         'position': _positionController.text.trim(),
       },
       'profileCompleted': true,
+      'profileComplete': true,
       'profileCompletedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       if (!mounted) return;
