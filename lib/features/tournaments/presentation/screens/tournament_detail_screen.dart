@@ -38,8 +38,6 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _StatsGrid(tournament: tournament),
           const SizedBox(height: 18),
-          _MatchesSection(tournament: tournament),
-          const SizedBox(height: 18),
           const _SectionTitle(title: 'Tabla de posiciones', action: 'Ver completa'),
           const SizedBox(height: 8),
           const _StandingRow(position: '1', team: 'La tabla se actualizará', points: '--'),
@@ -122,7 +120,13 @@ class _StatsGrid extends StatelessWidget {
                 final matches = matchesSnapshot.data?.docs ?? const [];
                 final rounds = matches.map((doc) => (doc.data()['jornada'] ?? doc.data()['round'] ?? 1) as num).toSet().length;
                 final currentRound = matches.isEmpty ? 0 : matches.map((doc) => (doc.data()['jornada'] ?? doc.data()['round'] ?? 1) as num).reduce((a, b) => a > b ? a : b);
-                return _StatCard(label: 'Jornada', value: rounds == 0 ? '0 / 0' : '$currentRound / $rounds');
+                return _StatCard(
+                  label: 'Jornada',
+                  value: rounds == 0 ? '0 / 0' : '$currentRound / $rounds',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => _MatchesScreen(tournament: tournament)),
+                  ),
+                );
               },
             ),
           ],
@@ -130,6 +134,22 @@ class _StatsGrid extends StatelessWidget {
       },
     );
   }
+}
+
+class _MatchesScreen extends StatelessWidget {
+  const _MatchesScreen({required this.tournament});
+  final Tournament tournament;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Jornadas y partidos')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          children: [
+            _MatchesSection(tournament: tournament),
+          ],
+        ),
+      );
 }
 
 class _MatchesSection extends StatelessWidget {

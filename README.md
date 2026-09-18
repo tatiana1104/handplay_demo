@@ -156,7 +156,7 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Botón Nuevo árbitro con estilo similar al botón de agregar de Mi torneo.
 - [x] Formulario de documento, nombre, correo, teléfono y acreditación: municipal (básico), departamental (intermedio, requiere municipal) y nacional (alto, requiere departamental). El administrador puede crear o actualizar el perfil y se informa el error de Firebase si el guardado falla.
 - [x] Cada árbitro abre un perfil con documento, correo, teléfono y selector para agregar o actualizar su nivel permitido; el listado muestra solo su acreditación resumida: municipal, departamental o nacional. En el perfil del árbitro aparecen botones inferiores para abrir la ficha de jugador o entrenador según los roles guardados en Firestore. La acreditación usa una lista desplegable con el mismo patrón visual del selector de categoría del torneo. El perfil muestra únicamente la lista de certificaciones vigentes, sin selector duplicado. El botón `+` abre el cuadro para seleccionar el siguiente nivel permitido. Si el documento existe carga sus datos y habilita solo los niveles permitidos; si no existe comienza en municipal.
-- [x] En el detalle del torneo, tarjeta Jornada y sección Partidos agrupada por fecha; lista conectada a `tournaments/{id}/matches`.
+- [x] En el detalle del torneo, tarjeta Jornada navegable hacia una pantalla independiente de partidos agrupados por fecha; lista conectada a `tournaments/{id}/matches`.
 - [ ] Generación de calendario.
 - [ ] Asignación de árbitros.
 - [ ] Asignación de mesa.
