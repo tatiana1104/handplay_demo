@@ -266,7 +266,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           child: Text(
             ((_match['period'] as num?)?.toInt() ?? 1) <= 2
                 ? 'Período ${(_match['period'] as num?)?.toInt() ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min'
-                : 'TIEMPO EXTRA ${_match['halfDurationMinutes'] ?? 20} min',
+                : 'TIEMPO EXTRA',
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
