@@ -448,6 +448,34 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   String _teamName(String nameKey, String idKey) => _match[nameKey]?.toString() ?? _match[idKey]?.toString() ?? 'Equipo';
 
+  Color _teamIndicatorColor(String side) {
+    final rawColor = _match[side == 'home' ? 'homeTeamColor' : 'awayTeamColor']?.toString().trim().toLowerCase();
+    switch (rawColor) {
+      case 'rojo':
+      case 'red':
+        return Colors.red;
+      case 'azul':
+      case 'blue':
+        return Colors.blue;
+      case 'amarillo':
+      case 'yellow':
+        return Colors.amber;
+      case 'naranja':
+      case 'orange':
+        return Colors.orange;
+      case 'blanco':
+      case 'white':
+        return Colors.grey.shade300;
+      case 'negro':
+      case 'black':
+        return Colors.black;
+      case 'verde':
+      case 'green':
+      default:
+        return Colors.green;
+    }
+  }
+
   Widget _suspensionCard(Map<String, dynamic> suspension) {
     final remaining = (suspension['endsAt'] as DateTime).difference(DateTime.now()).inSeconds.clamp(0, 120);
     final minutes = remaining ~/ 60;
@@ -463,7 +491,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           backgroundColor: Colors.amber.shade700,
           child: Text('$minutes:$seconds', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black)),
         ),
-        title: Row(children: [Expanded(child: Text(suspension['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w700))), const Icon(Icons.circle, size: 9, color: Colors.green)]),
+        title: Row(children: [Expanded(child: Text(suspension['name'].toString(), style: const TextStyle(fontWeight: FontWeight.w700))), Icon(Icons.circle, size: 9, color: _teamIndicatorColor(suspension['team']?.toString() ?? 'home'))]),
         subtitle: Text('Exclusión de 2 minutos · $team'),
         trailing: const Text('Excluido', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
       ),
