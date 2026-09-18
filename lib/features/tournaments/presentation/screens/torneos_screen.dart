@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,6 +44,7 @@ class TorneosScreen extends StatelessWidget {
           return _PublicTournamentList(
             isAdmin: _hasAdminRole(snapshot.data?.claims),
             adminId: user?.uid,
+            coachEmail: user?.email,
           );
         },
       ),
@@ -86,10 +88,11 @@ bool _hasAdminRole(Map<String, dynamic>? claims) {
 enum _TournamentFilter { all, upcoming, playing, finished }
 
 class _PublicTournamentList extends StatefulWidget {
-  const _PublicTournamentList({required this.isAdmin, this.adminId});
+  const _PublicTournamentList({required this.isAdmin, this.adminId, this.coachEmail});
 
   final bool isAdmin;
   final String? adminId;
+  final String? coachEmail;
 
   @override
   State<_PublicTournamentList> createState() => _PublicTournamentListState();
@@ -148,6 +151,7 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                         onEdit: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreateTournamentScreen(adminId: widget.adminId!, tournament: visibleTournaments[index]))),
                         onRequests: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name))),
                         onDelete: () => _deleteTournament(context, visibleTournaments[index]),
+                        coachEmail: widget.coachEmail,
                       ),
                     ),
             ),
@@ -289,7 +293,7 @@ class _EmptyFilteredTournaments extends StatelessWidget {
 }
 
 class _TournamentCard extends StatelessWidget {
-  const _TournamentCard({required this.tournament, required this.onTap, required this.isAdmin, required this.onEdit, required this.onRequests, required this.onDelete});
+  const _TournamentCard({required this.tournament, required this.onTap, required this.isAdmin, required this.onEdit, required this.onRequests, required this.onDelete, this.coachEmail});
 
   final Tournament tournament;
   final VoidCallback onTap;
@@ -297,9 +301,19 @@ class _TournamentCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onRequests;
   final VoidCallback onDelete;
+  final String? coachEmail;
 
   @override
   Widget build(BuildContext context) {
+    final registrationStream = coachEmail == null
+        ? null
+        : FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(tournament.id)
+            .collection('registrations')
+            .where('coachEmail', isEqualTo: coachEmail!.trim().toLowerCase())
+            .limit(1)
+            .snapshots();
     final status = _statusOf(tournament);
     final isPlaying = status == _TournamentStatus.playing;
     final isFinished = status == _TournamentStatus.finished;
@@ -330,6 +344,46 @@ class _TournamentCard extends StatelessWidget {
             LinearProgressIndicator(value: progress),
             const SizedBox(height: 8),
             Text(dateLabel, style: Theme.of(context).textTheme.bodySmall),
+            if (!isAdmin && registrationStream != null)
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: registrationStream,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final data = snapshot.data!.docs.first.data();
+                  final requestStatus = data['status']?.toString();
+                  final rejectedReason = data['rejectionReason']?.toString();
+                  final isRejected = requestStatus == 'rejected';
+                  final isApproved = requestStatus == 'approved';
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: (isRejected ? Theme.of(context).colorScheme.errorContainer : Theme.of(context).colorScheme.primaryContainer).withValues(alpha: .7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isApproved ? 'Solicitud aprobada' : isRejected ? 'Solicitud rechazada' : 'Solicitud pendiente',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          if (isRejected) ...[
+                            const SizedBox(height: 4),
+                            Text(rejectedReason?.isNotEmpty == true ? rejectedReason! : 'Revisa la información y vuelve a enviar la inscripción.'),
+                            const SizedBox(height: 4),
+                            const Text('Puedes editar los datos indicados y volver a enviar la solicitud.'),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             if (isAdmin) ...[
               const Divider(height: 20),
               Wrap(

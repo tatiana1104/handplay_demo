@@ -17,7 +17,36 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
   CollectionReference<Map<String, dynamic>> get _registrations => FirebaseFirestore.instance.collection('tournaments').doc(widget.tournamentId).collection('registrations');
 
   Future<void> _setStatus(BuildContext context, String id, String status) async {
-    await _registrations.doc(id).update({'status': status, 'reviewedAt': FieldValue.serverTimestamp()});
+    String? rejectionReason;
+    if (status == 'rejected') {
+      final controller = TextEditingController();
+      rejectionReason = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Datos por corregir'),
+          content: TextField(
+            controller: controller,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              hintText: 'Indica qué debe cambiar el entrenador antes de reenviar la inscripción.',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+            FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('Rechazar')),
+          ],
+        ),
+      );
+      controller.dispose();
+      if (rejectionReason == null || rejectionReason!.isEmpty) return;
+    }
+    await _registrations.doc(id).update({
+      'status': status,
+      'reviewedAt': FieldValue.serverTimestamp(),
+      if (status == 'rejected') 'rejectionReason': rejectionReason,
+      if (status == 'approved') 'rejectionReason': FieldValue.delete(),
+    });
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(status == 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.')));
   }
 
