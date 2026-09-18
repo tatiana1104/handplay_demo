@@ -301,7 +301,14 @@ class _ApprovedTeamDetailScreen extends StatelessWidget {
           if (players.isEmpty)
             const Card(child: ListTile(title: Text('No hay jugadores registrados.')))
           else
-            ...players.asMap().entries.map((entry) => _PlayerRow(player: entry.value, index: entry.key)),
+            ...players.asMap().entries.map(
+              (entry) => _PlayerRow(
+                player: entry.value,
+                index: entry.key,
+                teamName: teamName,
+                teamColor: teamColor,
+              ),
+            ),
         ],
       ),
     );
@@ -326,9 +333,11 @@ class _TeamMetric extends StatelessWidget {
 }
 
 class _PlayerRow extends StatelessWidget {
-  const _PlayerRow({required this.player, required this.index});
+  const _PlayerRow({required this.player, required this.index, required this.teamName, required this.teamColor});
   final Map player;
   final int index;
+  final String teamName;
+  final Color teamColor;
 
   @override
   Widget build(BuildContext context) {
@@ -340,10 +349,75 @@ class _PlayerRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         dense: true,
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => _PlayerProfileScreen(
+              player: player,
+              teamName: teamName,
+              teamColor: teamColor,
+            ),
+          ),
+        ),
         leading: SizedBox(width: 28, child: Text(number == '--' ? '${index + 1}' : '#$number')),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(position),
         trailing: goals == null ? null : Text('$goals goles'),
+      ),
+    );
+  }
+}
+
+class _PlayerProfileScreen extends StatelessWidget {
+  const _PlayerProfileScreen({required this.player, required this.teamName, required this.teamColor});
+
+  final Map player;
+  final String teamName;
+  final Color teamColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = player['name']?.toString() ?? 'Jugador';
+    final position = player['position']?.toString() ?? 'Sin posición';
+    final number = player['number']?.toString() ?? '--';
+    final gender = player['gender']?.toString() ?? player['genero']?.toString() ?? '';
+    final goals = player['goals']?.toString() ?? '--';
+    final matches = player['matches']?.toString() ?? player['games']?.toString() ?? '--';
+    final average = player['average']?.toString() ?? '--';
+    final cards = player['cards']?.toString() ?? '--';
+    final initials = name.trim().isEmpty ? 'J' : name.trim().substring(0, 1).toUpperCase();
+
+    return Scaffold(
+      appBar: AppBar(title: Text(teamName)),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        children: [
+          Row(children: [
+            CircleAvatar(radius: 28, backgroundColor: teamColor, foregroundColor: teamColor.computeLuminance() > 0.5 ? Colors.black : Colors.white, child: Text(initials, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              Text('$position · #$number${gender.isEmpty ? '' : ' · $gender'}'),
+            ])),
+          ]),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(child: _TeamMetric(label: 'Goles', value: goals)),
+            const SizedBox(width: 8),
+            Expanded(child: _TeamMetric(label: 'PJ', value: matches)),
+            const SizedBox(width: 8),
+            Expanded(child: _TeamMetric(label: 'Prom.', value: average)),
+            const SizedBox(width: 8),
+            Expanded(child: _TeamMetric(label: 'Tarj.', value: cards)),
+          ]),
+          const SizedBox(height: 20),
+          Text('Historial de partidos', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          const Card(child: ListTile(title: Text('Historial disponible próximamente'), trailing: Text('--'))),
+          if (player['isReferee'] == true || player['arbitro'] == true) ...[
+            const SizedBox(height: 12),
+            Card(child: ListTile(leading: const Icon(Icons.square, color: Colors.amber), title: const Text('También está habilitado como árbitro'), trailing: const Text('Ver ficha'))),
+          ],
+        ],
       ),
     );
   }

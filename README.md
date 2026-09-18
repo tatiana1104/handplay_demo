@@ -138,7 +138,7 @@ El script muestra las contraseñas temporales una sola vez; guárdalas de forma 
 - [x] `firebase.json` ya no intenta desplegar Storage; la inscripción funciona solo con Firestore
 - [x] Formulario de inscripción reorganizado en secciones visuales adaptables
 - [x] Vista Equipos inscritos con contador en tiempo real de solicitudes aprobadas y navegación al detalle de cada equipo
-- [x] Detalle de equipo con uniforme, categoría, entrenador, métricas y plantilla de jugadores
+  - [x] Detalle de equipo con uniforme, categoría, entrenador, métricas y plantilla de jugadores; cada jugador abre su perfil individual con estadísticas e historial disponible
 - [x] Escrituras completas y validación de formularios para torneo, solicitud, equipo y jugadores
 - [x] Revisión administrativa: aprobar/rechazar solicitudes y registrar motivo de rechazo
 - [x] Advertencias de similitud de equipos, uniformes y jugadores con nombre y documento
