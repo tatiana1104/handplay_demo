@@ -32,11 +32,17 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     setState(() => _saving = true);
     final currentUser = FirebaseAuth.instance.currentUser!;
     try {
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      final profileRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      final existingSnapshot = await profileRef.get();
+      final existingData = existingSnapshot.data() ?? const <String, dynamic>{};
+      final existingRoles = (existingData['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
+      existingRoles.add(widget.role);
+      await profileRef.set({
       'uid': uid,
-      'roles': [widget.role],
-      'rol': widget.role,
+      'roles': existingRoles.toList(),
+      'rol': existingData['rol'] ?? widget.role,
       'email': currentUser.email,
+      'nombre': existingData['nombre'] ?? currentUser.displayName ?? '',
       'documentNumber': _documentController.text.trim(),
       if (widget.role == 'jugador') ...{
         'shirtNumber': int.parse(_shirtController.text.trim()),

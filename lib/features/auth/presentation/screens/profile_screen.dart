@@ -52,7 +52,8 @@ class ProfileScreen extends StatelessWidget {
         final position = profile['position']?.toString() ?? 'No registrada';
         final role = user.roles.contains('jugador') ? 'jugador' : (user.roles.isNotEmpty ? user.roles.first : 'jugador');
         final hasRequiredProfileData = profile['documentNumber']?.toString().trim().isNotEmpty == true &&
-            (role != 'jugador' || (profile['shirtNumber'] != null && profile['position']?.toString().trim().isNotEmpty == true));
+            (role != 'jugador' || (profile['shirtNumber'] != null && profile['position']?.toString().trim().isNotEmpty == true)) &&
+            profile['email']?.toString().trim().isNotEmpty == true;
         final profileCompleted = profile['profileCompleted'] == true || profile['profileComplete'] == true || hasRequiredProfileData;
         if (snapshot.hasData && !profileCompleted) {
           return ProfileCompletionScreen(role: role);
