@@ -76,7 +76,18 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
   final _phone = TextEditingController();
   bool _loading = false;
   bool _searched = false;
+  String _accreditation = 'municipal';
+  String _existingAccreditation = 'municipal';
   DocumentReference<Map<String, dynamic>>? _userRef;
+
+  List<String> get _availableAccreditations {
+    final levels = <String>['municipal'];
+    if (_userRef != null || _existingAccreditation == 'departamental' || _existingAccreditation == 'nacional') {
+      levels.add('departamental');
+    }
+    if (_existingAccreditation == 'nacional') levels.add('nacional');
+    return levels;
+  }
 
   @override
   void dispose() {
@@ -110,6 +121,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
           _name.clear();
           _email.clear();
           _phone.clear();
+          _accreditation = 'municipal';
+          _existingAccreditation = 'municipal';
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No existe un usuario. Puedes completar el formulario para registrarlo.')));
         return;
@@ -121,6 +134,9 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         _name.text = data['displayName']?.toString() ?? data['nombre']?.toString() ?? '';
         _email.text = data['email']?.toString() ?? data['correo']?.toString() ?? '';
         _phone.text = data['phone']?.toString() ?? data['telefono']?.toString() ?? '';
+        final savedLevel = data['accreditation']?.toString() ?? data['nivel']?.toString() ?? 'municipal';
+        _existingAccreditation = ['municipal', 'departamental', 'nacional'].contains(savedLevel) ? savedLevel : 'municipal';
+        _accreditation = _existingAccreditation;
       });
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -140,6 +156,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         'email': _email.text.trim(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
+        'accreditation': _accreditation,
+        'nivel': _accreditation,
         'roles': roles,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -148,6 +166,13 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  String _levelLabel(String level) => switch (level) {
+        'municipal' => 'Municipal (básico)',
+        'departamental' => 'Departamental (intermedio)',
+        'nacional' => 'Nacional (alto)',
+        _ => level,
+      };
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -166,6 +191,15 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
               TextFormField(controller: _email, enabled: _searched, decoration: const InputDecoration(labelText: 'Correo', border: OutlineInputBorder()), keyboardType: TextInputType.emailAddress),
               const SizedBox(height: 12),
               TextFormField(controller: _phone, enabled: _searched, decoration: const InputDecoration(labelText: 'Número de teléfono', border: OutlineInputBorder()), keyboardType: TextInputType.phone),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _availableAccreditations.contains(_accreditation) ? _accreditation : _availableAccreditations.first,
+                decoration: const InputDecoration(labelText: 'Acreditación o nivel', border: OutlineInputBorder()),
+                items: _availableAccreditations.map((level) => DropdownMenuItem(value: level, child: Text(_levelLabel(level)))).toList(),
+                onChanged: _searched ? (value) => setState(() => _accreditation = value ?? 'municipal') : null,
+              ),
+              const SizedBox(height: 8),
+              Text('Municipal: básico. Departamental: requiere municipal. Nacional: requiere departamental.', style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 20),
               if (!_searched) const Text('Busca por documento para cargar los datos existentes o registrar un árbitro nuevo.'),
               if (_searched && _userRef == null) const Text('Documento no encontrado. Completa los datos para crear el registro del árbitro.'),
