@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
               Text('Crear cuenta', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: colors.onSurface)),
               const SizedBox(height: 6),
-              Text('Crea tu cuenta para acceder a torneos y estadísticas.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant)),
+              Text('Crea tu cuenta para acceder a torneos y estadísticas. Usa el mismo correo que registrarás como entrenador para vincular tu equipo.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant)),
               const SizedBox(height: 28),
               TextField(controller: _name, enabled: !loading, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nombre completo')),
               const SizedBox(height: 18),

@@ -83,7 +83,11 @@ service cloud.firestore {
       // Los equipos pertenecen a un torneo y no pueden quedar accesibles de forma pública.
       match /teams/{teamId} {
         allow read: if canManageTournament(tournamentId) || tournamentMember(tournamentId);
-        allow create, update, delete: if canManageTournament(tournamentId);
+        allow create: if canManageTournament(tournamentId)
+          || (signedIn()
+            && request.resource.data.coachUid == request.auth.uid
+            && request.resource.data.status == 'pending');
+        allow update, delete: if canManageTournament(tournamentId);
       }
     }
 

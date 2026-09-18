@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/tournament_models.dart';
@@ -208,16 +209,41 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     }
     setState(() => _saving = true);
     try {
+      final coachEmail = _email.text.trim().toLowerCase();
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final isCoachAccount = currentUser?.email?.trim().toLowerCase() == coachEmail;
       final registration = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').doc();
+      final teamData = {
+        'id': registration.id,
+        'tournamentId': widget.tournament.id,
+        'registrationId': registration.id,
+        'teamName': _team.text.trim(),
+        'clubName': _club.text.trim(),
+        'coachName': _coach.text.trim(),
+        'coachPhone': _phone.text.trim(),
+        'coachEmail': coachEmail,
+        'category': _category,
+        'uniformColor': _color,
+        'logoUrl': null,
+        'players': _players,
+        'playerCount': _players.length,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (isCoachAccount) 'coachUid': currentUser!.uid,
+      };
       await registration.set({
-        'teamName': _team.text.trim(), 'clubName': _club.text.trim(), 'coachName': _coach.text.trim(),
-        'coachPhone': _phone.text.trim(), 'coachEmail': _email.text.trim().toLowerCase(), 'category': _category,
-        'uniformColor': _color, 'logoUrl': null, 'players': _players, 'status': 'pending',
+        ...teamData,
         'verificationMessage': 'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
-        'termsAccepted': true, 'createdAt': FieldValue.serverTimestamp(),
+        'termsAccepted': true,
       });
+      if (isCoachAccount) {
+        await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('teams').doc(registration.id).set(teamData);
+      }
       if (mounted) {
-        _show('Solicitud enviada. Recibirás un correo de confirmación y debes esperar la verificación del administrador.');
+        _show(isCoachAccount
+            ? 'Solicitud enviada y equipo vinculado a tu cuenta. Espera la verificación del administrador.'
+            : 'Solicitud enviada. Crea primero una cuenta con este correo para vincular el equipo manualmente.');
         Navigator.of(context).pop();
       }
     } on FirebaseException catch (error) {
