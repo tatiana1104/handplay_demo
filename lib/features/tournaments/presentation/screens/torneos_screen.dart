@@ -13,6 +13,7 @@ import 'create_tournament_screen.dart';
 import 'pending_registrations_screen.dart';
 import 'team_registration_screen.dart';
 import 'tournament_detail_screen.dart';
+import '../../../referees/presentation/screens/referees_screen.dart';
 
 /// Home público y panel de torneos de la liga de balonmano.
 /// Solo el custom claim `rol: admin_liga` habilita la creación de torneos.
@@ -66,10 +67,21 @@ class _CreateTournamentAction extends StatelessWidget {
         if (!_hasAdminRole(snapshot.data?.claims)) return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: FilledButton.icon(
-            onPressed: () => context.push('/torneos/nuevo', extra: userId),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('Nuevo torneo'),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FilledButton.icon(
+                onPressed: () => context.push('/torneos/nuevo', extra: userId),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Nuevo torneo'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RefereesScreen())),
+                icon: const Icon(Icons.sports_handball_outlined, size: 18),
+                label: const Text('Árbitros'),
+              ),
+            ],
           ),
         );
       },
