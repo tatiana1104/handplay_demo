@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/tournament_models.dart';
@@ -141,8 +142,22 @@ class _MatchesScreen extends StatelessWidget {
   final Tournament tournament;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Jornadas y partidos')),
+  Widget build(BuildContext context) {
+    final isAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Jornadas y partidos'),
+          actions: [
+            if (isAdmin)
+              IconButton(
+                tooltip: 'Nuevo partido',
+                icon: const Icon(Icons.add),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => _NewMatchScreen(tournament: tournament)),
+                ),
+              ),
+          ],
+        ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
@@ -150,6 +165,80 @@ class _MatchesScreen extends StatelessWidget {
           ],
         ),
       );
+  }
+}
+
+class _NewMatchScreen extends StatefulWidget {
+  const _NewMatchScreen({required this.tournament});
+  final Tournament tournament;
+
+  @override
+  State<_NewMatchScreen> createState() => _NewMatchScreenState();
+}
+
+class _NewMatchScreenState extends State<_NewMatchScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _venue = TextEditingController();
+  DateTime? _date;
+  TimeOfDay? _time;
+  String? _home;
+  String? _away;
+  String? _refereeOne;
+  String? _refereeTwo;
+  String? _timekeeper;
+  String? _scorer;
+  bool _saving = false;
+
+  @override
+  void dispose() { _venue.dispose(); super.dispose(); }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate() || _home == _away || _date == null || _time == null) return;
+    setState(() => _saving = true);
+    final matchDate = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
+    try {
+      await FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('matches').add({
+        'homeTeam': _home, 'awayTeam': _away, 'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
+        'refereeOne': _refereeOne, 'refereeTwo': _refereeTwo, 'timekeeper': _timekeeper, 'scorer': _scorer,
+        'status': 'scheduled', 'createdAt': FieldValue.serverTimestamp(),
+      });
+      if (mounted) Navigator.of(context).pop();
+    } on FirebaseException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar: ${error.code}')));
+    } finally { if (mounted) setState(() => _saving = false); }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final teams = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
+    final referees = FirebaseFirestore.instance.collection('users').where('roles', arrayContains: 'arbitro').snapshots();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Nuevo partido')),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: teams, builder: (context, teamSnapshot) {
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(stream: referees, builder: (context, refereeSnapshot) {
+          final teamOptions = (teamSnapshot.data?.docs ?? const []).map((doc) => MapEntry(doc.id, doc.data()['teamName']?.toString() ?? doc.data()['name']?.toString() ?? 'Equipo ${doc.id}')).toList();
+          final refereeOptions = (refereeSnapshot.data?.docs ?? const []).map((doc) => MapEntry(doc.id, doc.data()['displayName']?.toString() ?? doc.data()['nombre']?.toString() ?? 'Árbitro')).toList();
+          return Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(16), children: [
+            _matchDropdown('Equipo local', _home, teamOptions, (value) => setState(() => _home = value)),
+            _matchDropdown('Equipo visitante', _away, teamOptions, (value) => setState(() => _away = value)),
+            ListTile(title: Text(_date == null ? 'Fecha' : '${_date!.day.toString().padLeft(2, '0')}/${_date!.month.toString().padLeft(2, '0')}/${_date!.year}'), trailing: const Icon(Icons.calendar_today), onTap: () async { final value = await showDatePicker(context: context, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)), initialDate: DateTime.now()); if (value != null) setState(() => _date = value); }),
+            ListTile(title: Text(_time == null ? 'Hora' : _time!.format(context)), trailing: const Icon(Icons.schedule), onTap: () async { final value = await showTimePicker(context: context, initialTime: TimeOfDay.now()); if (value != null) setState(() => _time = value); }),
+            TextFormField(controller: _venue, decoration: const InputDecoration(labelText: 'Sede / cancha', border: OutlineInputBorder())),
+            const SizedBox(height: 16),
+            Text('Asignación de jueces', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            _matchDropdown('Árbitro de campo 1', _refereeOne, refereeOptions, (value) => setState(() => _refereeOne = value)),
+            _matchDropdown('Árbitro de campo 2', _refereeTwo, refereeOptions, (value) => setState(() => _refereeTwo = value)),
+            _matchDropdown('Mesa - Cronometrista', _timekeeper, refereeOptions, (value) => setState(() => _timekeeper = value)),
+            _matchDropdown('Mesa - Anotador', _scorer, refereeOptions, (value) => setState(() => _scorer = value)),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _saving ? null : _save, child: Text(_saving ? 'Guardando...' : 'Guardar partido')),
+          ]);
+        });
+      }),
+    );
+  }
+
+  Widget _matchDropdown(String label, String? value, List<MapEntry<String, String>> options, ValueChanged<String?> onChanged) => Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: value, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()), items: options.map((item) => DropdownMenuItem(value: item.key, child: Text(item.value))).toList(), onChanged: onChanged, validator: (value) => value == null ? 'Selecciona una opción' : null));
 }
 
 class _MatchesSection extends StatelessWidget {
