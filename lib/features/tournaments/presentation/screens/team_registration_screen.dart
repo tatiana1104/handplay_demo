@@ -56,8 +56,8 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     }
     setState(() {
       final name = _firstValue(existing, ['name', 'displayName', 'nombre', 'fullName']);
-      final number = _firstValue(existing, ['number', 'shirtNumber', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
-      final position = _normalizePosition(_firstValue(existing, ['position', 'posicion', 'playerPosition', 'posicionJugador']));
+      final number = _firstValue(existing, ['number', 'shirtNumber', 'shirt_number', 'numeroCamiseta', 'jerseyNumber', 'numero', 'camiseta', 'numero_de_camiseta']);
+      final position = _normalizePosition(_firstValue(existing, ['position', 'player_position', 'playerPosition', 'posicion', 'posicionJugador', 'positionName']));
       final gender = _firstValue(existing, ['gender', 'genero', 'sex', 'sexo']);
       final club = _firstValue(existing, ['club', 'clubName', 'club al que pertenece', 'club_name', 'clubes']);
       if (name != null) _name.text = name;
@@ -69,7 +69,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   }
 
   Future<void> _submit() async {
-    if (_number.text.trim().isEmpty || _position.text.trim().isEmpty || _gender == null) {
+    if (_number.text.trim().isEmpty || _position.text.trim().isEmpty) {
       await _loadExistingPlayer();
     }
     if (!_formKey.currentState!.validate()) return;
@@ -203,7 +203,7 @@ class _PlayerDialogState extends State<_PlayerDialog> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _gender,
-                decoration: const InputDecoration(labelText: 'Género *', prefixIcon: Icon(Icons.wc_outlined)),
+                decoration: const InputDecoration(labelText: 'Género (opcional)', prefixIcon: Icon(Icons.wc_outlined)),
                 items: (widget.tournamentBranch == 'masculino'
                         ? const ['masculino']
                         : widget.tournamentBranch == 'femenino'
@@ -212,7 +212,6 @@ class _PlayerDialogState extends State<_PlayerDialog> {
                     .map((gender) => DropdownMenuItem(value: gender, child: Text(gender == 'masculino' ? 'Masculino' : 'Femenino')))
                     .toList(),
                 onChanged: (value) => setState(() => _gender = value),
-                validator: (value) => value == null ? 'Selecciona el género' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
