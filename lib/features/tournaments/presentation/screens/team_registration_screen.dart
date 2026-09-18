@@ -82,13 +82,18 @@ class _PlayerDialogState extends State<_PlayerDialog> {
   }
 
   Future<Map<String, dynamic>?> _findProfile(String document) async {
-    final directory = FirebaseFirestore.instance.collection('profile_directory');
-    final result = await directory.where('document', isEqualTo: document).limit(1).get();
-    if (result.docs.isNotEmpty) return result.docs.first.data();
-    final users = await FirebaseFirestore.instance.collection('users').where('document', isEqualTo: document).limit(1).get();
-    if (users.docs.isNotEmpty) return users.docs.first.data();
-    final usersByNumber = await FirebaseFirestore.instance.collection('users').where('documentNumber', isEqualTo: document).limit(1).get();
-    return usersByNumber.docs.isEmpty ? null : usersByNumber.docs.first.data();
+    final firestore = FirebaseFirestore.instance;
+    for (final collection in [
+      firestore.collection('profile_directory'),
+      firestore.collection('users'),
+      firestore.collection('referees'),
+    ]) {
+      final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
+      if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
+      final byNumber = await collection.where('documentNumber', isEqualTo: document).limit(1).get();
+      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+    }
+    return null;
   }
 
   @override
@@ -119,8 +124,13 @@ class _PlayerDialogState extends State<_PlayerDialog> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _document,
-                decoration: const InputDecoration(labelText: 'Número de documento *', prefixIcon: Icon(Icons.credit_card_outlined)),
+                decoration: InputDecoration(
+                  labelText: 'Número de documento *',
+                  prefixIcon: const Icon(Icons.credit_card_outlined),
+                  suffixIcon: IconButton(onPressed: _loadExistingPlayer, icon: const Icon(Icons.search), tooltip: 'Buscar datos'),
+                ),
                 onEditingComplete: _loadExistingPlayer,
+                onFieldSubmitted: (_) => _loadExistingPlayer(),
                 validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
               ),
               const SizedBox(height: 8),
@@ -224,14 +234,19 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   }
 
   Future<Map<String, dynamic>?> _findProfile(String document) async {
-    final directory = FirebaseFirestore.instance.collection('profile_directory');
-    final result = await directory.where('document', isEqualTo: document).limit(1).get();
-    if (result.docs.isNotEmpty) return result.docs.first.data();
-    final users = FirebaseFirestore.instance.collection('users');
-    final byDocument = await users.where('document', isEqualTo: document).limit(1).get();
-    if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
-    final byNumber = await users.where('documentNumber', isEqualTo: document).limit(1).get();
-    return byNumber.docs.isEmpty ? null : byNumber.docs.first.data();
+    final firestore = FirebaseFirestore.instance;
+    final collections = [
+      firestore.collection('profile_directory'),
+      firestore.collection('users'),
+      firestore.collection('referees'),
+    ];
+    for (final collection in collections) {
+      final byDocument = await collection.where('document', isEqualTo: document).limit(1).get();
+      if (byDocument.docs.isNotEmpty) return byDocument.docs.first.data();
+      final byNumber = await collection.where('documentNumber', isEqualTo: document).limit(1).get();
+      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+    }
+    return null;
   }
 
   Future<void> _loadExistingCoach() async {
@@ -298,7 +313,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       final firestore = FirebaseFirestore.instance;
       final userByDocument = await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get();
       final userByDocumentNumber = userByDocument.docs.isEmpty
-          ? await firestore.collection('profile_directory').where('document', isEqualTo: coachDocument).limit(1).get()
+          ? await firestore.collection('profile_directory').where('documentNumber', isEqualTo: coachDocument).limit(1).get()
           : userByDocument;
       final userByEmail = await firestore.collection('profile_directory').where('email', isEqualTo: coachEmail).limit(1).get();
       final coachUsersByDocument = await firestore.collection('users').where('document', isEqualTo: coachDocument).limit(1).get();
@@ -316,7 +331,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       for (final player in _players) {
         final document = player['document']?.trim() ?? '';
         final matches = await firestore.collection('profile_directory').where('document', isEqualTo: document).limit(1).get();
-        final matchesByNumber = matches;
+        final matchesByNumber = matches.docs.isEmpty
+            ? await firestore.collection('profile_directory').where('documentNumber', isEqualTo: document).limit(1).get()
+            : matches;
         final existing = matchesByNumber.docs.isEmpty ? null : matchesByNumber.docs.first.data();
         enrichedPlayers.add({
           ...?existing?.map((key, value) => MapEntry(key, value?.toString() ?? '')),
@@ -581,7 +598,12 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             TextFormField(
               controller: _coachDocument,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Documento del entrenador *', hintText: '1006514021', prefixIcon: Icon(Icons.credit_card_outlined)),
+              decoration: InputDecoration(
+                labelText: 'Documento del entrenador *',
+                hintText: '1006514021',
+                prefixIcon: const Icon(Icons.credit_card_outlined),
+                suffixIcon: IconButton(onPressed: _loadExistingCoach, icon: const Icon(Icons.search), tooltip: 'Buscar datos'),
+              ),
               onEditingComplete: _loadExistingCoach,
               onFieldSubmitted: (_) => _loadExistingCoach(),
               validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el documento' : null,
