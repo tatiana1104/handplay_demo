@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -78,7 +80,22 @@ class ProfileScreen extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.admin_panel_settings_outlined),
               title: const Text('Tipo de cuenta'),
-              subtitle: Text(roleLabel),
+              subtitle: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser?.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  final firestoreRoles = (snapshot.data?.data()?['roles'] as List?)
+                      ?.whereType<String>()
+                      .toSet()
+                      .toList();
+                  final roles = firestoreRoles == null || firestoreRoles.isEmpty
+                      ? user?.roles ?? const ['jugador']
+                      : firestoreRoles;
+                  return Text(roles.map(_roleLabel).join(', '));
+                },
+              ),
             ),
           ),
           Card(

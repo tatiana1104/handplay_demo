@@ -152,6 +152,7 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                         onRequests: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PendingRegistrationsScreen(tournamentId: visibleTournaments[index].id, tournamentName: visibleTournaments[index].name))),
                         onDelete: () => _deleteTournament(context, visibleTournaments[index]),
                         coachEmail: widget.coachEmail,
+                        coachUid: widget.adminId == null ? null : FirebaseAuth.instance.currentUser?.uid,
                       ),
                     ),
             ),
@@ -293,7 +294,7 @@ class _EmptyFilteredTournaments extends StatelessWidget {
 }
 
 class _TournamentCard extends StatelessWidget {
-  const _TournamentCard({required this.tournament, required this.onTap, required this.isAdmin, required this.onEdit, required this.onRequests, required this.onDelete, this.coachEmail});
+  const _TournamentCard({required this.tournament, required this.onTap, required this.isAdmin, required this.onEdit, required this.onRequests, required this.onDelete, this.coachEmail, this.coachUid});
 
   final Tournament tournament;
   final VoidCallback onTap;
@@ -302,6 +303,7 @@ class _TournamentCard extends StatelessWidget {
   final VoidCallback onRequests;
   final VoidCallback onDelete;
   final String? coachEmail;
+  final String? coachUid;
 
   @override
   Widget build(BuildContext context) {
@@ -312,8 +314,7 @@ class _TournamentCard extends StatelessWidget {
             .doc(tournament.id)
             .collection('registrations')
             .where('coachEmail', isEqualTo: coachEmail!.trim().toLowerCase())
-            .orderBy('createdAt', descending: true)
-            .limit(1)
+            .limit(20)
             .snapshots();
     final status = _statusOf(tournament);
     final isPlaying = status == _TournamentStatus.playing;
@@ -352,7 +353,12 @@ class _TournamentCard extends StatelessWidget {
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const SizedBox.shrink();
                   }
-                  final data = snapshot.data!.docs.first.data();
+                  final docs = [...snapshot.data!.docs]..sort((a, b) {
+                    final aDate = (a.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+                    final bDate = (b.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+                    return bDate.compareTo(aDate);
+                  });
+                  final data = docs.first.data();
                   final requestStatus = data['status']?.toString();
                   final rejectedReason = data['rejectionReason']?.toString();
                   final isRejected = requestStatus == 'rejected';
