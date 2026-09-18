@@ -266,7 +266,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           child: Text(
             ((_match['period'] as num?)?.toInt() ?? 1) <= 2
                 ? 'Período ${(_match['period'] as num?)?.toInt() ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min'
-                : 'Desempate ${(_match['period'] as num?)?.toInt() ?? 1} · ${_match['halfDurationMinutes'] ?? 20} min',
+                : 'TIEMPO EXTRA ${_match['halfDurationMinutes'] ?? 20} min',
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
@@ -318,7 +318,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     spacing: 8,
                     children: <int>{1, 2, if (((_match['period'] as num?)?.toInt() ?? 1) > 2) (_match['period'] as num).toInt()}
                         .map((period) => ChoiceChip(
-                              label: Text(period <= 2 ? 'Período $period' : 'Desempate $period'),
+                              label: Text(period <= 2 ? 'Período $period' : 'TIEMPO EXTRA'),
                               selected: (_match['period'] ?? 1) == period,
                               onSelected: (_) => _changePeriod(period),
                             ))
