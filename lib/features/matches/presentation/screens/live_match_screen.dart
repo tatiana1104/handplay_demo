@@ -24,6 +24,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Timer? _timer;
   int _elapsedSeconds = 0;
   bool _isPaused = true;
+  String? _selectedRoster;
 
   @override
   void initState() {
@@ -337,11 +338,38 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
               final registrations = snapshot.data?.docs.map((doc) => doc.data()).toList() ?? const <Map<String, dynamic>>[];
               final home = _teamRoster(registrations, 'homeTeam', 'homeTeamId');
               final away = _teamRoster(registrations, 'awayTeam', 'awayTeamId');
-              return Column(children: [
-                _teamRosterButton(_teamName('homeTeamName', 'homeTeam'), home),
-                const SizedBox(height: 8),
-                _teamRosterButton(_teamName('awayTeamName', 'awayTeam'), away),
-              ]);
+  final homeName = _teamName('homeTeamName', 'homeTeam');
+  final awayName = _teamName('awayTeamName', 'awayTeam');
+  final selectedPlayers = _selectedRoster == 'home' ? home : (_selectedRoster == 'away' ? away : const <dynamic>[]);
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Row(
+        children: [
+          Expanded(child: _rosterTeamButton('home', homeName)),
+          const SizedBox(width: 8),
+          Expanded(child: _rosterTeamButton('away', awayName)),
+        ],
+      ),
+      if (_selectedRoster != null) ...[
+        const SizedBox(height: 10),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(children: selectedPlayers.isEmpty
+                ? [const ListTile(title: Text('No hay jugadores inscritos'))]
+                : selectedPlayers.map((player) {
+                    final data = player is Map ? player : <String, dynamic>{'name': player};
+                    final number = data['number']?.toString() ?? '--';
+                    final name = data['name']?.toString() ?? data['fullName']?.toString() ?? 'Jugador';
+                    return _playerRow('#$number', name, 0);
+                  }).toList(),
+          ),
+        ),
+      ],
+    ],
+  );
             },
           ),
         ]),
@@ -408,18 +436,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   String _teamName(String nameKey, String idKey) => _match[nameKey]?.toString() ?? _match[idKey]?.toString() ?? 'Equipo';
 
-  Widget _teamRosterButton(String teamName, List<dynamic> players) => ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 14),
-        title: Text(teamName, style: const TextStyle(fontWeight: FontWeight.w700)),
-        children: players.isEmpty
-            ? [const ListTile(title: Text('No hay jugadores inscritos'))]
-            : players.map((player) {
-                final data = player is Map ? player : <String, dynamic>{'name': player};
-                final number = data['number']?.toString() ?? '--';
-                final name = data['name']?.toString() ?? data['fullName']?.toString() ?? 'Jugador';
-                return _playerRow('#$number', name, 0);
-              }).toList(),
-      );
+  Widget _rosterTeamButton(String side, String teamName) => OutlinedButton.icon(
+    onPressed: () => setState(() => _selectedRoster = _selectedRoster == side ? null : side),
+    style: OutlinedButton.styleFrom(
+      backgroundColor: _selectedRoster == side ? Theme.of(context).colorScheme.primaryContainer : null,
+      foregroundColor: _selectedRoster == side ? Theme.of(context).colorScheme.onPrimaryContainer : null,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+    icon: Icon(_selectedRoster == side ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+    label: Text(teamName, overflow: TextOverflow.ellipsis),
+  );
 
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
   Widget _official(String role, dynamic name) => ListTile(dense: true, title: Text(role), trailing: Text(name?.toString() ?? 'Sin asignar'));
