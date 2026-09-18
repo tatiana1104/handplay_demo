@@ -407,26 +407,34 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     if (!_formKey.currentState!.validate() || !_searched) return;
     setState(() => _loading = true);
     try {
+      final users = FirebaseFirestore.instance.collection('users');
       var userRef = _userRef;
-      if (userRef == null && _email.text.trim().isNotEmpty) {
+      if (userRef == null) {
         final email = _email.text.trim().toLowerCase();
-        final emailMatches = await FirebaseFirestore.instance
-            .collection('users')
-            .where('email', isEqualTo: email)
-            .limit(1)
-            .get();
-        if (emailMatches.docs.isNotEmpty) {
-          userRef = emailMatches.docs.first.reference;
+        final matches = await Future.wait([
+          if (email.isNotEmpty) users.where('email', isEqualTo: email).limit(1).get(),
+          if (email.isNotEmpty) users.where('correo', isEqualTo: email).limit(1).get(),
+          users.where('document', isEqualTo: _document.text.trim()).limit(1).get(),
+        ]);
+        for (final result in matches) {
+          if (result.docs.isNotEmpty) {
+            userRef = result.docs.first.reference;
+            break;
+          }
         }
       }
-      userRef ??= FirebaseFirestore.instance.collection('users').doc();
+      userRef ??= users.doc();
       final data = await userRef.get();
-      final roles = List<String>.from(data.data()?['roles'] ?? const <String>[]);
-      if (!roles.contains('arbitro')) roles.add('arbitro');
+      final roles = (data.data()?['roles'] as List?)
+              ?.map((role) => role.toString().trim().toLowerCase())
+              .where((role) => role.isNotEmpty)
+              .toSet() ??
+          <String>{};
+      roles.add('arbitro');
       await userRef.set({
         'uid': data.data()?['uid'] ?? userRef.id,
-        'rol': 'arbitro',
-        'displayName': _name.text.trim(),
+        'rol': data.data()?['rol'] ?? 'arbitro',
+        'displayName': _name.text.trim().isNotEmpty ? _name.text.trim() : (data.data()?['displayName'] ?? ''),
         'email': _email.text.trim().toLowerCase(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
@@ -435,7 +443,7 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         'telefono': FieldValue.delete(),
         'nivel': FieldValue.delete(),
         'accreditation': _accreditation,
-        'roles': roles,
+        'roles': roles.toList(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       if (mounted) Navigator.pop(context);
