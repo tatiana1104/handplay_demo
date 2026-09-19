@@ -387,7 +387,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         ]),
         const SizedBox(height: 18),
         Text('Cronología', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-        ...events.map((event) => ListTile(dense: true, leading: Text('${event['minute'] ?? "--"}\''), title: Text(event['description']?.toString() ?? 'Evento'))),
+        if (events.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text('Aún no hay acciones registradas.'),
+          )
+        else
+          ...events.reversed.map((event) => ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Text(_eventTime(event), style: const TextStyle(fontWeight: FontWeight.w700)),
+                title: Text(_eventDescription(event)),
+                subtitle: Text('Período ${event['period'] ?? 1}'),
+              )),
         const SizedBox(height: 18),
         Card(
           margin: EdgeInsets.zero,
@@ -476,6 +488,35 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  String _eventDescription(Map<String, dynamic> event) {
+    final player = event['playerName']?.toString() ?? event['player']?.toString() ?? 'Jugador';
+    final type = event['type']?.toString();
+    switch (type) {
+      case 'goal':
+        return '$player anotó un gol';
+      case 'exclusion':
+        return '$player recibió una exclusión de 2 minutos';
+      case 'yellowCard':
+        return '$player recibió tarjeta amarilla';
+      case 'redCard':
+        return '$player recibió tarjeta roja';
+      case 'matchStarted':
+        return 'Comenzó el partido';
+      case 'periodStarted':
+        return 'Comenzó el período ${event['period'] ?? ''}'.trim();
+      case 'matchFinished':
+        return 'Finalizó el partido';
+      default:
+        return event['description']?.toString() ?? 'Evento del partido';
+    }
+  }
+
+  String _eventTime(Map<String, dynamic> event) {
+    final seconds = (event['elapsedSeconds'] as num?)?.toInt();
+    if (seconds == null) return "--'";
+    return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+  }
+
   Widget _suspensionCard(Map<String, dynamic> suspension) {
     final remaining = (suspension['endsAt'] as DateTime).difference(DateTime.now()).inSeconds.clamp(0, 120);
     final minutes = remaining ~/ 60;
@@ -543,7 +584,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
     final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
     final suspensionEndsAt = DateTime.now().add(const Duration(minutes: 2));
-    final eventData = {'type': event, 'player': playerKey, 'team': isHome == true ? 'home' : isHome == false ? 'away' : null, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
+    final eventData = {'type': event, 'player': playerKey, 'playerName': playerName ?? playerKey, 'team': isHome == true ? 'home' : isHome == false ? 'away' : null, 'period': _match['period'] ?? 1, 'elapsedSeconds': _elapsedSeconds, 'createdAt': DateTime.now().toIso8601String()};
     if (event == 'exclusion') {
       _activeSuspensions.add({'name': playerName ?? playerKey, 'player': playerKey, 'team': isHome == true ? 'home' : 'away', 'endsAt': suspensionEndsAt});
       _startSuspensionCountdown();
