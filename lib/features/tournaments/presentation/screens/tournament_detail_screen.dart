@@ -71,9 +71,15 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           _StatsGrid(tournament: tournament),
           const SizedBox(height: 18),
-          const _SectionTitle(title: 'Tabla de posiciones', action: 'Ver completa'),
+          _SectionTitle(
+            title: 'Tabla de posiciones',
+            action: 'Ver completa',
+            onAction: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => _FullStandingsScreen(tournament: tournament)),
+            ),
+          ),
           const SizedBox(height: 8),
-          const _StandingRow(position: '1', team: 'La tabla se actualizará', points: '--'),
+          _StandingsSummary(tournament: tournament),
           const SizedBox(height: 18),
           const _SectionTitle(title: 'Destacados'),
           const SizedBox(height: 8),
@@ -942,12 +948,63 @@ class _CardMetric extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, this.action});
+  const _SectionTitle({required this.title, this.action, this.onAction});
   final String title;
   final String? action;
+  final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => Row(children: [Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)), if (action != null) Text(action!, style: Theme.of(context).textTheme.bodySmall)]);
+  Widget build(BuildContext context) => Row(children: [Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)), if (action != null) TextButton(onPressed: onAction, child: Text(action!))]);
+}
+
+class _StandingsSummary extends StatelessWidget {
+  const _StandingsSummary({required this.tournament});
+  final Tournament tournament;
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
+    builder: (context, snapshot) {
+      final rows = _sortedStandings(snapshot.data?.docs ?? const []);
+      if (rows.isEmpty) return const _StandingRow(position: '1', team: 'Aún no hay equipos clasificados', points: '--');
+      final leader = rows.first;
+      return _StandingRow(position: '1', team: _teamLabel(leader), points: '${_points(leader)} pts');
+    },
+  );
+}
+
+List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+  final sorted = [...docs];
+  sorted.sort((a, b) => _points(b).compareTo(_points(a)));
+  return sorted;
+}
+
+String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['teamName'] ?? doc.data()['name'] ?? doc.id).toString();
+int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['points'] as num?)?.toInt() ?? 0;
+
+class _FullStandingsScreen extends StatelessWidget {
+  const _FullStandingsScreen({required this.tournament});
+  final Tournament tournament;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Tabla de posiciones')),
+    body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const Center(child: Text('No se pudo cargar la tabla.'));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final rows = _sortedStandings(snapshot.data!.docs);
+        if (rows.isEmpty) return const Center(child: Text('Aún no hay equipos clasificados.'));
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: rows.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 6),
+          itemBuilder: (_, index) => _StandingRow(position: '${index + 1}', team: _teamLabel(rows[index]), points: '${_points(rows[index])} pts'),
+        );
+      },
+    ),
+  );
 }
 
 class _StandingRow extends StatelessWidget {
