@@ -498,7 +498,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
-  Widget _rosterTeamButton(String side, String teamName) => OutlinedButton.icon(
+  Widget _rosterTeamButton(String side, String teamName) => OutlinedButton(
     onPressed: () => setState(() => _selectedRoster = _selectedRoster == side ? null : side),
     style: OutlinedButton.styleFrom(
       backgroundColor: _selectedRoster == side ? Theme.of(context).colorScheme.primaryContainer : null,
@@ -506,8 +506,22 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ),
-    icon: Icon(_selectedRoster == side ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
-    label: Text(teamName, overflow: TextOverflow.ellipsis),
+    child: Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: _teamIndicatorColor(side),
+            shape: BoxShape.circle,
+            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.45)),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text(teamName, overflow: TextOverflow.ellipsis, textAlign: TextAlign.left)),
+        Icon(_selectedRoster == side ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+      ],
+    ),
   );
 
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
