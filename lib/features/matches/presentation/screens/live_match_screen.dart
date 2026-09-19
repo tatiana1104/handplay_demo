@@ -321,16 +321,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final homeScore = (_match['homeScore'] as num?)?.toInt() ?? 0;
     final awayScore = (_match['awayScore'] as num?)?.toInt() ?? 0;
     final isTied = homeScore == awayScore;
-    final canAdvance = currentPeriod < 2 || isTied;
-    final nextPeriod = canAdvance ? currentPeriod + 1 : currentPeriod;
-    final nextStatus = canAdvance ? 'paused' : 'finished';
+    final canAdvance = currentPeriod < 2 || (currentPeriod == 2 && isTied);
     _timer?.cancel();
+    if (!canAdvance) {
+      await _finishMatch();
+      return;
+    }
+    final nextPeriod = currentPeriod + 1;
     await _saveMatch({
       'period': nextPeriod,
       'elapsedSeconds': 0,
-      'status': nextStatus,
-      'periodStartedAt': canAdvance ? FieldValue.serverTimestamp() : null,
-      'finishedAt': canAdvance ? null : FieldValue.serverTimestamp(),
+      'status': 'paused',
+      'periodStartedAt': FieldValue.serverTimestamp(),
+      'finishedAt': null,
     });
     if (!mounted) return;
     setState(() {
