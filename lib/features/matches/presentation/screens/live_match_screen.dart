@@ -464,13 +464,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   return ListTile(
   dense: true,
   contentPadding: EdgeInsets.zero,
-  leading: SizedBox(
-  width: 48,
-  child: Column(
-  mainAxisSize: MainAxisSize.min,
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-  Container(
+  leading: Container(
   width: 34,
   height: 34,
   decoration: BoxDecoration(
@@ -479,13 +473,14 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   ),
   child: Icon(_chronologyIcon(eventType), color: eventColor, size: 19),
   ),
-  const SizedBox(height: 2),
+  title: Row(
+  children: [
+  Expanded(child: Text(_eventDescription(eventData), maxLines: 1, overflow: TextOverflow.ellipsis)),
+  const SizedBox(width: 6),
   Text(_eventTime(eventData), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
   ],
   ),
-  ),
-  title: Text(_eventDescription(eventData), maxLines: 2, overflow: TextOverflow.ellipsis),
-  subtitle: Text('Período ${eventData['period'] ?? 1}'),
+  subtitle: Text('Período ${eventData['period'] ?? 1}', maxLines: 1, overflow: TextOverflow.ellipsis),
   );
   }),
         const SizedBox(height: 18),
