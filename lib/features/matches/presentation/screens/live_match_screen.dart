@@ -464,7 +464,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   return ListTile(
   dense: true,
   contentPadding: EdgeInsets.zero,
-  leading: Column(
+  leading: SizedBox(
+  width: 48,
+  child: Column(
+  mainAxisSize: MainAxisSize.min,
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
   Container(
@@ -480,7 +483,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Text(_eventTime(eventData), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
   ],
   ),
-  title: Text(_eventDescription(eventData)),
+  ),
+  title: Text(_eventDescription(eventData), maxLines: 2, overflow: TextOverflow.ellipsis),
   subtitle: Text('Período ${eventData['period'] ?? 1}'),
   );
   }),
@@ -699,7 +703,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   void _startSuspensionCountdown() {
     _suspensionTimer?.cancel();
     _suspensionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
+      if (!mounted || _isPaused) return;
       final now = DateTime.now();
       setState(() => _activeSuspensions.removeWhere((item) => (item['endsAt'] as DateTime).isBefore(now)));
     });
