@@ -23,7 +23,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   bool _showOfficials = true;
   Timer? _timer;
   Timer? _suspensionTimer;
+  Timer? _timeoutTimer;
   int _elapsedSeconds = 0;
+  int _timeoutRemaining = 0;
+  String? _timeoutOwner;
   final List<Map<String, dynamic>> _activeSuspensions = [];
   bool _isPaused = true;
   String? _selectedRoster;
@@ -97,6 +100,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   void dispose() {
     _timer?.cancel();
     _suspensionTimer?.cancel();
+    _timeoutTimer?.cancel();
     super.dispose();
   }
 
@@ -105,6 +109,56 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || _isPaused) return;
       setState(() => _elapsedSeconds++);
+    });
+  }
+
+  Future<void> _handleTimeout() async {
+    if (!_isTimekeeper) return;
+    if (_isPaused && _timeoutOwner == 'arbitros') {
+      await _toggleTimer();
+      return;
+    }
+    final owner = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Tiempo muerto'),
+        content: const Text('¿Quién solicita el tiempo muerto?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, 'arbitros'), child: const Text('Árbitros')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, 'local'), child: Text(_teamName('homeTeamName', 'homeTeam'))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, 'visitante'), child: Text(_teamName('awayTeamName', 'awayTeam'))),
+        ],
+      ),
+    );
+    if (owner == null) return;
+    _timer?.cancel();
+    _timeoutOwner = owner;
+    _timeoutRemaining = owner == 'arbitros' ? 0 : 60;
+    setState(() => _isPaused = true);
+    final eventData = {
+      'type': 'timeout',
+      'owner': owner,
+      'description': owner == 'arbitros' ? 'Tiempo muerto solicitado por los árbitros' : 'Tiempo muerto de ${owner == 'local' ? _teamName('homeTeamName', 'homeTeam') : _teamName('awayTeamName', 'awayTeam')}',
+      'period': _match['period'] ?? 1,
+      'elapsedSeconds': _elapsedSeconds,
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+    await _saveMatch({'status': 'tiempo_muerto', 'timeoutOwner': owner, 'timeoutRemaining': _timeoutRemaining, 'events': FieldValue.arrayUnion([eventData])});
+    if (owner != 'arbitros') _startTeamTimeoutCountdown();
+  }
+
+  void _startTeamTimeoutCountdown() {
+    _timeoutTimer?.cancel();
+    _timeoutTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (!mounted) return;
+      if (_timeoutRemaining <= 1) {
+        _timeoutTimer?.cancel();
+        setState(() { _timeoutRemaining = 0; _timeoutOwner = null; _isPaused = false; });
+        _startLocalTimer();
+        await _saveMatch({'status': 'en_curso', 'timeoutRemaining': 0, 'timeoutOwner': null});
+      } else {
+        setState(() => _timeoutRemaining--);
+      }
     });
   }
 
@@ -294,7 +348,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     children: [
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'finished') ? _startMatch : _toggleTimer),
+                          onPressed: _match['status'] == 'finished' ? null : ((!_isLiveStatus(_match['status']?.toString()) && _match['status'] != 'paused' && _match['status'] != 'tiempo_muerto') ? _startMatch : (_match['status'] == 'tiempo_muerto' ? (_timeoutOwner == 'arbitros' ? _toggleTimer : null) : _handleTimeout)),
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(40),
                             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -339,6 +393,16 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           ),
         ],
         const SizedBox(height: 18),
+        if (_timeoutOwner != null) ...[
+          Card(
+            child: ListTile(
+              leading: Icon(_timeoutOwner == 'arbitros' ? Icons.pause_circle : Icons.timer, color: Colors.amber),
+              title: Text(_timeoutOwner == 'arbitros' ? 'Tiempo muerto de los árbitros' : 'Tiempo muerto · ${_timeoutOwner == 'local' ? _teamName('homeTeamName', 'homeTeam') : _teamName('awayTeamName', 'awayTeam')}'),
+              trailing: _timeoutOwner == 'arbitros' ? const Text('En pausa') : Text('$_timeoutRemaining s'),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (_activeSuspensions.isNotEmpty) ...[
           _section('Suspensiones activas', _activeSuspensions.map(_suspensionCard).toList()),
           const SizedBox(height: 12),
