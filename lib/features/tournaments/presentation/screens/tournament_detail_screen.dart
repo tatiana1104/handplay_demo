@@ -968,7 +968,17 @@ class _StandingsSummary extends StatelessWidget {
       final rows = _sortedStandings(snapshot.data?.docs ?? const []);
       if (rows.isEmpty) return const _StandingRow(position: '1', team: 'Aún no hay equipos clasificados', points: '--');
       final leader = rows.first;
-      return _StandingRow(position: '1', team: _teamLabel(leader), points: '${_points(leader)} pts');
+      return _StandingRow(
+        position: '1',
+        team: _teamLabel(leader),
+        points: '${_points(leader)} pts',
+        played: _stat(leader, 'played'),
+        wins: _stat(leader, 'wins'),
+        draws: _stat(leader, 'draws'),
+        losses: _stat(leader, 'losses'),
+        goalsFor: _stat(leader, 'goalsFor'),
+        goalsAgainst: _stat(leader, 'goalsAgainst'),
+      );
     },
   );
 }
@@ -1001,7 +1011,17 @@ class _FullStandingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: rows.length,
           separatorBuilder: (_, __) => const SizedBox(height: 6),
-          itemBuilder: (_, index) => _StandingRow(position: '${index + 1}', team: _teamLabel(rows[index]), points: '${_points(rows[index])} pts', played: _stat(rows[index], 'played'), wins: _stat(rows[index], 'wins'), draws: _stat(rows[index], 'draws'), losses: _stat(rows[index], 'losses')),
+          itemBuilder: (_, index) => _StandingRow(
+            position: '${index + 1}',
+            team: _teamLabel(rows[index]),
+            points: '${_points(rows[index])} pts',
+            played: _stat(rows[index], 'played'),
+            wins: _stat(rows[index], 'wins'),
+            draws: _stat(rows[index], 'draws'),
+            losses: _stat(rows[index], 'losses'),
+            goalsFor: _stat(rows[index], 'goalsFor'),
+            goalsAgainst: _stat(rows[index], 'goalsAgainst'),
+          ),
         );
       },
     ),
@@ -1009,7 +1029,7 @@ class _FullStandingsScreen extends StatelessWidget {
 }
 
 class _StandingRow extends StatelessWidget {
-  const _StandingRow({required this.position, required this.team, required this.points, this.played = 0, this.wins = 0, this.draws = 0, this.losses = 0});
+  const _StandingRow({required this.position, required this.team, required this.points, this.played = 0, this.wins = 0, this.draws = 0, this.losses = 0, this.goalsFor = 0, this.goalsAgainst = 0});
   final String position;
   final String team;
   final String points;
@@ -1017,9 +1037,26 @@ class _StandingRow extends StatelessWidget {
   final int wins;
   final int draws;
   final int losses;
+  final int goalsFor;
+  final int goalsAgainst;
 
   @override
-  Widget build(BuildContext context) => Card(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), child: Row(children: [SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))), Expanded(child: Text(team, overflow: TextOverflow.ellipsis)), Text('PJ $played  PG $wins  PE $draws  P $points', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700))])));
+  Widget build(BuildContext context) {
+    final goalDifference = goalsFor - goalsAgainst;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(team, overflow: TextOverflow.ellipsis), Text('PJ $played · PG $wins · PE $draws · PP $losses · GF $goalsFor · GC $goalsAgainst · DG $goalDifference', style: Theme.of(context).textTheme.labelSmall)])),
+            const SizedBox(width: 8),
+            Text(points, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Highlights extends StatelessWidget {
