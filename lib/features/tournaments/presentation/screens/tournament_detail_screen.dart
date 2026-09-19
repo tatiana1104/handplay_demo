@@ -966,19 +966,13 @@ class _StandingsSummary extends StatelessWidget {
     stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
     builder: (context, snapshot) {
       final rows = _sortedStandings(snapshot.data?.docs ?? const []);
-      if (rows.isEmpty) return const _StandingRow(position: '1', team: 'Aún no hay equipos clasificados', points: '--');
-      final leader = rows.first;
-      return _StandingRow(
-        position: '1',
-        team: _teamLabel(leader),
-        points: '${_points(leader)} pts',
-        played: _stat(leader, 'played'),
-        wins: _stat(leader, 'wins'),
-        draws: _stat(leader, 'draws'),
-        losses: _stat(leader, 'losses'),
-        goalsFor: _stat(leader, 'goalsFor'),
-        goalsAgainst: _stat(leader, 'goalsAgainst'),
-      );
+  final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : _teamLabel(rows.first);
+  return Card(
+  child: ListTile(
+  leading: const CircleAvatar(child: Text('1')),
+  title: Text(leaderName, style: const TextStyle(fontWeight: FontWeight.w700)),
+  ),
+  );
     },
   );
 }
