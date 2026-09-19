@@ -981,6 +981,7 @@ List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDoc
 
 String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['teamName'] ?? doc.data()['name'] ?? doc.id).toString();
 int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['points'] as num?)?.toInt() ?? 0;
+int _stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) => (doc.data()[key] as num?)?.toInt() ?? 0;
 
 class _FullStandingsScreen extends StatelessWidget {
   const _FullStandingsScreen({required this.tournament});
@@ -1000,7 +1001,7 @@ class _FullStandingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: rows.length,
           separatorBuilder: (_, __) => const SizedBox(height: 6),
-          itemBuilder: (_, index) => _StandingRow(position: '${index + 1}', team: _teamLabel(rows[index]), points: '${_points(rows[index])} pts'),
+          itemBuilder: (_, index) => _StandingRow(position: '${index + 1}', team: _teamLabel(rows[index]), points: '${_points(rows[index])} pts', played: _stat(rows[index], 'played'), wins: _stat(rows[index], 'wins'), draws: _stat(rows[index], 'draws'), losses: _stat(rows[index], 'losses')),
         );
       },
     ),
@@ -1008,13 +1009,17 @@ class _FullStandingsScreen extends StatelessWidget {
 }
 
 class _StandingRow extends StatelessWidget {
-  const _StandingRow({required this.position, required this.team, required this.points});
+  const _StandingRow({required this.position, required this.team, required this.points, this.played = 0, this.wins = 0, this.draws = 0, this.losses = 0});
   final String position;
   final String team;
   final String points;
+  final int played;
+  final int wins;
+  final int draws;
+  final int losses;
 
   @override
-  Widget build(BuildContext context) => Card(child: ListTile(dense: true, leading: Text(position), title: Text(team), trailing: Text(points, style: const TextStyle(fontWeight: FontWeight.bold))));
+  Widget build(BuildContext context) => Card(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), child: Row(children: [SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))), Expanded(child: Text(team, overflow: TextOverflow.ellipsis)), Text('PJ $played  PG $wins  PE $draws  P $points', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700))])));
 }
 
 class _Highlights extends StatelessWidget {

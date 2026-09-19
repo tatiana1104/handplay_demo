@@ -259,9 +259,44 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  Future<void> _updateTournamentStandings(int homeScore, int awayScore) async {
+    final tournamentId = _match['tournamentId']?.toString();
+    final homeTeamId = (_match['homeTeamId'] ?? _match['homeTeam'])?.toString();
+    final awayTeamId = (_match['awayTeamId'] ?? _match['awayTeam'])?.toString();
+    if (tournamentId == null || homeTeamId == null || awayTeamId == null) return;
+    final homeRef = FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').doc(homeTeamId);
+    final awayRef = FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').doc(awayTeamId);
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final home = (await transaction.get(homeRef)).data() ?? <String, dynamic>{};
+      final away = (await transaction.get(awayRef)).data() ?? <String, dynamic>{};
+      final homeWin = homeScore > awayScore;
+      final awayWin = awayScore > homeScore;
+      Map<String, dynamic> stats(Map<String, dynamic> current, bool win, bool draw) => {
+        'points': ((current['points'] as num?)?.toInt() ?? 0) + (win ? 3 : draw ? 1 : 0),
+        'played': ((current['played'] as num?)?.toInt() ?? 0) + 1,
+        'wins': ((current['wins'] as num?)?.toInt() ?? 0) + (win ? 1 : 0),
+        'draws': ((current['draws'] as num?)?.toInt() ?? 0) + (draw ? 1 : 0),
+        'losses': ((current['losses'] as num?)?.toInt() ?? 0) + ((!win && !draw) ? 1 : 0),
+        'goalsFor': ((current['goalsFor'] as num?)?.toInt() ?? 0),
+      };
+      final draw = homeScore == awayScore;
+      final homeStats = stats(home, homeWin, draw);
+      final awayStats = stats(away, awayWin, draw);
+      homeStats['goalsFor'] = ((home['goalsFor'] as num?)?.toInt() ?? 0) + homeScore;
+      homeStats['goalsAgainst'] = ((home['goalsAgainst'] as num?)?.toInt() ?? 0) + awayScore;
+      awayStats['goalsFor'] = ((away['goalsFor'] as num?)?.toInt() ?? 0) + awayScore;
+      awayStats['goalsAgainst'] = ((away['goalsAgainst'] as num?)?.toInt() ?? 0) + homeScore;
+      transaction.update(homeRef, homeStats);
+      transaction.update(awayRef, awayStats);
+    });
+  }
+
   Future<void> _finishMatch() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     _timer?.cancel();
+    final finalHomeScore = (_match['homeScore'] as num?)?.toInt() ?? 0;
+    final finalAwayScore = (_match['awayScore'] as num?)?.toInt() ?? 0;
+    await _updateTournamentStandings(finalHomeScore, finalAwayScore);
     await _saveMatch({
       'status': 'finished',
       'elapsedSeconds': _elapsedSeconds,
