@@ -457,16 +457,33 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             child: Text('Aún no hay acciones registradas.'),
           )
         else
-          ...events.reversed.map((event) {
-            final eventData = Map<String, dynamic>.from(event as Map);
-            return ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: Text(_eventTime(eventData), style: const TextStyle(fontWeight: FontWeight.w700)),
-              title: Text(_eventDescription(eventData)),
-              subtitle: Text('Período ${eventData['period'] ?? 1}'),
-            );
-          }),
+  ...events.reversed.map((event) {
+  final eventData = Map<String, dynamic>.from(event as Map);
+  final eventType = eventData['type']?.toString();
+  final eventColor = _chronologyColor(eventType);
+  return ListTile(
+  dense: true,
+  contentPadding: EdgeInsets.zero,
+  leading: Column(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+  Container(
+  width: 34,
+  height: 34,
+  decoration: BoxDecoration(
+  color: eventColor.withValues(alpha: 0.14),
+  borderRadius: BorderRadius.circular(9),
+  ),
+  child: Icon(_chronologyIcon(eventType), color: eventColor, size: 19),
+  ),
+  const SizedBox(height: 2),
+  Text(_eventTime(eventData), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+  ],
+  ),
+  title: Text(_eventDescription(eventData)),
+  subtitle: Text('Período ${eventData['period'] ?? 1}'),
+  );
+  }),
         const SizedBox(height: 18),
         Card(
           margin: EdgeInsets.zero,
@@ -553,6 +570,47 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       default:
         return Colors.green;
     }
+  }
+
+  IconData _chronologyIcon(String? type) {
+  switch (type) {
+  case 'goal':
+  return Icons.sports_soccer;
+  case 'exclusion':
+  return Icons.timer;
+  case 'yellowCard':
+  return Icons.square;
+  case 'redCard':
+  return Icons.square;
+  case 'timeout':
+  return Icons.pause_circle_outline;
+  case 'matchStarted':
+  return Icons.play_arrow;
+  case 'matchFinished':
+  return Icons.flag;
+  default:
+  return Icons.info_outline;
+  }
+  }
+
+  Color _chronologyColor(String? type) {
+  switch (type) {
+  case 'goal':
+  return Colors.green;
+  case 'exclusion':
+  case 'timeout':
+  return Colors.amber.shade700;
+  case 'yellowCard':
+  return Colors.amber;
+  case 'redCard':
+  return Colors.red;
+  case 'matchStarted':
+  return Colors.blue;
+  case 'matchFinished':
+  return Colors.blueGrey;
+  default:
+  return Theme.of(context).colorScheme.primary;
+  }
   }
 
   String _eventDescription(Map<String, dynamic> event) {
