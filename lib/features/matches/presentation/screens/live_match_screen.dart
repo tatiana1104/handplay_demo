@@ -393,13 +393,16 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
             child: Text('Aún no hay acciones registradas.'),
           )
         else
-          ...events.reversed.map((event) => ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: Text(_eventTime(event), style: const TextStyle(fontWeight: FontWeight.w700)),
-                title: Text(_eventDescription(event)),
-                subtitle: Text('Período ${event['period'] ?? 1}'),
-              )),
+          ...events.reversed.map((event) {
+            final eventData = Map<String, dynamic>.from(event as Map);
+            return ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: Text(_eventTime(eventData), style: const TextStyle(fontWeight: FontWeight.w700)),
+              title: Text(_eventDescription(eventData)),
+              subtitle: Text('Período ${eventData['period'] ?? 1}'),
+            );
+          }),
         const SizedBox(height: 18),
         Card(
           margin: EdgeInsets.zero,
