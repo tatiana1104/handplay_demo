@@ -569,7 +569,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       child: ListTile(
         leading: Text(number),
         title: Text(name),
-        subtitle: Text('${goals + (events['goal'] ?? 0)} goles'),
+        subtitle: Text(
+          '${goals + (events['goal'] ?? 0)} goles · Amarillas: ${events['yellowCard'] ?? 0} · Rojas: ${events['redCard'] ?? 0}',
+        ),
         trailing: Wrap(spacing: 2, children: [
           _eventButton(
                     Icons.sports_soccer,
@@ -599,7 +601,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       );
 
   Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome, String playerName, {bool enabled = true}) => IconButton(
-        tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Tarjeta amarilla' : 'Tarjeta roja',
+        tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Registrar tarjeta amarilla' : 'Registrar tarjeta roja',
         style: _eventButtonStyle(color),
         onPressed: enabled ? () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: playerName) : null,
         icon: Icon(icon, color: color, size: 24),
