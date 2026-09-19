@@ -1020,8 +1020,21 @@ class _FullStandingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Tabla de posiciones')),
-    body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
+    body: Column(
+      children: [
+        Card(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              'PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('No se pudo cargar la tabla.'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
@@ -1044,6 +1057,9 @@ class _FullStandingsScreen extends StatelessWidget {
           ),
         );
       },
+          ),
+        ),
+      ],
     ),
   );
 }
