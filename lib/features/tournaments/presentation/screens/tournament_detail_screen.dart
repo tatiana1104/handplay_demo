@@ -985,7 +985,27 @@ class _StandingsSummary extends StatelessWidget {
 
 List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
   final sorted = [...docs];
-  sorted.sort((a, b) => _points(b).compareTo(_points(a)));
+  int stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) => (doc.data()[key] as num?)?.toInt() ?? 0;
+  int goalDifference(QueryDocumentSnapshot<Map<String, dynamic>> doc) => stat(doc, 'goalsFor') - stat(doc, 'goalsAgainst');
+
+  sorted.sort((a, b) {
+    final byPoints = _points(b).compareTo(_points(a));
+    if (byPoints != 0) return byPoints;
+
+    final byWins = stat(b, 'wins').compareTo(stat(a, 'wins'));
+    if (byWins != 0) return byWins;
+
+    final byGoalDifference = goalDifference(b).compareTo(goalDifference(a));
+    if (byGoalDifference != 0) return byGoalDifference;
+
+    final byGoalsFor = stat(b, 'goalsFor').compareTo(stat(a, 'goalsFor'));
+    if (byGoalsFor != 0) return byGoalsFor;
+
+    final byPlayed = stat(b, 'played').compareTo(stat(a, 'played'));
+    if (byPlayed != 0) return byPlayed;
+
+    return stat(a, 'losses').compareTo(stat(b, 'losses'));
+  });
   return sorted;
 }
 
@@ -1049,7 +1069,7 @@ class _StandingRow extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(team, overflow: TextOverflow.ellipsis), Text('PJ $played · PG $wins · PE $draws · PP $losses · GF $goalsFor · GC $goalsAgainst · DG $goalDifference', style: Theme.of(context).textTheme.labelSmall)])),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(team, overflow: TextOverflow.ellipsis), Text('PJ $played · PG $wins · PE $draws · PP $losses · GF $goalsFor · GC $goalsAgainst · DG $goalDifference', style: Theme.of(context).textTheme.labelSmall, maxLines: 2, overflow: TextOverflow.ellipsis)])),
             const SizedBox(width: 8),
             Text(points, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
