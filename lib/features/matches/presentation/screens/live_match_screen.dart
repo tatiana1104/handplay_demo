@@ -261,11 +261,23 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Future<void> _updateTournamentStandings(int homeScore, int awayScore) async {
     final tournamentId = _match['tournamentId']?.toString();
-    final homeTeamId = (_match['homeTeamId'] ?? _match['homeTeam'])?.toString();
-    final awayTeamId = (_match['awayTeamId'] ?? _match['awayTeam'])?.toString();
-    if (tournamentId == null || homeTeamId == null || awayTeamId == null) return;
-    final homeRef = FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').doc(homeTeamId);
-    final awayRef = FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').doc(awayTeamId);
+    final homeIdentifier = (_match['homeTeamId'] ?? _match['homeTeam'])?.toString().trim();
+    final awayIdentifier = (_match['awayTeamId'] ?? _match['awayTeam'])?.toString().trim();
+    if (tournamentId == null || homeIdentifier == null || awayIdentifier == null) return;
+    final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').get();
+    QueryDocumentSnapshot<Map<String, dynamic>>? findRegistration(String identifier) {
+      for (final doc in registrations.docs) {
+        final data = doc.data();
+        final identifiers = [doc.id, data['id'], data['registrationId'], data['teamId'], data['teamUid'], data['uid'], data['teamName'], data['name']].whereType<Object>().map((value) => value.toString().trim()).toSet();
+        if (identifiers.contains(identifier)) return doc;
+      }
+      return null;
+    }
+    final homeDoc = findRegistration(homeIdentifier);
+    final awayDoc = findRegistration(awayIdentifier);
+    if (homeDoc == null || awayDoc == null || homeDoc.id == awayDoc.id) return;
+    final homeRef = homeDoc.reference;
+    final awayRef = awayDoc.reference;
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       final home = (await transaction.get(homeRef)).data() ?? <String, dynamic>{};
       final away = (await transaction.get(awayRef)).data() ?? <String, dynamic>{};

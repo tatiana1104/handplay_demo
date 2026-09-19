@@ -260,6 +260,16 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
   - `HEAD`: la consulta pública de inscripciones permite resolver los nombres de equipos antiguos aunque no tengan el estado `approved` esperado; la UI filtra registros pendientes antes de mostrarlos.
 
 
+### Simbología de la tabla de posiciones
+
+- **PJ:** partidos jugados.
+- **PG / PE / PP:** partidos ganados, empatados y perdidos.
+- **GF / GC:** goles a favor y goles en contra.
+- **DG:** diferencia de goles (`GF - GC`).
+- **PTS:** puntos: 3 por victoria, 1 por empate y 0 por derrota.
+
+La clasificación se ordena por puntos; en caso de empate, por partidos ganados, diferencia de goles, goles a favor, partidos jugados y menor cantidad de derrotas.
+
 ### 🟨 Sprint 4 — Partido en vivo (en progreso)
 - [x] Marcador y estado del partido.
 - [x] Registro visual de goles.
@@ -269,7 +279,13 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
 
 Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
 
-### ⬜ Sprint 5 — Estadísticas
+### 🟨 Sprint 5 — Estadísticas (en progreso)
+- [x] Guardar marcador y datos completos al finalizar un partido.
+- [x] Asignar puntos: 3 por victoria, 1 por empate y 0 por derrota.
+- [x] Registrar PJ, PG, PE, PP, GF, GC y DG.
+- [x] Mostrar resumen del líder y tabla completa de posiciones.
+- [x] Aplicar criterios de desempate de la clasificación.
+- [ ] Validar estadísticas históricas de partidos finalizados y recalcular datos existentes.
 
 ### ⬜ Sprint 6 — Automatizaciones
 Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos, además de la generación automática de la cronología del partido a partir de goles, exclusiones y tarjetas.
