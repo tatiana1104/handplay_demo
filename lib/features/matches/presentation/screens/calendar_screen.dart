@@ -126,7 +126,10 @@ class _CalendarDay extends StatelessWidget {
                       Row(children: [
                         Expanded(child: _TeamSide(label: 'LOCAL', name: _name(match, true), color: _color(match['homeTeamColor'], Colors.green))),
                         Column(children: [
-                          Text(_time(match['date']), style: const TextStyle(fontWeight: FontWeight.w600)),
+                          if (match['status']?.toString().toLowerCase() == 'finished' || match['status']?.toString().toLowerCase() == 'finalizado')
+                            Text('${match['homeScore'] ?? match['finalHomeScore'] ?? 0} - ${match['awayScore'] ?? match['finalAwayScore'] ?? 0}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                          if (match['status']?.toString().toLowerCase() != 'finished' && match['status']?.toString().toLowerCase() != 'finalizado')
+                            Text(_time(match['date']), style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 3),
                           ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 105),

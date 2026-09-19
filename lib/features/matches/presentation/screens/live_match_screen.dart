@@ -266,6 +266,13 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'status': 'finished',
       'elapsedSeconds': _elapsedSeconds,
       'finishedAt': FieldValue.serverTimestamp(),
+      'finalHomeScore': (_match['homeScore'] as num?)?.toInt() ?? 0,
+      'finalAwayScore': (_match['awayScore'] as num?)?.toInt() ?? 0,
+      'finalPeriod': (_match['period'] as num?)?.toInt() ?? 1,
+      'finalElapsedSeconds': _elapsedSeconds,
+      'finalEvents': List<dynamic>.from((_match['events'] as List?) ?? const []),
+      'timeoutOwner': null,
+      'timeoutRemaining': 0,
     });
     if (!mounted) return;
     setState(() {
