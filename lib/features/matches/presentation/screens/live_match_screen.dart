@@ -518,12 +518,13 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   }
 
   String _statusLabel(String? status) {
-    if (_isLiveStatus(status)) return 'EN VIVO';
-    if (status == 'finished' || status == 'finalizado') return 'FINALIZADO';
-    return 'POR INICIAR';
+  if (status == 'tiempo_muerto' || status == 'tiempo muerto' || status == 'timeout') return 'TIEMPO MUERTO';
+  if (_isLiveStatus(status)) return 'EN VIVO';
+  if (status == 'finished' || status == 'finalizado') return 'FINALIZADO';
+  return 'POR INICIAR';
   }
 
-  Color _statusColor(String? status) => _isLiveStatus(status) ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
+  Color _statusColor(String? status) => status == 'tiempo_muerto' || status == 'tiempo muerto' || status == 'timeout' ? Colors.amber.shade700 : _isLiveStatus(status) ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
 
   String _elapsedLabel() {
     final seconds = _elapsedSeconds > 0 ? _elapsedSeconds : ((_match['elapsedSeconds'] as num?)?.toInt() ?? 0);

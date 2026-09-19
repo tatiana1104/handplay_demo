@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 String matchStatusLabel(String? status) {
   return switch (status?.trim().toLowerCase()) {
     'live' || 'en vivo' || 'playing' || 'jugando' || 'en curso' || 'en_curso' => 'En curso',
+    'tiempo_muerto' || 'tiempo muerto' || 'timeout' => 'Tiempo muerto',
     'postponed' || 'aplazado' || 'rescheduled' => 'Aplazado',
     'finished' || 'finalizado' || 'completed' => 'Finalizado',
     _ => 'Programado',
@@ -15,6 +16,7 @@ Color matchStatusColor(BuildContext context, String? status) {
   final colors = Theme.of(context).colorScheme;
   return switch (matchStatusLabel(status)) {
     'En curso' => Theme.of(context).brightness == Brightness.dark ? AppColors.brandDark : AppColors.brandLight,
+    'Tiempo muerto' => colors.tertiary,
     'Aplazado' => colors.error,
     'Finalizado' => colors.onSurfaceVariant,
     _ => Theme.of(context).brightness == Brightness.dark ? AppColors.amberDark : AppColors.amberLight,
