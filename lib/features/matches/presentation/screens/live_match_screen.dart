@@ -804,7 +804,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   }
 
   Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome, String? playerName}) async {
-    if (!_canUseScoreSheet) return;
+    if (!_canUseScoreSheet || _match['status']?.toString().toLowerCase() == 'finished' || _match['status']?.toString().toLowerCase() == 'finalizado') return;
     final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
     final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
     final suspensionEndsAt = DateTime.now().add(const Duration(minutes: 2));
@@ -845,11 +845,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                     goalColor,
                     isHome,
                     name,
-                    enabled: !isExcluded,
+                    enabled: !isExcluded && _match['status']?.toString().toLowerCase() != 'finished' && _match['status']?.toString().toLowerCase() != 'finalizado',
                   ),
-          _textEventButton("2'", 'exclusion', key, Colors.amber, isHome, name),
-          _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome, name),
-          _eventButton(Icons.square, 'redCard', key, Colors.red, isHome, name),
+          _textEventButton("2'", 'exclusion', key, Colors.amber, isHome, name, enabled: _match['status']?.toString().toLowerCase() != 'finished' && _match['status']?.toString().toLowerCase() != 'finalizado'),
+          _eventButton(Icons.square, 'yellowCard', key, Colors.amber, isHome, name, enabled: _match['status']?.toString().toLowerCase() != 'finished' && _match['status']?.toString().toLowerCase() != 'finalizado'),
+          _eventButton(Icons.square, 'redCard', key, Colors.red, isHome, name, enabled: _match['status']?.toString().toLowerCase() != 'finished' && _match['status']?.toString().toLowerCase() != 'finalizado'),
         ]),
       ),
     );
@@ -872,10 +872,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         icon: Icon(icon, color: color, size: 24),
       );
 
-  Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome, String playerName) => IconButton(
+  Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome, String playerName, {bool enabled = true}) => IconButton(
         tooltip: 'Exclusión 2 minutos',
         style: _eventButtonStyle(color),
-        onPressed: () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: playerName),
+        onPressed: enabled ? () => _recordPlayerEvent(playerKey, event, isHome: isHome, playerName: playerName) : null,
         icon: Text(label, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w700)),
       );
 }
