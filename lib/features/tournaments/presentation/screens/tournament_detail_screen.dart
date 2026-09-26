@@ -1004,8 +1004,26 @@ List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDoc
 }
 
 String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['teamName'] ?? doc.data()['name'] ?? doc.id).toString();
-int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['points'] as num?)?.toInt() ?? 0;
-int _stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) => (doc.data()[key] as num?)?.toInt() ?? 0;
+int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => _stat(doc, 'points');
+int _stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) {
+  final data = doc.data();
+  final aliases = <String, List<String>>{
+    'points': ['points', 'pts', 'score'],
+    'played': ['played', 'matchesPlayed', 'gamesPlayed', 'pj'],
+    'wins': ['wins', 'won', 'matchesWon', 'pg'],
+    'draws': ['draws', 'ties', 'matchesDrawn', 'pe'],
+    'losses': ['losses', 'lost', 'matchesLost', 'pp'],
+    'goalsFor': ['goalsFor', 'goalsScored', 'gf'],
+    'goalsAgainst': ['goalsAgainst', 'goalsConceded', 'gc'],
+  };
+  for (final field in aliases[key] ?? [key]) {
+    final value = data[field];
+    if (value is num) return value.toInt();
+    final parsed = int.tryParse(value?.toString() ?? '');
+    if (parsed != null) return parsed;
+  }
+  return 0;
+}
 
 class _FullStandingsScreen extends StatelessWidget {
   const _FullStandingsScreen({required this.tournament});

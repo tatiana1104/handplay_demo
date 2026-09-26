@@ -264,7 +264,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final homeIdentifier = (_match['homeTeamId'] ?? _match['homeTeam'])?.toString().trim();
     final awayIdentifier = (_match['awayTeamId'] ?? _match['awayTeam'])?.toString().trim();
     if (tournamentId == null || homeIdentifier == null || awayIdentifier == null) return;
-    final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').get();
+    final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').get();
     QueryDocumentSnapshot<Map<String, dynamic>>? findRegistration(String identifier) {
       for (final doc in registrations.docs) {
         final data = doc.data();
@@ -318,6 +318,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'finalPeriod': (_match['period'] as num?)?.toInt() ?? 1,
       'finalElapsedSeconds': _elapsedSeconds,
       'finalEvents': List<dynamic>.from((_match['events'] as List?) ?? const []),
+      'standingsUpdatedAt': FieldValue.serverTimestamp(),
       'timeoutOwner': null,
       'timeoutRemaining': 0,
     });
