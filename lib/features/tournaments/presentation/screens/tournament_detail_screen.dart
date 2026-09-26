@@ -976,31 +976,38 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
   Future<void> _recalculateHistoricalStandings() async {
     final tournamentRef = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id);
     final registrations = await tournamentRef.collection('registrations').get();
-    final matches = await tournamentRef.collection('matches').where('status', whereIn: ['finished', 'finalizado']).get();
+    final matches = await tournamentRef.collection('matches').get();
     final stats = <String, Map<String, int>>{};
+    String normalize(Object? value) => value.toString().trim().toLowerCase();
     String? value(Object? raw) => raw is Map ? (raw['id'] ?? raw['teamId'] ?? raw['registrationId'] ?? raw['uid'] ?? raw['name'] ?? raw['teamName'])?.toString() : raw?.toString();
+    int number(Object? raw) => raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '') ?? 0;
     for (final registration in registrations.docs) {
       final data = registration.data();
       for (final id in [registration.id, data['id'], data['teamId'], data['registrationId'], data['uid'], data['teamUid'], data['teamName'], data['name']]) {
-        if (id != null) stats[id.toString().trim()] = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
+        if (id != null && id.toString().trim().isNotEmpty) stats[normalize(id)] = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
       }
     }
     for (final match in matches.docs) {
       final data = match.data();
+      final status = normalize(data['status']);
+      if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
       final home = value(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
       final away = value(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
-      final homeStats = home == null ? null : stats[home];
-      final awayStats = away == null ? null : stats[away];
+      final homeStats = home == null ? null : stats[normalize(home)];
+      final awayStats = away == null ? null : stats[normalize(away)];
       if (homeStats == null || awayStats == null) continue;
-      final homeGoals = ((data['finalHomeScore'] ?? data['homeScore']) as num?)?.toInt() ?? 0;
-      final awayGoals = ((data['finalAwayScore'] ?? data['awayScore']) as num?)?.toInt() ?? 0;
+      final homeGoals = number(data['finalHomeScore'] ?? data['homeScore']);
+      final awayGoals = number(data['finalAwayScore'] ?? data['awayScore']);
       homeStats['played'] = homeStats['played']! + 1; awayStats['played'] = awayStats['played']! + 1;
       homeStats['goalsFor'] = homeStats['goalsFor']! + homeGoals; homeStats['goalsAgainst'] = homeStats['goalsAgainst']! + awayGoals;
       awayStats['goalsFor'] = awayStats['goalsFor']! + awayGoals; awayStats['goalsAgainst'] = awayStats['goalsAgainst']! + homeGoals;
       if (homeGoals == awayGoals) { homeStats['points'] = homeStats['points']! + 1; awayStats['points'] = awayStats['points']! + 1; homeStats['draws'] = homeStats['draws']! + 1; awayStats['draws'] = awayStats['draws']! + 1; } else { final winner = homeGoals > awayGoals ? homeStats : awayStats; final loser = homeGoals > awayGoals ? awayStats : homeStats; winner['points'] = winner['points']! + 3; winner['wins'] = winner['wins']! + 1; loser['losses'] = loser['losses']! + 1; }
     }
     final batch = FirebaseFirestore.instance.batch();
-    for (final registration in registrations.docs) { final current = stats[registration.id]; if (current != null) batch.update(registration.reference, current); }
+    for (final registration in registrations.docs) {
+      final current = stats[normalize(registration.id)];
+      if (current != null) batch.update(registration.reference, current);
+    }
     await batch.commit();
   }
 
