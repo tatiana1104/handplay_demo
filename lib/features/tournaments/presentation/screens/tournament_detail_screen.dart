@@ -957,22 +957,59 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Row(children: [Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)), if (action != null) TextButton(onPressed: onAction, child: Text(action!))]);
 }
 
-class _StandingsSummary extends StatelessWidget {
+class _StandingsSummary extends StatefulWidget {
   const _StandingsSummary({required this.tournament});
   final Tournament tournament;
 
   @override
+  State<_StandingsSummary> createState() => _StandingsSummaryState();
+}
+
+class _StandingsSummaryState extends State<_StandingsSummary> {
+  @override
+  void initState() {
+    super.initState();
+    _recalculateHistoricalStandings();
+  }
+
+  Future<void> _recalculateHistoricalStandings() async {
+    final tournamentRef = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id);
+    final registrations = await tournamentRef.collection('registrations').get();
+    final matches = await tournamentRef.collection('matches').where('status', whereIn: ['finished', 'finalizado']).get();
+    final stats = <String, Map<String, int>>{};
+    String? value(Object? raw) => raw is Map ? (raw['id'] ?? raw['teamId'] ?? raw['registrationId'] ?? raw['uid'] ?? raw['name'] ?? raw['teamName'])?.toString() : raw?.toString();
+    for (final registration in registrations.docs) {
+      final data = registration.data();
+      for (final id in [registration.id, data['id'], data['teamId'], data['registrationId'], data['uid'], data['teamUid'], data['teamName'], data['name']]) {
+        if (id != null) stats[id.toString().trim()] = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
+      }
+    }
+    for (final match in matches.docs) {
+      final data = match.data();
+      final home = value(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
+      final away = value(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
+      final homeStats = home == null ? null : stats[home];
+      final awayStats = away == null ? null : stats[away];
+      if (homeStats == null || awayStats == null) continue;
+      final homeGoals = ((data['finalHomeScore'] ?? data['homeScore']) as num?)?.toInt() ?? 0;
+      final awayGoals = ((data['finalAwayScore'] ?? data['awayScore']) as num?)?.toInt() ?? 0;
+      homeStats['played'] = homeStats['played']! + 1; awayStats['played'] = awayStats['played']! + 1;
+      homeStats['goalsFor'] = homeStats['goalsFor']! + homeGoals; homeStats['goalsAgainst'] = homeStats['goalsAgainst']! + awayGoals;
+      awayStats['goalsFor'] = awayStats['goalsFor']! + awayGoals; awayStats['goalsAgainst'] = awayStats['goalsAgainst']! + homeGoals;
+      if (homeGoals == awayGoals) { homeStats['points'] = homeStats['points']! + 1; awayStats['points'] = awayStats['points']! + 1; homeStats['draws'] = homeStats['draws']! + 1; awayStats['draws'] = awayStats['draws']! + 1; } else { final winner = homeGoals > awayGoals ? homeStats : awayStats; final loser = homeGoals > awayGoals ? awayStats : homeStats; winner['points'] = winner['points']! + 3; winner['wins'] = winner['wins']! + 1; loser['losses'] = loser['losses']! + 1; }
+    }
+    final batch = FirebaseFirestore.instance.batch();
+    for (final registration in registrations.docs) { final current = stats[registration.id]; if (current != null) batch.update(registration.reference, current); }
+    await batch.commit();
+  }
+
+  @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
+    stream: FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').snapshots(),
     builder: (context, snapshot) {
       final rows = _sortedStandings(snapshot.data?.docs ?? const []);
-  final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : _teamLabel(rows.first);
-  return Card(
-  child: ListTile(
-  leading: const CircleAvatar(child: Text('1')),
-  title: Text(leaderName, style: const TextStyle(fontWeight: FontWeight.w700)),
-  ),
-  );
+      final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : _teamLabel(rows.first);
+      return Card(child: ListTile(leading: const CircleAvatar(child: Text('1')), title: Text(leaderName, style: const TextStyle(fontWeight: FontWeight.w700))));
     },
   );
 }
