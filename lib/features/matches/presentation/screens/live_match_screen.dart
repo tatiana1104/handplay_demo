@@ -261,8 +261,18 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Future<void> _updateTournamentStandings(int homeScore, int awayScore) async {
     final tournamentId = _match['tournamentId']?.toString();
-    final homeIdentifier = (_match['homeTeamId'] ?? _match['homeTeam'])?.toString().trim();
-    final awayIdentifier = (_match['awayTeamId'] ?? _match['awayTeam'])?.toString().trim();
+    String? identifierFor(Object? value) {
+      if (value is Map) {
+        for (final key in ['id', 'teamId', 'registrationId', 'uid', 'name', 'teamName']) {
+          final candidate = value[key];
+          if (candidate != null && candidate.toString().trim().isNotEmpty) return candidate.toString().trim();
+        }
+      }
+      final text = value?.toString().trim();
+      return text == null || text.isEmpty ? null : text;
+    }
+    final homeIdentifier = identifierFor(_match['homeTeamId'] ?? _match['homeTeam'] ?? _match['homeTeamName']);
+    final awayIdentifier = identifierFor(_match['awayTeamId'] ?? _match['awayTeam'] ?? _match['awayTeamName']);
     if (tournamentId == null || homeIdentifier == null || awayIdentifier == null) return;
     final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').get();
     QueryDocumentSnapshot<Map<String, dynamic>>? findRegistration(String identifier) {
@@ -298,6 +308,17 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       homeStats['goalsAgainst'] = ((home['goalsAgainst'] as num?)?.toInt() ?? 0) + awayScore;
       awayStats['goalsFor'] = ((away['goalsFor'] as num?)?.toInt() ?? 0) + awayScore;
       awayStats['goalsAgainst'] = ((away['goalsAgainst'] as num?)?.toInt() ?? 0) + homeScore;
+      void addAliases(Map<String, dynamic> stats) {
+        stats['pts'] = stats['points'];
+        stats['pj'] = stats['played'];
+        stats['pg'] = stats['wins'];
+        stats['pe'] = stats['draws'];
+        stats['pp'] = stats['losses'];
+        stats['gf'] = stats['goalsFor'];
+        stats['gc'] = stats['goalsAgainst'];
+      }
+      addAliases(homeStats);
+      addAliases(awayStats);
       transaction.update(homeRef, homeStats);
       transaction.update(awayRef, awayStats);
     });

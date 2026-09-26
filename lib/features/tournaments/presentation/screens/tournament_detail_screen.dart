@@ -1003,7 +1003,12 @@ List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDoc
   return sorted;
 }
 
-String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) => (doc.data()['teamName'] ?? doc.data()['name'] ?? doc.id).toString();
+String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  final data = doc.data();
+  final team = data['team'];
+  if (team is Map) return (team['name'] ?? team['teamName'] ?? team['id'] ?? doc.id).toString();
+  return (data['teamName'] ?? data['name'] ?? data['team'] ?? doc.id).toString();
+}
 int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => _stat(doc, 'points');
 int _stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) {
   final data = doc.data();
