@@ -234,6 +234,22 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   Future<void> _resetToSecondPeriod() => _startPeriod(2);
 
+  Future<void> _confirmFinishMatch() async {
+    if (!_isTimekeeper || _match['status'] == 'finished') return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Finalizar partido'),
+        content: const Text('¿Deseas guardar el marcador y finalizar este partido?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Finalizar')),
+        ],
+      ),
+    );
+    if (confirmed == true) await _finishMatch();
+  }
+
   Future<void> _handlePeriodEnd() async {
     if (!_isTimekeeper) return;
     final shouldContinue = await showDialog<bool>(
@@ -329,7 +345,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     _timer?.cancel();
     final finalHomeScore = (_match['homeScore'] as num?)?.toInt() ?? 0;
     final finalAwayScore = (_match['awayScore'] as num?)?.toInt() ?? 0;
-    await _updateTournamentStandings(finalHomeScore, finalAwayScore);
+    try {
+      await _updateTournamentStandings(finalHomeScore, finalAwayScore);
+    } catch (_) {
+      // El partido debe finalizar aunque la actualización de la tabla no esté disponible.
+    }
     await _saveMatch({
       'status': 'finished',
       'elapsedSeconds': _elapsedSeconds,
@@ -439,7 +459,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: ((_match['period'] as num?)?.toInt() ?? 1) == 2 ? _handlePeriodEnd : _resetToSecondPeriod,
+                          onPressed: _match['status'] == 'finished' ? null : _confirmFinishMatch,
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.red.withValues(alpha: 0.14),
                             foregroundColor: Colors.red.shade300,
@@ -449,7 +469,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
                           icon: Icon(Icons.stop_circle_outlined, color: Colors.red.shade400),
-                          label: Text(((_match['period'] as num?)?.toInt() ?? 1) >= 2 ? 'Terminar' : 'Iniciar período 2'),
+                          label: const Text('Finalizar partido'),
                         ),
                       ),
                     ],
