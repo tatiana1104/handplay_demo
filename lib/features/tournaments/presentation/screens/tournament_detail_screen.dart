@@ -15,6 +15,7 @@ import '../../../teams/data/team_repository.dart';
 import '../../../matches/data/match_repository.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
+import '../utils/standings_utils.dart' as standings;
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
@@ -1007,64 +1008,11 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
     stream: FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').snapshots(),
     builder: (context, snapshot) {
-      final rows = _sortedStandings(snapshot.data?.docs ?? const []);
-      final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : _teamLabel(rows.first);
+      final rows = standings.sortedStandings(snapshot.data?.docs ?? const []);
+      final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : standings.teamLabel(rows.first);
       return Card(child: ListTile(leading: const CircleAvatar(child: Text('1')), title: Text(leaderName, style: const TextStyle(fontWeight: FontWeight.w700))));
     },
   );
-}
-
-List<QueryDocumentSnapshot<Map<String, dynamic>>> _sortedStandings(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
-  final sorted = [...docs];
-  int stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) => (doc.data()[key] as num?)?.toInt() ?? 0;
-  int goalDifference(QueryDocumentSnapshot<Map<String, dynamic>> doc) => stat(doc, 'goalsFor') - stat(doc, 'goalsAgainst');
-
-  sorted.sort((a, b) {
-    final byPoints = _points(b).compareTo(_points(a));
-    if (byPoints != 0) return byPoints;
-
-    final byWins = stat(b, 'wins').compareTo(stat(a, 'wins'));
-    if (byWins != 0) return byWins;
-
-    final byGoalDifference = goalDifference(b).compareTo(goalDifference(a));
-    if (byGoalDifference != 0) return byGoalDifference;
-
-    final byGoalsFor = stat(b, 'goalsFor').compareTo(stat(a, 'goalsFor'));
-    if (byGoalsFor != 0) return byGoalsFor;
-
-    final byPlayed = stat(b, 'played').compareTo(stat(a, 'played'));
-    if (byPlayed != 0) return byPlayed;
-
-    return stat(a, 'losses').compareTo(stat(b, 'losses'));
-  });
-  return sorted;
-}
-
-String _teamLabel(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-  final data = doc.data();
-  final team = data['team'];
-  if (team is Map) return (team['name'] ?? team['teamName'] ?? team['id'] ?? doc.id).toString();
-  return (data['teamName'] ?? data['name'] ?? data['team'] ?? doc.id).toString();
-}
-int _points(QueryDocumentSnapshot<Map<String, dynamic>> doc) => _stat(doc, 'points');
-int _stat(QueryDocumentSnapshot<Map<String, dynamic>> doc, String key) {
-  final data = doc.data();
-  final aliases = <String, List<String>>{
-    'points': ['points', 'pts', 'score'],
-    'played': ['played', 'matchesPlayed', 'gamesPlayed', 'pj'],
-    'wins': ['wins', 'won', 'matchesWon', 'pg'],
-    'draws': ['draws', 'ties', 'matchesDrawn', 'pe'],
-    'losses': ['losses', 'lost', 'matchesLost', 'pp'],
-    'goalsFor': ['goalsFor', 'goalsScored', 'gf'],
-    'goalsAgainst': ['goalsAgainst', 'goalsConceded', 'gc'],
-  };
-  for (final field in aliases[key] ?? [key]) {
-    final value = data[field];
-    if (value is num) return value.toInt();
-    final parsed = int.tryParse(value?.toString() ?? '');
-    if (parsed != null) return parsed;
-  }
-  return 0;
 }
 
 class _FullStandingsScreen extends StatelessWidget {
@@ -1092,7 +1040,7 @@ class _FullStandingsScreen extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('No se pudo cargar la tabla.'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final rows = _sortedStandings(snapshot.data!.docs);
+        final rows = standings.sortedStandings(snapshot.data!.docs);
         if (rows.isEmpty) return const Center(child: Text('Aún no hay equipos clasificados.'));
         return ListView.separated(
           padding: const EdgeInsets.all(16),
@@ -1100,14 +1048,14 @@ class _FullStandingsScreen extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(height: 6),
           itemBuilder: (_, index) => _StandingRow(
             position: '${index + 1}',
-            team: _teamLabel(rows[index]),
-            points: '${_points(rows[index])} pts',
-            played: _stat(rows[index], 'played'),
-            wins: _stat(rows[index], 'wins'),
-            draws: _stat(rows[index], 'draws'),
-            losses: _stat(rows[index], 'losses'),
-            goalsFor: _stat(rows[index], 'goalsFor'),
-            goalsAgainst: _stat(rows[index], 'goalsAgainst'),
+            team: standings.teamLabel(rows[index]),
+            points: '${standings.points(rows[index])} pts',
+            played: standings.stat(rows[index], 'played'),
+            wins: standings.stat(rows[index], 'wins'),
+            draws: standings.stat(rows[index], 'draws'),
+            losses: standings.stat(rows[index], 'losses'),
+            goalsFor: standings.stat(rows[index], 'goalsFor'),
+            goalsAgainst: standings.stat(rows[index], 'goalsAgainst'),
           ),
         );
       },
