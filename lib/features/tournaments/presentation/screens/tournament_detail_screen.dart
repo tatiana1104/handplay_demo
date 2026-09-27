@@ -1106,42 +1106,86 @@ class _StandingRow extends StatelessWidget {
 
 class _Highlights extends StatelessWidget {
   const _Highlights({required this.tournament});
-
   final Tournament tournament;
 
-  bool get _isMixed => tournament.categories.any((category) => category.toLowerCase().contains('mixto'));
-
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          if (_isMixed)
-            const _HighlightCard(
-              icon: Icons.emoji_events_outlined,
-              title: 'Máximo goleador masculino',
-              subtitle: 'Tabla de goleadores masculino',
-              value: '-- goles',
-            )
-          else
-            const _HighlightCard(
-              icon: Icons.emoji_events_outlined,
-              title: 'Máximo goleador',
-              subtitle: 'Los resultados aparecerán aquí',
-              value: '-- goles',
-            ),
-          if (_isMixed)
-            const _HighlightCard(
-              icon: Icons.emoji_events_outlined,
-              title: 'Máxima goleadora femenina',
-              subtitle: 'Tabla de goleadoras femenino',
-              value: '-- goles',
-            ),
-          const _HighlightCard(
-            icon: Icons.shield_outlined,
-            title: 'Valla menos vencida',
-            subtitle: 'Tabla de porteros, sin importar el género',
-            value: '-- goles',
-          ),
-        ],
+  Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots(),
+        builder: (context, matchSnapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
+          builder: (context, registrationSnapshot) {
+            final registrations = registrationSnapshot.data?.docs ?? const [];
+            final matches = matchSnapshot.data?.docs ?? const [];
+            final playerInfo = <String, Map<String, dynamic>>{};
+            for (final registration in registrations) {
+              final players = registration.data()['players'];
+              if (players is! List) continue;
+              for (final rawPlayer in players) {
+                if (rawPlayer is! Map) continue;
+                final player = Map<String, dynamic>.from(rawPlayer);
+                final key = (player['id'] ?? player['uid'] ?? player['playerId'] ?? player['name'] ?? player['nombre'])?.toString().trim();
+                if (key != null && key.isNotEmpty) playerInfo[key] = player;
+              }
+            }
+            final goals = <String, int>{};
+            final goalsByTeam = <String, int>{};
+            for (final match in matches) {
+              final data = match.data();
+              final status = data['status']?.toString().toLowerCase();
+              if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
+              final events = data['finalEvents'] ?? data['events'];
+              if (events is List) {
+                for (final rawEvent in events) {
+                  if (rawEvent is! Map || rawEvent['type']?.toString() != 'goal') continue;
+                  final name = (rawEvent['playerName'] ?? rawEvent['player'] ?? 'Jugador').toString();
+                  goals[name] = (goals[name] ?? 0) + 1;
+                }
+              }
+              final home = data['homeTeamId']?.toString() ?? data['homeTeam']?.toString();
+              final away = data['awayTeamId']?.toString() ?? data['awayTeam']?.toString();
+              final homeGoals = int.tryParse('${data['finalHomeScore'] ?? data['homeScore'] ?? 0}') ?? 0;
+              final awayGoals = int.tryParse('${data['finalAwayScore'] ?? data['awayScore'] ?? 0}') ?? 0;
+              String teamKey(Object value) => value.toString().trim().toLowerCase();
+              if (home != null) goalsByTeam[teamKey(home)] = (goalsByTeam[teamKey(home)] ?? 0) + awayGoals;
+              if (away != null) goalsByTeam[teamKey(away)] = (goalsByTeam[teamKey(away)] ?? 0) + homeGoals;
+            }
+            String bestBy(bool female) {
+              final eligible = goals.entries.where((entry) {
+                final player = playerInfo[entry.key];
+                final gender = player?['gender'] ?? player?['genero'] ?? player?['sex'];
+                return gender == null || gender.toString().toLowerCase().contains(female ? 'fem' : 'masc');
+              }).toList()..sort((a, b) => b.value.compareTo(a.value));
+              return eligible.isEmpty ? 'Sin datos' : '${eligible.first.key} · ${eligible.first.value} goles';
+            }
+            String bestGoalkeeper() {
+              final candidates = <String, int>{};
+              for (final registration in registrations) {
+                final data = registration.data();
+                final players = data['players'];
+                if (players is! List) continue;
+                String normalizeTeam(Object value) => value.toString().trim().toLowerCase();
+                final teamKey = normalizeTeam(data['teamId'] ?? data['id'] ?? data['teamName'] ?? registration.id);
+                final received = goalsByTeam[teamKey] ?? goalsByTeam[normalizeTeam(data['teamName'] ?? '')] ?? 0;
+                for (final rawPlayer in players) {
+                  if (rawPlayer is! Map) continue;
+                  final role = '${rawPlayer['position'] ?? rawPlayer['role'] ?? rawPlayer['posicion'] ?? ''}'.toLowerCase();
+                  if (role.contains('arqu') || role.contains('port')) {
+                    final name = (rawPlayer['name'] ?? rawPlayer['nombre'] ?? rawPlayer['displayName'] ?? 'Arquero').toString();
+                    candidates[name] = received;
+                  }
+                }
+              }
+              if (candidates.isEmpty) return 'Sin datos';
+              final best = candidates.entries.toList()..sort((a, b) => a.value.compareTo(b.value));
+              return '${best.first.key} · ${best.first.value} goles recibidos';
+            }
+            return Column(children: [
+              _HighlightCard(icon: Icons.emoji_events_outlined, title: 'Goleador masculino', subtitle: 'Goles acumulados en partidos finalizados', value: bestBy(false)),
+              _HighlightCard(icon: Icons.emoji_events_outlined, title: 'Goleadora femenina', subtitle: 'Goles acumulados en partidos finalizados', value: bestBy(true)),
+              _HighlightCard(icon: Icons.shield_outlined, title: 'Valla menos vencida', subtitle: 'Menos goles recibidos durante el torneo', value: bestGoalkeeper()),
+            ]);
+          },
+        ),
       );
 }
 
