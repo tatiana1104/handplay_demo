@@ -1316,6 +1316,7 @@ class _FullHighlightScreen extends StatelessWidget {
         if (role.contains('arqu') || role.contains('port') || role.contains('goalkeeper')) entries[entry.key] = teamGoalsAgainst.entries.firstWhere((team) => teamNames[team.key] == playerTeams[entry.key], orElse: () => const MapEntry('', 0)).value;
       }
     }
+    final female = type == _HighlightType.femaleScorers;
     return entries.entries
         .where((entry) {
           final gender = _gender(players[entry.key] ?? const {});
