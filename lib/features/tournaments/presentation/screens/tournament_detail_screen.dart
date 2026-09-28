@@ -1010,13 +1010,13 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
     for (final registration in registrations.docs) {
       final current = stats[registration.id];
       if (current != null) {
-        current['pts'] = current['points'];
-        current['pj'] = current['played'];
-        current['pg'] = current['wins'];
-        current['pe'] = current['draws'];
-        current['pp'] = current['losses'];
-        current['gf'] = current['goalsFor'];
-        current['gc'] = current['goalsAgainst'];
+        current['pts'] = current['points']!;
+        current['pj'] = current['played']!;
+        current['pg'] = current['wins']!;
+        current['pe'] = current['draws']!;
+        current['pp'] = current['losses']!;
+        current['gf'] = current['goalsFor']!;
+        current['gc'] = current['goalsAgainst']!;
         batch.update(registration.reference, current);
       }
     }
