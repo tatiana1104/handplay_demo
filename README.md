@@ -149,7 +149,7 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Orden general: por iniciar primero, jugando después y terminados al final
 - [x] Tarjetas de torneo interactivas con detalle responsive, estadísticas, posiciones y destacados
 - [x] Estado del torneo calculado con tres estados: `Por iniciar`, `En curso` y `Finalizado`; después de la fecha de inicio permanece `En curso` hasta que el administrador lo finaliza explícitamente
-- [x] Posiciones calculadas a partir de partidos finalizados, sin sobrescribir Firestore durante la carga ni mostrar ceros transitorios
+- [x] Posiciones calculadas desde cero en un motor dedicado: equipos de `registrations` + partidos finalizados de `matches`, sin sobrescribir Firestore durante la carga ni mostrar ceros transitorios
 - [x] Detalle con desplazamiento vertical para pantallas pequeñas y contenido ampliable
 - [x] Detalle de torneo factorizado por secciones reutilizables para reducir la responsabilidad del archivo principal
 - [x] Inscripción pública de equipos desde el detalle del torneo, con categoría, entrenador, contacto y consentimiento

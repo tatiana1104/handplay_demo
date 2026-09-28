@@ -15,7 +15,7 @@ import '../../../teams/data/team_repository.dart';
 import '../../../matches/data/match_repository.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
-import '../utils/standings_utils.dart' as standings;
+import '../utils/standings_calculator.dart';
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
@@ -957,24 +957,43 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Row(children: [Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)), if (action != null) TextButton(onPressed: onAction, child: Text(action!))]);
 }
 
-class _StandingsSummary extends StatefulWidget {
+class _StandingsSummary extends StatelessWidget {
   const _StandingsSummary({required this.tournament});
   final Tournament tournament;
 
   @override
-  State<_StandingsSummary> createState() => _StandingsSummaryState();
+  Widget build(BuildContext context) => _StandingsData(
+        tournament: tournament,
+        builder: (rows) {
+          final leader = rows.isEmpty ? null : rows.first;
+          return Card(
+            child: ListTile(
+              leading: const CircleAvatar(child: Text('1')),
+              title: Text(leader?.team ?? 'Aún no hay equipos clasificados', style: const TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: leader == null ? null : Text('${leader.points} pts · DG ${leader.goalDifference}'),
+            ),
+          );
+        },
+      );
 }
 
-class _StandingsSummaryState extends State<_StandingsSummary> {
+class _StandingsData extends StatelessWidget {
+  const _StandingsData({required this.tournament, required this.builder});
+  final Tournament tournament;
+  final Widget Function(List<StandingEntry> rows) builder;
+
   @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    stream: FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').snapshots(),
-    builder: (context, snapshot) {
-      final rows = standings.sortedStandings(snapshot.data?.docs ?? const []);
-      final leaderName = rows.isEmpty ? 'Aún no hay equipos clasificados' : standings.teamLabel(rows.first);
-      return Card(child: ListTile(leading: const CircleAvatar(child: Text('1')), title: Text(leaderName, style: const TextStyle(fontWeight: FontWeight.w700))));
-    },
-  );
+        stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
+        builder: (context, registrations) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots(),
+          builder: (context, matches) {
+            if (registrations.hasError || matches.hasError) return const Text('No se pudo cargar la tabla.');
+            if (!registrations.hasData || !matches.hasData) return const Center(child: CircularProgressIndicator());
+            return builder(calculateStandings(registrations: registrations.data!.docs, matches: matches.data!.docs));
+          },
+        ),
+      );
 }
 
 class _FullStandingsScreen extends StatelessWidget {
@@ -983,49 +1002,26 @@ class _FullStandingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Tabla de posiciones')),
-    body: Column(
-      children: [
-        Card(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              'PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
+        appBar: AppBar(title: const Text('Tabla de posiciones')),
+        body: _StandingsData(
+          tournament: tournament,
+          builder: (rows) {
+            if (rows.isEmpty) return const Center(child: Text('Aún no hay equipos clasificados.'));
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: rows.length + 1,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, index) {
+                if (index == 0) {
+                  return Card(child: Padding(padding: const EdgeInsets.all(14), child: Text('PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles', style: Theme.of(context).textTheme.bodySmall)));
+                }
+                final row = rows[index - 1];
+                return _StandingRow(position: '${index}', team: row.team, points: '${row.points} pts', played: row.played, wins: row.wins, draws: row.draws, losses: row.losses, goalsFor: row.goalsFor, goalsAgainst: row.goalsAgainst);
+              },
+            );
+          },
         ),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) return const Center(child: Text('No se pudo cargar la tabla.'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final rows = standings.sortedStandings(snapshot.data!.docs);
-        if (rows.isEmpty) return const Center(child: Text('Aún no hay equipos clasificados.'));
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: rows.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 6),
-          itemBuilder: (_, index) => _StandingRow(
-            position: '${index + 1}',
-            team: standings.teamLabel(rows[index]),
-            points: '${standings.points(rows[index])} pts',
-            played: standings.stat(rows[index], 'played'),
-            wins: standings.stat(rows[index], 'wins'),
-            draws: standings.stat(rows[index], 'draws'),
-            losses: standings.stat(rows[index], 'losses'),
-            goalsFor: standings.stat(rows[index], 'goalsFor'),
-            goalsAgainst: standings.stat(rows[index], 'goalsAgainst'),
-          ),
-        );
-      },
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class _StandingRow extends StatelessWidget {
