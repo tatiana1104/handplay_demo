@@ -35,6 +35,17 @@ class Tournament {
   final DateTime? registrationDeadline;
   final Map<String, int> phaseDurations;
 
+  /// Estado visible para la liga: la fecha de inicio activa el torneo,
+  /// salvo que el administrador lo haya marcado explícitamente como finalizado.
+  String get effectiveStatus {
+    final normalized = status.trim().toLowerCase();
+    final isFinished = normalized == 'finished' || normalized == 'finalized' || normalized == 'finalizado' || normalized == 'finalizada';
+    if (isFinished) return 'Finalizado';
+    if (startDate != null && !DateTime.now().isBefore(startDate!)) return 'En curso';
+    if (normalized == 'active' || normalized == 'playing' || normalized == 'jugando' || normalized == 'en_curso') return 'En curso';
+    return 'Por iniciar';
+  }
+
   factory Tournament.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? const <String, dynamic>{};
     return Tournament(

@@ -36,9 +36,6 @@ class TournamentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = tournament.status.toLowerCase();
-    final isFinished = status == 'finished' || status == 'finalizado';
-    final isPlaying = status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso';
-    final statusLabel = isFinished ? 'Finalizado' : isPlaying ? 'Jugando' : 'Por iniciar';
     final registrationClosed = tournament.registrationDeadline != null && DateTime.now().isAfter(tournament.registrationDeadline!);
     final colors = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
@@ -68,7 +65,7 @@ class TournamentDetailScreen extends StatelessWidget {
           Text('Seguimiento en tiempo real del torneo', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant)),
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            _TournamentLiveStatus(tournament: tournament, fallbackStatus: status),
+            _TournamentLiveStatus(tournament: tournament, fallbackStatus: tournament.effectiveStatus),
             _InfoBadge(label: _formatLabel(tournament.format), color: colors.primary),
           ]),
           const SizedBox(height: 16),
@@ -970,76 +967,6 @@ class _StandingsSummary extends StatefulWidget {
 
 class _StandingsSummaryState extends State<_StandingsSummary> {
   @override
-  void initState() {
-    super.initState();
-    _recalculateHistoricalStandings();
-  }
-
-  Future<void> _recalculateHistoricalStandings() async {
-    final tournamentRef = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id);
-    final registrations = await tournamentRef.collection('registrations').get();
-    final matches = await tournamentRef.collection('matches').get();
-    final stats = <String, Map<String, int>>{};
-    final identifierToRegistration = <String, String>{};
-    String normalize(Object? value) => value.toString().trim().toLowerCase();
-    List<String> identifiers(Object? raw) {
-      if (raw is Map) {
-        return [raw['id'], raw['teamId'], raw['registrationId'], raw['uid'], raw['name'], raw['teamName']]
-            .where((item) => item != null && item.toString().trim().isNotEmpty)
-            .map((item) => item.toString())
-            .toList();
-      }
-      final text = raw?.toString().trim() ?? '';
-      return text.isEmpty ? const [] : [text];
-    }
-    int number(Object? raw) => raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '') ?? 0;
-    for (final registration in registrations.docs) {
-      final data = registration.data();
-      final current = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
-      stats[registration.id] = current;
-      for (final id in [registration.id, data['id'], data['teamId'], data['registrationId'], data['uid'], data['teamUid'], data['teamName'], data['name']]) {
-        if (id != null && id.toString().trim().isNotEmpty) identifierToRegistration[normalize(id)] = registration.id;
-      }
-    }
-    for (final match in matches.docs) {
-      final data = match.data();
-      final status = normalize(data['status']);
-      if (!['finished', 'finished_match', 'completed', 'complete', 'finalizado', 'finalizada'].contains(status)) continue;
-      Map<String, int>? findStats(Object? raw) {
-        for (final identifier in identifiers(raw)) {
-          final registrationId = identifierToRegistration[normalize(identifier)];
-          if (registrationId != null) return stats[registrationId];
-        }
-        return null;
-      }
-      final homeStats = findStats(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
-      final awayStats = findStats(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
-      if (homeStats == null || awayStats == null) continue;
-      final homeGoals = number(data['finalHomeScore'] ?? data['homeScore'] ?? data['scoreHome'] ?? data['homeGoals']);
-      final awayGoals = number(data['finalAwayScore'] ?? data['awayScore'] ?? data['scoreAway'] ?? data['awayGoals']);
-      homeStats['played'] = homeStats['played']! + 1; awayStats['played'] = awayStats['played']! + 1;
-      homeStats['goalsFor'] = homeStats['goalsFor']! + homeGoals; homeStats['goalsAgainst'] = homeStats['goalsAgainst']! + awayGoals;
-      awayStats['goalsFor'] = awayStats['goalsFor']! + awayGoals; awayStats['goalsAgainst'] = awayStats['goalsAgainst']! + homeGoals;
-      if (homeGoals == awayGoals) { homeStats['points'] = homeStats['points']! + 1; awayStats['points'] = awayStats['points']! + 1; homeStats['draws'] = homeStats['draws']! + 1; awayStats['draws'] = awayStats['draws']! + 1; } else { final winner = homeGoals > awayGoals ? homeStats : awayStats; final loser = homeGoals > awayGoals ? awayStats : homeStats; winner['points'] = winner['points']! + 3; winner['wins'] = winner['wins']! + 1; loser['losses'] = loser['losses']! + 1; }
-    }
-    final batch = FirebaseFirestore.instance.batch();
-    for (final registration in registrations.docs) {
-      final current = stats[registration.id];
-      if (current != null) {
-        current['pts'] = current['points']!;
-        current['pj'] = current['played']!;
-        current['pg'] = current['wins']!;
-        current['pe'] = current['draws']!;
-        current['pp'] = current['losses']!;
-        current['gf'] = current['goalsFor']!;
-        current['gc'] = current['goalsAgainst']!;
-        batch.update(registration.reference, current);
-      }
-    }
-    await batch.commit();
-  }
-
-  @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
     stream: FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').snapshots(),
     builder: (context, snapshot) {
@@ -1417,8 +1344,9 @@ class _TournamentLiveStatus extends StatelessWidget {
 }
 
 String _formatTournamentStatus(String status) {
-  if (status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso') return 'En curso';
-  if (status == 'finished' || status == 'finalizado') return 'Finalizado';
+  final normalized = status.trim().toLowerCase();
+  if (normalized == 'active' || normalized == 'playing' || normalized == 'jugando' || normalized == 'en_curso' || normalized == 'en curso') return 'En curso';
+  if (normalized == 'finished' || normalized == 'finalized' || normalized == 'finalizado' || normalized == 'finalizada') return 'Finalizado';
   return 'Por iniciar';
 }
 
