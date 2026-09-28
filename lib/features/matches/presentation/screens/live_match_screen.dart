@@ -20,6 +20,7 @@ class LiveMatchScreen extends StatefulWidget {
 class _LiveMatchScreenState extends State<LiveMatchScreen> {
   late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
   final Map<String, String> _officialNames = {};
+  final Map<String, String> _officialEmails = {};
   bool _showOfficials = true;
   Timer? _timer;
   Timer? _suspensionTimer;
@@ -66,9 +67,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       final snapshot = await FirebaseFirestore.instance.collection('users').doc(id).get();
       final data = snapshot.data();
       final name = data?['displayName']?.toString() ?? data?['nombre']?.toString();
-      if (name != null && name.trim().isNotEmpty && mounted) {
-        setState(() => _officialNames[id] = name.trim());
-      }
+      final email = (data?['email'] ?? data?['correo'])?.toString().trim().toLowerCase();
+      if (!mounted) return;
+      setState(() {
+        if (name != null && name.trim().isNotEmpty) _officialNames[id] = name.trim();
+        if (email != null && email.isNotEmpty) _officialEmails[id] = email;
+      });
     }
   }
 
@@ -91,8 +95,29 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     return state is AuthAuthenticated ? state.user.uid : null;
   }
 
-  bool get _isTimekeeper => _isReferee && _currentUid == _match['timekeeper']?.toString();
-  bool get _isScorer => _isReferee && _currentUid == _match['scorer']?.toString();
+  String? get _currentEmail {
+    final state = context.read<AuthBloc>().state;
+    return state is AuthAuthenticated ? state.user.email?.trim().toLowerCase() : null;
+  }
+
+  /// Un oficial puede tener varios documentos en `users` (cuenta de login y
+  /// registro manual), así que se compara contra todos sus ids y su correo.
+  bool _isAssignedAs(String key) {
+    final uid = _currentUid;
+    if (uid == null) return false;
+    final aliases = {
+      _match[key]?.toString(),
+      ...((_match['${key}Ids'] as List?) ?? const []).map((id) => id.toString()),
+    };
+    if (aliases.contains(uid)) return true;
+    final email = _currentEmail;
+    if (email == null || email.isEmpty) return false;
+    final assignedEmail = (_match['${key}Email'] ?? _officialEmails[_match[key]?.toString()])?.toString().trim().toLowerCase();
+    return assignedEmail == email;
+  }
+
+  bool get _isTimekeeper => _isAssignedAs('timekeeper');
+  bool get _isScorer => _isAssignedAs('scorer');
   bool get _canOperate => _isTimekeeper || _isScorer;
   bool get _canUseScoreSheet => _isTimekeeper || _isScorer;
 
@@ -510,7 +535,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           _section('Suspensiones activas', _activeSuspensions.map(_suspensionCard).toList()),
           const SizedBox(height: 12),
         ],
-        if (_isReferee) _section('Planilla digital', [
+        if (_isReferee || _canUseScoreSheet) _section('Planilla digital', [
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _registrationStream,
             builder: (context, snapshot) {

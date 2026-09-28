@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../matches/presentation/widgets/match_status_label.dart';
+import '../../../referees/domain/referee_directory.dart';
 import 'package:go_router/go_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -231,7 +232,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   String? _scorer;
   int _halfDurationMinutes = 20;
   List<Map<String, dynamic>> _teamOptions = [];
-  List<Map<String, String>> _refereeOptions = [];
+  RefereeDirectory _refereeDirectory = RefereeDirectory.fromDocs(const []);
   bool _saving = false;
 
   @override
@@ -283,7 +284,13 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
         'homeTeam': _home, 'homeTeamName': _teamName(_home), 'homeTeamColor': _teamColor(_home),
         'awayTeam': _away, 'awayTeamName': _teamName(_away), 'awayTeamColor': _teamColor(_away),
         'date': Timestamp.fromDate(matchDate), 'venue': _venue.text.trim(),
-        'refereeOne': _refereeOne, 'refereeOneName': _refereeName(_refereeOne ?? ''), 'refereeTwo': _refereeTwo, 'refereeTwoName': _refereeName(_refereeTwo ?? ''), 'timekeeper': _timekeeper, 'timekeeperName': _refereeName(_timekeeper ?? ''), 'scorer': _scorer, 'scorerName': _refereeName(_scorer ?? ''),
+        ..._officialFields('refereeOne', _refereeOne),
+        ..._officialFields('refereeTwo', _refereeTwo),
+        ..._officialFields('timekeeper', _timekeeper),
+        ..._officialFields('scorer', _scorer),
+        'officialIds': {
+          for (final id in [_refereeOne, _refereeTwo, _timekeeper, _scorer]) ...?_refereeDirectory.find(id)?.aliasIds,
+        }.toList(),
         'status': widget.match?['status'] ?? 'scheduled', 'halfDurationMinutes': _halfDurationMinutes,
         if (widget.match == null) 'createdAt': FieldValue.serverTimestamp(),
       };
@@ -301,8 +308,8 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
 
   String? _refereeConflict() {
     final selectedReferees = <String, String>{
-      if (_refereeOne != null) _refereeOne!: 'Árbitro de campo 1',
-      if (_refereeTwo != null) _refereeTwo!: 'Árbitro de campo 2',
+      for (final id in _refereeDirectory.find(_refereeOne)?.aliasIds ?? {if (_refereeOne != null) _refereeOne!}) id: 'Árbitro de campo 1',
+      for (final id in _refereeDirectory.find(_refereeTwo)?.aliasIds ?? {if (_refereeTwo != null) _refereeTwo!}) id: 'Árbitro de campo 2',
     };
     for (final teamId in [_home, _away]) {
       if (teamId == null) continue;
@@ -329,7 +336,17 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     return '';
   }
 
-  String _refereeName(String id) => _refereeOptions.firstWhere((item) => item['id'] == id, orElse: () => {'name': id})['name']!;
+  String _refereeName(String id) => _refereeDirectory.find(id)?.name ?? id;
+
+  Map<String, dynamic> _officialFields(String key, String? id) {
+    final official = _refereeDirectory.find(id);
+    return {
+      key: official?.id ?? id,
+      '${key}Name': official?.name ?? id ?? '',
+      '${key}Email': official?.email,
+      '${key}Ids': official?.aliasIds.toList() ?? [if (id != null) id],
+    };
+  }
 
   String _teamName(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'name': id ?? 'Equipo'} )['name'].toString();
 
@@ -352,11 +369,12 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
             };
           }).toList();
           final teamOptions = _teamOptions.map((team) => MapEntry(team['id'].toString(), team['name'].toString())).toList();
-          _refereeOptions = (refereeSnapshot.data?.docs ?? const []).map((doc) => <String, String>{
-            'id': doc.id,
-            'name': doc.data()['displayName']?.toString() ?? doc.data()['nombre']?.toString() ?? 'Árbitro',
-          }).toList();
-          final refereeOptions = _refereeOptions.map((item) => MapEntry(item['id']!, item['name']!)).toList();
+          _refereeDirectory = RefereeDirectory.fromDocs(refereeSnapshot.data?.docs ?? const []);
+          _refereeOne = _refereeDirectory.canonicalId(_refereeOne) ?? _refereeOne;
+          _refereeTwo = _refereeDirectory.canonicalId(_refereeTwo) ?? _refereeTwo;
+          _timekeeper = _refereeDirectory.canonicalId(_timekeeper) ?? _timekeeper;
+          _scorer = _refereeDirectory.canonicalId(_scorer) ?? _scorer;
+          final refereeOptions = _refereeDirectory.options.map((item) => MapEntry(item.id, item.name)).toList();
           return Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(16), children: [
             _matchDropdown('Equipo local', _home, teamOptions, (value) => setState(() => _home = value)),
             _matchDropdown('Equipo visitante', _away, teamOptions, (value) => setState(() => _away = value)),
@@ -379,7 +397,7 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     );
   }
 
-  Widget _matchDropdown(String label, String? value, List<MapEntry<String, String>> options, ValueChanged<String?> onChanged) => Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: value, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()), items: options.map((item) => DropdownMenuItem(value: item.key, child: Text(item.value))).toList(), onChanged: onChanged, validator: (value) => value == null ? 'Selecciona una opción' : null));
+  Widget _matchDropdown(String label, String? value, List<MapEntry<String, String>> options, ValueChanged<String?> onChanged) => Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: options.any((item) => item.key == value) ? value : null, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()), items: options.map((item) => DropdownMenuItem(value: item.key, child: Text(item.value))).toList(), onChanged: onChanged, validator: (value) => value == null ? 'Selecciona una opción' : null));
 }
 
 class _MatchesSection extends StatelessWidget {

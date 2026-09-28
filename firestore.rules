@@ -140,7 +140,8 @@ service cloud.firestore {
             || resource.data.refereeOne == request.auth.uid
             || resource.data.refereeTwo == request.auth.uid
             || resource.data.timekeeper == request.auth.uid
-            || resource.data.scorer == request.auth.uid));
+            || resource.data.scorer == request.auth.uid
+            || resource.data.get('officialIds', []).hasAny([request.auth.uid])));
         allow create: if canManageTournament(tournamentId)
           || (signedIn() && request.resource.data.refereeId == request.auth.uid);
         allow update: if canManageTournament(tournamentId)
@@ -148,7 +149,8 @@ service cloud.firestore {
             || resource.data.refereeOne == request.auth.uid
             || resource.data.refereeTwo == request.auth.uid
             || resource.data.timekeeper == request.auth.uid
-            || resource.data.scorer == request.auth.uid));
+            || resource.data.scorer == request.auth.uid
+            || resource.data.get('officialIds', []).hasAny([request.auth.uid])));
         allow delete: if canManageTournament(tournamentId);
       }
     }
