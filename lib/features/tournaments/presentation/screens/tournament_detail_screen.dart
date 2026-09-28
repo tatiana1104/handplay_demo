@@ -978,13 +978,16 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
     final registrations = await tournamentRef.collection('registrations').get();
     final matches = await tournamentRef.collection('matches').get();
     final stats = <String, Map<String, int>>{};
+    final identifierToRegistration = <String, String>{};
     String normalize(Object? value) => value.toString().trim().toLowerCase();
     String? value(Object? raw) => raw is Map ? (raw['id'] ?? raw['teamId'] ?? raw['registrationId'] ?? raw['uid'] ?? raw['name'] ?? raw['teamName'])?.toString() : raw?.toString();
     int number(Object? raw) => raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '') ?? 0;
     for (final registration in registrations.docs) {
       final data = registration.data();
+      final current = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
+      stats[registration.id] = current;
       for (final id in [registration.id, data['id'], data['teamId'], data['registrationId'], data['uid'], data['teamUid'], data['teamName'], data['name']]) {
-        if (id != null && id.toString().trim().isNotEmpty) stats[normalize(id)] = {'points': 0, 'played': 0, 'wins': 0, 'draws': 0, 'losses': 0, 'goalsFor': 0, 'goalsAgainst': 0};
+        if (id != null && id.toString().trim().isNotEmpty) identifierToRegistration[normalize(id)] = registration.id;
       }
     }
     for (final match in matches.docs) {
@@ -993,8 +996,8 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
       if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
       final home = value(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
       final away = value(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
-      final homeStats = home == null ? null : stats[normalize(home)];
-      final awayStats = away == null ? null : stats[normalize(away)];
+      final homeStats = home == null ? null : stats[identifierToRegistration[normalize(home)]];
+      final awayStats = away == null ? null : stats[identifierToRegistration[normalize(away)]];
       if (homeStats == null || awayStats == null) continue;
       final homeGoals = number(data['finalHomeScore'] ?? data['homeScore']);
       final awayGoals = number(data['finalAwayScore'] ?? data['awayScore']);
@@ -1043,7 +1046,7 @@ class _FullStandingsScreen extends StatelessWidget {
         ),
         Expanded(
           child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots(),
+            stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('No se pudo cargar la tabla.'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
@@ -1165,7 +1168,7 @@ class _Highlights extends StatelessWidget {
                 if (players is! List) continue;
                 String normalizeTeam(Object value) => value.toString().trim().toLowerCase();
                 final teamKey = normalizeTeam(data['teamId'] ?? data['id'] ?? data['teamName'] ?? registration.id);
-                final received = goalsByTeam[teamKey] ?? goalsByTeam[normalizeTeam(data['teamName'] ?? '')] ?? 0;
+                final received = goalsByTeam[teamKey] ?? goalsByTeam[normalizeTeam(data['teamName'] ?? '')] ?? goalsByTeam[normalizeTeam(registration.id)] ?? 0;
                 for (final rawPlayer in players) {
                   if (rawPlayer is! Map) continue;
                   final role = '${rawPlayer['position'] ?? rawPlayer['role'] ?? rawPlayer['posicion'] ?? ''}'.toLowerCase();

@@ -287,6 +287,8 @@ Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro
 - [x] Aplicar criterios de desempate de la clasificación.
 - [x] Recalcular estadísticas históricas desde partidos finalizados.
 - [x] Preparar destacados de goleador masculino, goleadora femenina y valla menos vencida a partir de eventos y marcadores finalizados.
+- [x] Rehacer la relación entre identificadores de equipos e inscripciones para evitar estadísticas en cero.
+- [x] Habilitar la visualización de la tabla completa con todos los equipos.
 
 ### ⬜ Sprint 6 — Automatizaciones
 Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos, además de la generación automática de la cronología del partido a partir de goles, exclusiones y tarjetas.
