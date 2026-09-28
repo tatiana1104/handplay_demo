@@ -12,6 +12,8 @@ import '../../../../core/routing/route_names.dart';
 
 import '../../domain/models/tournament_models.dart';
 import '../../../teams/data/team_repository.dart';
+import '../../../teams/domain/team_stats_calculator.dart' show formatCategory;
+import '../../../teams/presentation/screens/team_detail_screen.dart';
 import '../../../matches/data/match_repository.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import 'team_registration_screen.dart';
@@ -690,8 +692,9 @@ class _ApprovedTeamsScreen extends StatelessWidget {
                 child: ListTile(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => _ApprovedTeamDetailScreen(
+                      builder: (_) => TeamDetailScreen(
                         tournament: tournament,
+                        registrationId: teams[index].id,
                         registration: data,
                         teamColor: teamColor,
                       ),
@@ -736,215 +739,6 @@ class _ApprovedTeamsScreen extends StatelessWidget {
   }
 
   Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-}
-
-class _ApprovedTeamDetailScreen extends StatelessWidget {
-  const _ApprovedTeamDetailScreen({
-    required this.tournament,
-    required this.registration,
-    required this.teamColor,
-  });
-
-  final Tournament tournament;
-  final Map<String, dynamic> registration;
-  final Color teamColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final teamName = registration['teamName']?.toString().trim().isNotEmpty == true
-        ? registration['teamName'].toString()
-        : 'Equipo sin nombre';
-    final players = (registration['players'] as List?)?.whereType<Map>().toList() ?? const <Map>[];
-    final coach = registration['coachName']?.toString() ?? 'Entrenador no registrado';
-    final category = registration['category']?.toString() ?? 'Categoría no registrada';
-
-    return Scaffold(
-      appBar: AppBar(title: Text(teamName)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: teamColor,
-                foregroundColor: _contrastColor(teamColor),
-                child: Text(teamName.substring(0, 1).toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(teamName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-                    Text('$category · DT: $coach'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(child: _TeamMetric(label: 'Jugadores', value: '${players.length}')),
-              const SizedBox(width: 8),
-              Expanded(child: _TeamMetric(label: 'Posición', value: '--')),
-              const SizedBox(width: 8),
-              Expanded(child: _TeamMetric(label: 'Puntos', value: '--')),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text('Plantilla (${players.length})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          if (players.isEmpty)
-            const Card(child: ListTile(title: Text('No hay jugadores registrados.')))
-          else
-            ...players.asMap().entries.map(
-              (entry) => _PlayerRow(
-                player: entry.value,
-                index: entry.key,
-                teamName: teamName,
-                teamColor: teamColor,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-}
-
-class _TeamMetric extends StatelessWidget {
-  const _TeamMetric({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: Theme.of(context).textTheme.bodySmall), const SizedBox(height: 4), Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700))]),
-        ),
-      );
-}
-
-class _PlayerRow extends StatelessWidget {
-  const _PlayerRow({required this.player, required this.index, required this.teamName, required this.teamColor});
-  final Map player;
-  final int index;
-  final String teamName;
-  final Color teamColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = player['name']?.toString() ?? 'Jugador';
-    final position = player['position']?.toString() ?? 'Sin posición';
-    final number = player['number']?.toString() ?? '--';
-    final goals = player['goals']?.toString();
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        dense: true,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => _PlayerProfileScreen(
-              player: player,
-              teamName: teamName,
-              teamColor: teamColor,
-            ),
-          ),
-        ),
-        leading: SizedBox(width: 28, child: Text(number == '--' ? '${index + 1}' : '#$number')),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(position),
-        trailing: goals == null ? null : Text('$goals goles'),
-      ),
-    );
-  }
-}
-
-class _PlayerProfileScreen extends StatelessWidget {
-  const _PlayerProfileScreen({required this.player, required this.teamName, required this.teamColor});
-
-  final Map player;
-  final String teamName;
-  final Color teamColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = player['name']?.toString() ?? 'Jugador';
-    final position = player['position']?.toString() ?? 'Sin posición';
-    final number = player['number']?.toString() ?? '--';
-    final gender = player['gender']?.toString() ?? player['genero']?.toString() ?? '';
-    final goals = player['goals']?.toString() ?? '--';
-    final matches = player['matches']?.toString() ?? player['games']?.toString() ?? '--';
-    final average = player['average']?.toString() ?? '--';
-    final yellowCards = player['yellowCards']?.toString() ?? player['tarjetasAmarillas']?.toString() ?? '0';
-    final redCards = player['redCards']?.toString() ?? player['tarjetasRojas']?.toString() ?? '0';
-    final initials = name.trim().isEmpty ? 'J' : name.trim().substring(0, 1).toUpperCase();
-
-    return Scaffold(
-      appBar: AppBar(title: Text(teamName)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [
-          Row(children: [
-            CircleAvatar(radius: 28, backgroundColor: teamColor, foregroundColor: teamColor.computeLuminance() > 0.5 ? Colors.black : Colors.white, child: Text(initials, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-              Text('$position · #$number${gender.isEmpty ? '' : ' · $gender'}'),
-            ])),
-          ]),
-          const SizedBox(height: 20),
-          Row(children: [
-            Expanded(child: _TeamMetric(label: 'Goles', value: goals)),
-            const SizedBox(width: 8),
-            Expanded(child: _TeamMetric(label: 'PJ', value: matches)),
-            const SizedBox(width: 8),
-            Expanded(child: _TeamMetric(label: 'Prom.', value: average)),
-            const SizedBox(width: 8),
-            Expanded(child: _CardMetric(label: 'Amarillas', value: yellowCards, color: Colors.amber)),
-            const SizedBox(width: 8),
-            Expanded(child: _CardMetric(label: 'Rojas', value: redCards, color: Colors.red)),
-          ]),
-          const SizedBox(height: 20),
-          Text('Historial de partidos', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          const Card(child: ListTile(title: Text('Historial disponible próximamente'), trailing: Text('--'))),
-          if (player['isReferee'] == true || player['arbitro'] == true) ...[
-            const SizedBox(height: 12),
-            Card(child: ListTile(leading: const Icon(Icons.square, color: Colors.amber), title: const Text('También está habilitado como árbitro'), trailing: const Text('Ver ficha'))),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CardMetric extends StatelessWidget {
-  const _CardMetric({required this.label, required this.value, required this.color});
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 5), Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall))]),
-              const SizedBox(height: 4),
-              Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            ],
-          ),
-        ),
-      );
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -1294,7 +1088,50 @@ class _HighlightCard extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => Card(child: ListTile(leading: Icon(icon), title: Text(title), subtitle: Text(subtitle), trailing: Row(mainAxisSize: MainAxisSize.min, children: [Text(value, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 4), IconButton(onPressed: onPressed, tooltip: 'Ver tabla completa', icon: const Icon(Icons.arrow_forward_ios, size: 16))])));
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final hasData = value != 'Sin datos';
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: colors.primary.withValues(alpha: .15), borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: colors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
+                    const SizedBox(height: 6),
+                    Text(
+                      value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, color: hasData ? colors.onSurface : colors.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: colors.onSurfaceVariant, semanticLabel: 'Ver tabla completa'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DetailsCard extends StatelessWidget {
@@ -1308,7 +1145,7 @@ class _DetailsCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Categorías y ramas', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
-            Wrap(spacing: 6, runSpacing: 6, children: tournament.categories.map((category) => Chip(label: Text(category.replaceAll('|', ' · ')))).toList()),
+            Wrap(spacing: 6, runSpacing: 6, children: tournament.categories.map((category) => Chip(label: Text(formatCategory(category)))).toList()),
             const SizedBox(height: 8),
             Text('Inscripción pública: ${tournament.publicRegistration ? 'Sí' : 'No'}'),
             Text('Fecha de inicio: ${tournament.startDate == null ? 'Pendiente' : _date(tournament.startDate!)}'),
