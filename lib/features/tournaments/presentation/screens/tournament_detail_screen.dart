@@ -66,7 +66,7 @@ class TournamentDetailScreen extends StatelessWidget {
           Text(tournament.name, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            _InfoBadge(label: statusLabel, color: _tournamentStatusColor(status)),
+            _TournamentLiveStatus(tournament: tournament, fallbackStatus: status),
             _InfoBadge(label: _formatLabel(tournament.format), color: colors.primary),
           ]),
           const SizedBox(height: 16),
@@ -1224,6 +1224,30 @@ class _DetailsCard extends StatelessWidget {
       );
 
   String _date(DateTime value) => '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
+}
+
+class _TournamentLiveStatus extends StatelessWidget {
+  const _TournamentLiveStatus({required this.tournament, required this.fallbackStatus});
+  final Tournament tournament;
+  final String fallbackStatus;
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots(),
+        builder: (context, snapshot) {
+          final statuses = snapshot.data?.docs.map((doc) => (doc.data()['status'] ?? '').toString().toLowerCase()).toList() ?? const <String>[];
+          final hasLive = statuses.any((value) => ['active', 'playing', 'jugando', 'en_curso', 'live', 'tiempo_muerto'].contains(value));
+          final allFinished = statuses.isNotEmpty && statuses.every((value) => value == 'finished' || value == 'finalizado');
+          final status = hasLive ? 'Jugando' : allFinished ? 'Finalizado' : _formatTournamentStatus(fallbackStatus);
+          return _InfoBadge(label: status, color: _tournamentStatusColor(status.toLowerCase()));
+        },
+      );
+}
+
+String _formatTournamentStatus(String status) {
+  if (status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso') return 'Jugando';
+  if (status == 'finished' || status == 'finalizado') return 'Finalizado';
+  return 'Por iniciar';
 }
 
 class _InfoBadge extends StatelessWidget {

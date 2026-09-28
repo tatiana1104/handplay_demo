@@ -363,6 +363,10 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'timeoutOwner': null,
       'timeoutRemaining': 0,
     });
+    final tournamentId = _match['tournamentId']?.toString();
+    if (tournamentId != null && tournamentId.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).set({'status': 'active', 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+    }
     if (!mounted) return;
     setState(() {
       _isPaused = true;

@@ -280,6 +280,8 @@ La clasificación se ordena por puntos; en caso de empate, por partidos ganados,
 Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
 
 ### 🟨 Sprint 5 — Estadísticas (en progreso)
+
+> Nota: el estado visual del torneo ahora se calcula en tiempo real desde sus partidos: Jugando si hay un partido activo, Finalizado si todos terminaron y Por iniciar en los demás casos.
 - [x] Guardar marcador y datos completos al finalizar un partido.
 - [x] Asignar puntos: 3 por victoria, 1 por empate y 0 por derrota.
 - [x] Registrar PJ, PG, PE, PP, GF, GC y DG.
