@@ -980,7 +980,16 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
     final stats = <String, Map<String, int>>{};
     final identifierToRegistration = <String, String>{};
     String normalize(Object? value) => value.toString().trim().toLowerCase();
-    String? value(Object? raw) => raw is Map ? (raw['id'] ?? raw['teamId'] ?? raw['registrationId'] ?? raw['uid'] ?? raw['name'] ?? raw['teamName'])?.toString() : raw?.toString();
+    List<String> identifiers(Object? raw) {
+      if (raw is Map) {
+        return [raw['id'], raw['teamId'], raw['registrationId'], raw['uid'], raw['name'], raw['teamName']]
+            .where((item) => item != null && item.toString().trim().isNotEmpty)
+            .map((item) => item.toString())
+            .toList();
+      }
+      final text = raw?.toString().trim() ?? '';
+      return text.isEmpty ? const [] : [text];
+    }
     int number(Object? raw) => raw is num ? raw.toInt() : int.tryParse(raw?.toString() ?? '') ?? 0;
     for (final registration in registrations.docs) {
       final data = registration.data();
@@ -994,10 +1003,15 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
       final data = match.data();
       final status = normalize(data['status']);
       if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
-      final home = value(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
-      final away = value(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
-      final homeStats = home == null ? null : stats[identifierToRegistration[normalize(home)]];
-      final awayStats = away == null ? null : stats[identifierToRegistration[normalize(away)]];
+      Map<String, int>? findStats(Object? raw) {
+        for (final identifier in identifiers(raw)) {
+          final registrationId = identifierToRegistration[normalize(identifier)];
+          if (registrationId != null) return stats[registrationId];
+        }
+        return null;
+      }
+      final homeStats = findStats(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
+      final awayStats = findStats(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
       if (homeStats == null || awayStats == null) continue;
       final homeGoals = number(data['finalHomeScore'] ?? data['homeScore']);
       final awayGoals = number(data['finalAwayScore'] ?? data['awayScore']);
@@ -1221,10 +1235,99 @@ class _Highlights extends StatelessWidget {
 
 enum _HighlightType { maleScorers, femaleScorers, goalkeepers }
 
+class _HighlightEntry {
+  const _HighlightEntry({required this.name, required this.value, this.team});
+  final String name;
+  final int value;
+  final String? team;
+}
+
 class _FullHighlightScreen extends StatelessWidget {
   const _FullHighlightScreen({required this.tournament, required this.type});
   final Tournament tournament;
   final _HighlightType type;
+
+  String _text(Object? value) => value?.toString().trim() ?? '';
+  String _gender(Map<String, dynamic> player) => _text(player['gender'] ?? player['genero'] ?? player['sex']).toLowerCase();
+  String _playerName(Map<String, dynamic> player) => _text(player['name'] ?? player['nombre'] ?? player['displayName'] ?? player['fullName']);
+  String _playerKey(Map<String, dynamic> player) => _text(player['id'] ?? player['uid'] ?? player['playerId'] ?? _playerName(player));
+  String _teamName(Map<String, dynamic> team, String fallback) => _text(team['teamName'] ?? team['name'] ?? team['displayName']) .isEmpty ? fallback : _text(team['teamName'] ?? team['name'] ?? team['displayName']);
+
+  Future<List<_HighlightEntry>> _loadEntries() async {
+    final ref = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id);
+    final registrationSnapshot = await ref.collection('registrations').get();
+    final matchSnapshot = await ref.collection('matches').get();
+    final players = <String, Map<String, dynamic>>{};
+    final playerTeams = <String, String>{};
+    final teamGoalsAgainst = <String, int>{};
+    final teamNames = <String, String>{};
+    final entries = <String, int>{};
+
+    String normalize(Object? value) => value.toString().trim().toLowerCase();
+    List<String> teamIdentifiers(Object? raw) {
+      if (raw is Map) return [raw['id'], raw['teamId'], raw['registrationId'], raw['name'], raw['teamName']].where((v) => v != null && _text(v).isNotEmpty).map(_text).toList();
+      return _text(raw).isEmpty ? const [] : [_text(raw)];
+    }
+
+    for (final registration in registrationSnapshot.docs) {
+      final data = registration.data();
+      final name = _teamName(data, registration.id);
+      final identifiers = {...teamIdentifiers(registration.id), ...teamIdentifiers(data['teamId']), ...teamIdentifiers(data['id']), ...teamIdentifiers(data['teamName']), ...teamIdentifiers(data['team'])};
+      for (final identifier in identifiers) teamNames[normalize(identifier)] = name;
+      final rawPlayers = data['players'];
+      if (rawPlayers is! List) continue;
+      for (final raw in rawPlayers) {
+        if (raw is! Map) continue;
+        final player = Map<String, dynamic>.from(raw);
+        final key = _playerKey(player);
+        if (key.isEmpty) continue;
+        players[key] = player;
+        playerTeams[key] = name;
+        if (type != _HighlightType.goalkeepers) entries[key] = 0;
+      }
+    }
+
+    for (final match in matchSnapshot.docs) {
+      final data = match.data();
+      final status = normalize(data['status']);
+      if (!{'finished', 'finalizado', 'finalizada', 'completed'}.contains(status)) continue;
+      final homeIds = teamIdentifiers(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
+      final awayIds = teamIdentifiers(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
+      final homeKey = homeIds.map(normalize).firstWhere((id) => teamNames.containsKey(id), orElse: () => homeIds.isEmpty ? '' : normalize(homeIds.first));
+      final awayKey = awayIds.map(normalize).firstWhere((id) => teamNames.containsKey(id), orElse: () => awayIds.isEmpty ? '' : normalize(awayIds.first));
+      final homeGoals = (data['finalHomeScore'] as num?)?.toInt() ?? int.tryParse(_text(data['finalHomeScore'] ?? data['homeScore'])) ?? 0;
+      final awayGoals = (data['finalAwayScore'] as num?)?.toInt() ?? int.tryParse(_text(data['finalAwayScore'] ?? data['awayScore'])) ?? 0;
+      teamGoalsAgainst[homeKey] = (teamGoalsAgainst[homeKey] ?? 0) + awayGoals;
+      teamGoalsAgainst[awayKey] = (teamGoalsAgainst[awayKey] ?? 0) + homeGoals;
+      final rawEvents = data['finalEvents'] ?? data['events'];
+      if (rawEvents is! List || type == _HighlightType.goalkeepers) continue;
+      for (final raw in rawEvents) {
+        if (raw is! Map || _text(raw['type']).toLowerCase() != 'goal') continue;
+        final key = _text(raw['player'] ?? raw['playerId'] ?? raw['uid']);
+        final name = _text(raw['playerName'] ?? raw['name']);
+        final matchingKey = players.keys.firstWhere((candidate) => candidate == key || _text(players[candidate]?['name'] ?? players[candidate]?['nombre']) == name, orElse: () => '');
+        if (matchingKey.isNotEmpty) entries[matchingKey] = (entries[matchingKey] ?? 0) + 1;
+      }
+    }
+
+    if (type == _HighlightType.goalkeepers) {
+      for (final entry in players.entries) {
+        final role = _text(entry.value['position'] ?? entry.value['role'] ?? entry.value['posicion']).toLowerCase();
+        if (role.contains('arqu') || role.contains('port') || role.contains('goalkeeper')) entries[entry.key] = teamGoalsAgainst.entries.firstWhere((team) => teamNames[team.key] == playerTeams[entry.key], orElse: () => const MapEntry('', 0)).value;
+      }
+    }
+    return entries.entries
+        .where((entry) {
+          final gender = _gender(players[entry.key] ?? const {});
+          if (type == _HighlightType.goalkeepers) return true;
+          if (gender.isEmpty) return true;
+          return female ? gender.contains('fem') || gender.contains('muj') : gender.contains('masc') || gender.contains('hom') || gender == 'm';
+        })
+        .map((entry) => _HighlightEntry(name: _playerName(players[entry.key] ?? const {}), value: entry.value, team: playerTeams[entry.key]))
+        .where((entry) => entry.name.isNotEmpty)
+        .toList()
+      ..sort((a, b) => type == _HighlightType.goalkeepers ? a.value.compareTo(b.value) : b.value.compareTo(a.value));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1233,18 +1336,22 @@ class _FullHighlightScreen extends StatelessWidget {
       _HighlightType.femaleScorers => 'Goleadoras femeninas',
       _HighlightType.goalkeepers => 'Valla menos vencida',
     };
-    final description = switch (type) {
-      _HighlightType.maleScorers => 'Goles acumulados por jugador masculino en el torneo.',
-      _HighlightType.femaleScorers => 'Goles acumulados por jugadora femenina en el torneo.',
-      _HighlightType.goalkeepers => 'Goles recibidos por cada arquero durante el torneo.',
-    };
+    final female = type == _HighlightType.femaleScorers;
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(description))),
-        const SizedBox(height: 12),
-        const Center(child: Text('Los datos aparecerán aquí al finalizar los partidos.')),
-      ]),
+      body: FutureBuilder<List<_HighlightEntry>>(
+        future: _loadEntries(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final rows = snapshot.data!;
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: rows.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, index) => Card(child: ListTile(leading: CircleAvatar(child: Text('${index + 1}')), title: Text(rows[index].name), subtitle: Text(rows[index].team ?? ''), trailing: Text(type == _HighlightType.goalkeepers ? '${rows[index].value} GC' : '${rows[index].value} goles', style: const TextStyle(fontWeight: FontWeight.bold)))),
+          );
+        },
+      ),
     );
   }
 }
