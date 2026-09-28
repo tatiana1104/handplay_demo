@@ -61,9 +61,11 @@ class TournamentDetailScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.paddingOf(context).bottom),
         children: [
-          Text('Liga de Balonmano del Caquetá', style: Theme.of(context).textTheme.labelLarge),
+          Text('LIGA DE BALONMANO DEL CAQUETÁ', style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700, color: colors.primary)),
+          const SizedBox(height: 6),
+          Text(tournament.name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text(tournament.name, style: Theme.of(context).textTheme.headlineSmall),
+          Text('Seguimiento en tiempo real del torneo', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant)),
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [
             _TournamentLiveStatus(tournament: tournament, fallbackStatus: status),
@@ -1002,7 +1004,7 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
     for (final match in matches.docs) {
       final data = match.data();
       final status = normalize(data['status']);
-      if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
+      if (!['finished', 'finished_match', 'completed', 'complete', 'finalizado', 'finalizada'].contains(status)) continue;
       Map<String, int>? findStats(Object? raw) {
         for (final identifier in identifiers(raw)) {
           final registrationId = identifierToRegistration[normalize(identifier)];
@@ -1013,8 +1015,8 @@ class _StandingsSummaryState extends State<_StandingsSummary> {
       final homeStats = findStats(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
       final awayStats = findStats(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
       if (homeStats == null || awayStats == null) continue;
-      final homeGoals = number(data['finalHomeScore'] ?? data['homeScore']);
-      final awayGoals = number(data['finalAwayScore'] ?? data['awayScore']);
+      final homeGoals = number(data['finalHomeScore'] ?? data['homeScore'] ?? data['scoreHome'] ?? data['homeGoals']);
+      final awayGoals = number(data['finalAwayScore'] ?? data['awayScore'] ?? data['scoreAway'] ?? data['awayGoals']);
       homeStats['played'] = homeStats['played']! + 1; awayStats['played'] = awayStats['played']! + 1;
       homeStats['goalsFor'] = homeStats['goalsFor']! + homeGoals; homeStats['goalsAgainst'] = homeStats['goalsAgainst']! + awayGoals;
       awayStats['goalsFor'] = awayStats['goalsFor']! + awayGoals; awayStats['goalsAgainst'] = awayStats['goalsAgainst']! + homeGoals;
@@ -1115,8 +1117,11 @@ class _StandingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final goalDifference = goalsFor - goalsAgainst;
     return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
             SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -1158,7 +1163,7 @@ class _Highlights extends StatelessWidget {
             for (final match in matches) {
               final data = match.data();
               final status = data['status']?.toString().toLowerCase();
-              if (status != 'finished' && status != 'finalizado' && status != 'finalizada') continue;
+              if (!['finished', 'finished_match', 'completed', 'complete', 'finalizado', 'finalizada'].contains(status)) continue;
               final events = data['finalEvents'] ?? data['events'];
               if (events is List) {
                 for (final rawEvent in events) {
@@ -1403,15 +1408,16 @@ class _TournamentLiveStatus extends StatelessWidget {
         builder: (context, snapshot) {
           final statuses = snapshot.data?.docs.map((doc) => (doc.data()['status'] ?? '').toString().toLowerCase()).toList() ?? const <String>[];
           final hasLive = statuses.any((value) => ['active', 'playing', 'jugando', 'en_curso', 'live', 'tiempo_muerto'].contains(value));
-          final allFinished = statuses.isNotEmpty && statuses.every((value) => value == 'finished' || value == 'finalizado');
-          final status = hasLive ? 'Jugando' : allFinished ? 'Finalizado' : _formatTournamentStatus(fallbackStatus);
+  // El estado del torneo es la fuente de verdad; un partido finalizado no
+  // significa que todo el torneo haya terminado.
+  final status = hasLive ? 'En curso' : _formatTournamentStatus(fallbackStatus);
           return _InfoBadge(label: status, color: _tournamentStatusColor(status.toLowerCase()));
         },
       );
 }
 
 String _formatTournamentStatus(String status) {
-  if (status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso') return 'Jugando';
+  if (status == 'active' || status == 'playing' || status == 'jugando' || status == 'en_curso') return 'En curso';
   if (status == 'finished' || status == 'finalizado') return 'Finalizado';
   return 'Por iniciar';
 }
