@@ -1192,24 +1192,73 @@ class _Highlights extends StatelessWidget {
               return '${best.first.key} · ${best.first.value} goles recibidos';
             }
             return Column(children: [
-              _HighlightCard(icon: Icons.emoji_events_outlined, title: 'Goleador masculino', subtitle: 'Goles acumulados en partidos finalizados', value: bestBy(false)),
-              _HighlightCard(icon: Icons.emoji_events_outlined, title: 'Goleadora femenina', subtitle: 'Goles acumulados en partidos finalizados', value: bestBy(true)),
-              _HighlightCard(icon: Icons.shield_outlined, title: 'Valla menos vencida', subtitle: 'Menos goles recibidos durante el torneo', value: bestGoalkeeper()),
+              _HighlightCard(
+                icon: Icons.emoji_events_outlined,
+                title: 'Goleador masculino',
+                subtitle: 'Goles acumulados en partidos finalizados',
+                value: bestBy(false),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.maleScorers))),
+              ),
+              _HighlightCard(
+                icon: Icons.emoji_events_outlined,
+                title: 'Goleadora femenina',
+                subtitle: 'Goles acumulados en partidos finalizados',
+                value: bestBy(true),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.femaleScorers))),
+              ),
+              _HighlightCard(
+                icon: Icons.shield_outlined,
+                title: 'Valla menos vencida',
+                subtitle: 'Menos goles recibidos durante el torneo',
+                value: bestGoalkeeper(),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.goalkeepers))),
+              ),
             ]);
           },
         ),
       );
 }
 
+enum _HighlightType { maleScorers, femaleScorers, goalkeepers }
+
+class _FullHighlightScreen extends StatelessWidget {
+  const _FullHighlightScreen({required this.tournament, required this.type});
+  final Tournament tournament;
+  final _HighlightType type;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = switch (type) {
+      _HighlightType.maleScorers => 'Goleadores masculinos',
+      _HighlightType.femaleScorers => 'Goleadoras femeninas',
+      _HighlightType.goalkeepers => 'Valla menos vencida',
+    };
+    final description = switch (type) {
+      _HighlightType.maleScorers => 'Goles acumulados por jugador masculino en el torneo.',
+      _HighlightType.femaleScorers => 'Goles acumulados por jugadora femenina en el torneo.',
+      _HighlightType.goalkeepers => 'Goles recibidos por cada arquero durante el torneo.',
+    };
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(description))),
+        const SizedBox(height: 12),
+        const Center(child: Text('Los datos aparecerán aquí al finalizar los partidos.')),
+      ]),
+    );
+  }
+}
+
 class _HighlightCard extends StatelessWidget {
-  const _HighlightCard({required this.icon, required this.title, required this.subtitle, required this.value});
+  const _HighlightCard({required this.icon, required this.title, required this.subtitle, required this.value, this.onPressed});
   final IconData icon;
   final String title;
   final String subtitle;
   final String value;
+  final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => Card(child: ListTile(leading: Icon(icon), title: Text(title), subtitle: Text(subtitle), trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.bold))));
+  Widget build(BuildContext context) => Card(child: ListTile(leading: Icon(icon), title: Text(title), subtitle: Text(subtitle), trailing: Row(mainAxisSize: MainAxisSize.min, children: [Text(value, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 4), IconButton(onPressed: onPressed, tooltip: 'Ver tabla completa', icon: const Icon(Icons.arrow_forward_ios, size: 16))])));
 }
 
 class _DetailsCard extends StatelessWidget {
