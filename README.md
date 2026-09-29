@@ -213,10 +213,10 @@ La creación manual de partidos, calendario global, presentación de equipos/col
 
 ### Arquitectura de features
 La información se organiza por dominio y no se concentra en una pantalla:
-- `features/teams/`: equipos, jugadores, entrenadores, inscripciones, modelos, repositorio y widgets de plantilla.
+- `features/teams/`: equipos, jugadores, entrenadores, inscripciones, modelos, repositorio, widgets de plantilla y cálculo reutilizable de estadísticas por equipo.
 - `features/matches/`: partidos, calendario, estados, sede, oficiales y repositorio de partidos.
-- `features/tournaments/`: datos y pantallas propias del torneo; compone los módulos de equipos y partidos.
-- `features/referees/`: perfiles y disponibilidad de árbitros.
+- `features/tournaments/`: datos, pantallas propias del torneo y motor independiente de tabla de posiciones; compone los módulos de equipos y partidos.
+- `features/referees/`: perfiles, disponibilidad y deduplicación de árbitros/oficiales.
 - `core/`: configuración transversal, rutas, errores, tema y dependencias.
 - `shared/`: widgets compartidos como el banner inferior.
 
@@ -284,7 +284,7 @@ Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro
 
 ### 🟨 Sprint 5 — Estadísticas (en progreso)
 
-> Nota: el estado visual del torneo ahora se calcula en tiempo real desde sus partidos: Jugando si hay un partido activo, Finalizado si todos terminaron y Por iniciar en los demás casos.
+> Nota: el estado visual del torneo usa tres estados: `Por iniciar`, `En curso` y `Finalizado`. La fecha de inicio activa `En curso`; el torneo solo pasa a `Finalizado` cuando el administrador lo marca explícitamente como terminado. Los partidos conservan su propio estado operativo (`Por iniciar`, `Jugando` o `Finalizado`).
 - [x] Guardar marcador y datos completos al finalizar un partido.
 - [x] Asignar puntos: 3 por victoria, 1 por empate y 0 por derrota.
 - [x] Registrar PJ, PG, PE, PP, GF, GC y DG.
@@ -294,6 +294,10 @@ Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro
 - [x] Preparar destacados de goleador masculino, goleadora femenina y valla menos vencida a partir de eventos y marcadores finalizados.
 - [x] Rehacer la relación entre identificadores de equipos e inscripciones para evitar estadísticas en cero.
 - [x] Habilitar la visualización de la tabla completa con todos los equipos.
+- [x] Extraer el cálculo de posiciones a `features/tournaments/presentation/utils/standings_calculator.dart`, compartido por el resumen, la tabla completa y el detalle de equipo.
+- [x] Extraer el cálculo de estadísticas de equipo a `features/teams/domain/team_stats_calculator.dart` para reutilizar PJ, goles, resultados y rendimiento en perfiles y detalles.
+- [x] Resolver identificadores alternativos de equipos e inscripciones (`id`, `registrationId`, `teamId`, `teamUid`, `uid` y nombre) antes de calcular estadísticas.
+- [x] Deduplicar documentos de árbitros y oficiales cuando una misma persona aparece con más de un identificador o registro.
 
 ### ⬜ Sprint 6 — Automatizaciones
 Incluye la generación automática del calendario y de las jornadas a partir de los equipos inscritos, además de la generación automática de la cronología del partido a partir de goles, exclusiones y tarjetas.
