@@ -278,7 +278,7 @@ La clasificación se ordena por puntos; en caso de empate, por partidos ganados,
 - [x] Registro visual de goles.
 - [x] Controles de tarjetas y exclusiones.
 - [x] Planilla digital con equipos y jugadores inscritos.
-- [ ] Bloqueo de planillas aprobadas.
+  - [x] Bloqueo de planillas aprobadas: el árbitro o responsable puede aprobar la planilla, se registra quién y cuándo la aprobó, la interfaz queda bloqueada y las reglas de Firestore impiden cambios posteriores.
 
 Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
 
@@ -322,7 +322,7 @@ _(Ver el desglose completo de cada sprint en `Seguimiento_de_item.docx`.)_
 
 ## Decisiones pendientes de la Liga
 
-Ver sección 13 del PRD consolidado — entre ellas, el número exacto de la
+Ver sección 13 del PRD consolidado �� entre ellas, el número exacto de la
 cuota mínima de género en cancha (RN-06) y el mínimo de partidos jugados
 para clasificar en valla menos vencida (RF-20).
 

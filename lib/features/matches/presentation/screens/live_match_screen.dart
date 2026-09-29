@@ -32,6 +32,18 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   bool _isPaused = true;
   String? _selectedRoster;
 
+  bool get _isRosterLocked => _match['lineupStatus']?.toString().toLowerCase() == 'approved';
+
+  Future<void> _approveRoster() async {
+    if (!_canUseScoreSheet || _isRosterLocked) return;
+    await _saveMatch({
+      'lineupStatus': 'approved',
+      'lineupApprovedAt': FieldValue.serverTimestamp(),
+      'lineupApprovedBy': _currentUid,
+      'lineupApprovedByName': _currentEmail,
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -536,6 +548,19 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
           const SizedBox(height: 12),
         ],
         if (_isReferee || _canUseScoreSheet) _section('Planilla digital', [
+          Card(
+            margin: EdgeInsets.zero,
+            color: _isRosterLocked ? Colors.green.withValues(alpha: 0.12) : null,
+            child: ListTile(
+              leading: Icon(_isRosterLocked ? Icons.lock : Icons.fact_check_outlined),
+              title: Text(_isRosterLocked ? 'Planilla aprobada y bloqueada' : 'Planilla pendiente de aprobación'),
+              subtitle: Text(_isRosterLocked ? 'No se permiten cambios en la planilla.' : 'Verifica los jugadores antes de aprobarla.'),
+              trailing: !_isRosterLocked && _canUseScoreSheet
+                  ? FilledButton.icon(onPressed: _approveRoster, icon: const Icon(Icons.lock), label: const Text('Aprobar'))
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 8),
           StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _registrationStream,
             builder: (context, snapshot) {
@@ -833,7 +858,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   }
 
   Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome, String? playerName}) async {
-    if (!_canUseScoreSheet || _match['status']?.toString().toLowerCase() == 'finished' || _match['status']?.toString().toLowerCase() == 'finalizado') return;
+  if (!_canUseScoreSheet || _isRosterLocked || _match['status']?.toString().toLowerCase() == 'finished' || _match['status']?.toString().toLowerCase() == 'finalizado') return;
     final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
     final nextAwayScore = ((_match['awayScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == false ? 1 : 0);
     final suspensionEndsAt = DateTime.now().add(const Duration(minutes: 2));

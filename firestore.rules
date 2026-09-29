@@ -145,7 +145,11 @@ service cloud.firestore {
         allow create: if canManageTournament(tournamentId)
           || (signedIn() && request.resource.data.refereeId == request.auth.uid);
         allow update: if canManageTournament(tournamentId)
-          || (signedIn() && (resource.data.refereeId == request.auth.uid
+          || (signedIn()
+            && resource.data.get('lineupStatus', 'pending') != 'approved'
+            && (request.resource.data.get('lineupStatus', 'pending') == 'approved'
+              || request.resource.data.get('lineupStatus', 'pending') == resource.data.get('lineupStatus', 'pending'))
+            && (resource.data.refereeId == request.auth.uid
             || resource.data.refereeOne == request.auth.uid
             || resource.data.refereeTwo == request.auth.uid
             || resource.data.timekeeper == request.auth.uid
