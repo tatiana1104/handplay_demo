@@ -35,6 +35,26 @@ class Tournament {
   final DateTime? registrationDeadline;
   final Map<String, int> phaseDurations;
 
+  String _normalizedCategories() => categories.join(' ').trim().toLowerCase();
+
+  bool get isMixedTournament {
+    final value = _normalizedCategories();
+    return value.contains('mixt') || (hasMaleCategory && hasFemaleCategory);
+  }
+
+  bool get hasMaleCategory {
+    final value = _normalizedCategories();
+    return value.contains('masc') || value.contains('hombre') || value.contains('male');
+  }
+
+  bool get hasFemaleCategory {
+    final value = _normalizedCategories();
+    return value.contains('fem') || value.contains('mujer') || value.contains('female');
+  }
+
+  bool get shouldShowMaleScorers => hasMaleCategory || isMixedTournament;
+  bool get shouldShowFemaleScorers => hasFemaleCategory || isMixedTournament;
+
   /// Estado visible para la liga: la fecha de inicio activa el torneo,
   /// salvo que el administrador lo haya marcado explícitamente como finalizado.
   String get effectiveStatus {

@@ -279,6 +279,7 @@ La clasificación se ordena por puntos; en caso de empate, por partidos ganados,
 - [x] Controles de tarjetas y exclusiones.
 - [x] Planilla digital con equipos y jugadores inscritos.
   - [x] Bloqueo de planillas aprobadas: el árbitro o responsable puede aprobar la planilla, se registra quién y cuándo la aprobó, la interfaz queda bloqueada y las reglas de Firestore impiden cambios posteriores.
+- [x] Tablas de goleadores condicionadas por la rama del torneo: masculino muestra goleador, femenino muestra goleadora y mixto muestra ambas.
 
 Los roles operativos no son roles globales nuevos: se usa el rol global `arbitro` y, al crear cada partido, se asigna el tipo de función (`Árbitro de campo`, `Mesa - Cronometrista` o `Mesa - Anotador`). El permiso para iniciar el partido se determina por la asignación del usuario al partido.
 

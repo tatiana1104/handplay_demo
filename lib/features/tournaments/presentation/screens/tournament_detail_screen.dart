@@ -946,20 +946,22 @@ class _Highlights extends StatelessWidget {
               return '${best.first.key} · ${best.first.value} goles recibidos';
             }
             return Column(children: [
-              _HighlightCard(
-                icon: Icons.emoji_events_outlined,
-                title: 'Goleador masculino',
-                subtitle: 'Goles acumulados en partidos finalizados',
-                value: bestBy(false),
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.maleScorers))),
-              ),
-              _HighlightCard(
-                icon: Icons.emoji_events_outlined,
-                title: 'Goleadora femenina',
-                subtitle: 'Goles acumulados en partidos finalizados',
-                value: bestBy(true),
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.femaleScorers))),
-              ),
+              if (tournament.shouldShowMaleScorers)
+                _HighlightCard(
+                  icon: Icons.emoji_events_outlined,
+                  title: 'Goleador masculino',
+                  subtitle: 'Goles acumulados en partidos finalizados',
+                  value: bestBy(false),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.maleScorers))),
+                ),
+              if (tournament.shouldShowFemaleScorers)
+                _HighlightCard(
+                  icon: Icons.emoji_events_outlined,
+                  title: 'Goleadora femenina',
+                  subtitle: 'Goles acumulados en partidos finalizados',
+                  value: bestBy(true),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => _FullHighlightScreen(tournament: tournament, type: _HighlightType.femaleScorers))),
+                ),
               _HighlightCard(
                 icon: Icons.shield_outlined,
                 title: 'Valla menos vencida',
