@@ -501,7 +501,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       Future<void> upsertDirectoryUser({
         required String name,
         required String document,
-        required String role,
+        required List<String> roles,
         String? email,
         String? phone,
         Map<String, dynamic> extra = const {},
@@ -517,7 +517,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           'document': normalizedDocument,
           'email': email?.trim().toLowerCase() ?? '',
           'phone': phone?.trim() ?? '',
-          'roles': FieldValue.arrayUnion([role]),
+          'roles': FieldValue.arrayUnion(roles),
           ...extra,
           'updatedAt': FieldValue.serverTimestamp(),
         };
@@ -525,19 +525,27 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         batch.set(directoryRef, data, SetOptions(merge: true));
       }
 
-      await upsertDirectoryUser(
-        name: _coach.text,
-        document: coachDocument,
-        role: 'entrenador',
-        email: coachEmail,
-        phone: _phone.text,
-        extra: {'teamName': _team.text.trim()},
+      final coachDocumentValue = coachDocument.trim();
+      final coachIsAlsoPlayer = enrichedPlayers.any(
+        (player) => (player['document'] ?? '').trim() == coachDocumentValue && coachDocumentValue.isNotEmpty,
       );
+      if (!coachIsAlsoPlayer) {
+        await upsertDirectoryUser(
+          name: _coach.text,
+          document: coachDocumentValue,
+          roles: const ['entrenador'],
+          email: coachEmail,
+          phone: _phone.text,
+          extra: {'teamName': _team.text.trim()},
+        );
+      }
       for (final player in enrichedPlayers) {
+        final playerDocument = (player['document'] ?? '').trim();
+        final isCoachPlayer = playerDocument == coachDocumentValue && coachDocumentValue.isNotEmpty;
         await upsertDirectoryUser(
           name: player['name'] ?? '',
-          document: player['document'] ?? '',
-          role: 'jugador',
+          document: playerDocument,
+          roles: isCoachPlayer ? const ['entrenador', 'jugador'] : const ['jugador'],
           extra: {
             'number': player['number'] ?? '',
             'shirtNumber': player['number'] ?? '',
@@ -564,7 +572,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           'document': coachDocument,
           'email': coachEmail,
           'phone': _phone.text.trim(),
-          'roles': ['entrenador'],
+          'roles': FieldValue.arrayUnion(coachIsAlsoPlayer ? ['entrenador', 'jugador'] : ['entrenador']),
           'updatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
         final userRef = firestore.collection('users').doc(currentUser!.uid);
@@ -579,7 +587,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
             'uid': currentUser.uid,
             'email': currentUser.email,
             'nombre': _coach.text.trim(),
-            'roles': FieldValue.arrayUnion(['entrenador']),
+            'roles': FieldValue.arrayUnion(coachIsAlsoPlayer ? ['entrenador', 'jugador'] : ['entrenador']),
             'rol': 'entrenador',
             'updatedAt': FieldValue.serverTimestamp(),
           },
