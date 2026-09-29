@@ -493,25 +493,60 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         if (isCoachAccount) 'coachUid': currentUser!.uid,
       };
       final batch = firestore.batch();
-      // Los jugadores quedan incluidos en la solicitud; el administrador asignará
-      // el rol cuando apruebe la inscripción.
-      if (isCoachAccount) {
-        for (final player in enrichedPlayers) {
-          final document = player['document']?.toString().trim() ?? '';
-        if (document.isEmpty) continue;
-        final playerMatches = await profileDirectory.where('document', isEqualTo: document).limit(1).get();
-        final playerRef = playerMatches.docs.isEmpty ? profileDirectory.doc('document_$document') : playerMatches.docs.first.reference;
-        batch.set(playerRef, {
-          'name': player['name'] ?? '',
-          'document': document,
-          'number': player['number'] ?? '',
-          'position': player['position'] ?? '',
-          'gender': player['gender'] ?? '',
-          'club': player['club'] ?? '',
-          'roles': ['jugador'],
+      final users = firestore.collection('users');
+
+      // Cada persona inscrita queda disponible como usuario de Firestore,
+      // incluso si todavía no tiene una cuenta de Firebase Auth. Así el
+      // administrador puede encontrar a un jugador y asignarle el rol arbitro.
+      Future<void> upsertDirectoryUser({
+        required String name,
+        required String document,
+        required String role,
+        String? email,
+        String? phone,
+        Map<String, dynamic> extra = const {},
+      }) async {
+        if (document.trim().isEmpty) return;
+        final normalizedDocument = document.trim();
+        final userRef = users.doc('document_$normalizedDocument');
+        final directoryRef = profileDirectory.doc('document_$normalizedDocument');
+        final data = <String, dynamic>{
+          'uid': userRef.id,
+          'displayName': name.trim(),
+          'nombre': name.trim(),
+          'document': normalizedDocument,
+          'email': email?.trim().toLowerCase() ?? '',
+          'phone': phone?.trim() ?? '',
+          'roles': FieldValue.arrayUnion([role]),
+          ...extra,
           'updatedAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-        }
+        };
+        batch.set(userRef, data, SetOptions(merge: true));
+        batch.set(directoryRef, data, SetOptions(merge: true));
+      }
+
+      await upsertDirectoryUser(
+        name: _coach.text,
+        document: coachDocument,
+        role: 'entrenador',
+        email: coachEmail,
+        phone: _phone.text,
+        extra: {'teamName': _team.text.trim()},
+      );
+      for (final player in enrichedPlayers) {
+        await upsertDirectoryUser(
+          name: player['name'] ?? '',
+          document: player['document'] ?? '',
+          role: 'jugador',
+          extra: {
+            'number': player['number'] ?? '',
+            'shirtNumber': player['number'] ?? '',
+            'position': player['position'] ?? '',
+            'gender': player['gender'] ?? '',
+            'club': player['club'] ?? '',
+            'teamName': _team.text.trim(),
+          },
+        );
       }
       batch.set(
         registration,

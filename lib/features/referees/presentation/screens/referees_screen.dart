@@ -465,9 +465,13 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     if (document.isEmpty) return;
     setState(() => _loading = true);
     try {
-      final users = await FirebaseFirestore.instance.collection('users').get();
+      final firestore = FirebaseFirestore.instance;
+      final sources = <QueryDocumentSnapshot<Map<String, dynamic>>>[
+        ...(await firestore.collection('users').get()).docs,
+        ...(await firestore.collection('profile_directory').get()).docs,
+      ];
       QueryDocumentSnapshot<Map<String, dynamic>>? match;
-      for (final doc in users.docs) {
+      for (final doc in sources) {
         final data = doc.data();
         final value = (data['document'] ?? data['documentNumber'] ?? data['numeroDocumento'] ?? data['cedula'])?.toString().trim();
         if (value == document) {
@@ -522,7 +526,7 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         for (final result in matches)
           for (final doc in result.docs) doc.id: doc,
       };
-      if (_userRef != null) {
+      if (_userRef != null && _userRef!.parent.id == 'users') {
         final current = await _userRef!.get();
         if (current.exists) {
           matchedDocs[current.id] = current;
