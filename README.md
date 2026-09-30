@@ -8,6 +8,7 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 > 📄 Documento de producto completo (PRD, RF-01–RF-25, RN-01–RN-06,
 > casos de uso UC-01–UC-11): `Cancha-Documento-Consolidado.docx`.
 > Planificación técnica y backlog: `Seguimiento_de_item.docx`.
+> Registro histórico de cambios: `CHANGELOG.md`.
 
 ---
 
