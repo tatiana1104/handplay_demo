@@ -35,11 +35,28 @@ service cloud.firestore {
             .data.adminId == request.auth.uid);
     }
 
+    // Las inscripciones públicas crean perfiles de directorio con IDs derivados
+    // del documento. Solo se aceptan perfiles mínimos y roles no privilegiados.
+    function isPublicRegistrationProfile() {
+      return request.resource.data.uid == request.resource.id
+        && request.resource.data.document is string
+        && request.resource.data.document.size() > 0
+        && request.resource.data.roles is list
+        && request.resource.data.roles.size() > 0
+        && request.resource.data.roles.hasOnly(['jugador', 'entrenador'])
+        && request.resource.data.keys().hasOnly([
+          'uid', 'displayName', 'nombre', 'document', 'email', 'phone',
+          'number', 'shirtNumber', 'position', 'gender', 'club', 'teamName',
+          'roles', 'updatedAt'
+        ]);
+    }
+
     // El usuario solo puede consultar y actualizar su propio perfil.
   match /users/{userId} {
     // Los perfiles pueden consultarse para autocompletar inscripciones y evitar duplicados.
     allow read: if true;
-  allow create: if isAdmin()
+  allow create: if isPublicRegistrationProfile()
+  || isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == userId
     && request.resource.data.roles is list
@@ -64,7 +81,8 @@ service cloud.firestore {
     // Directorio de perfiles para reutilizar datos en inscripciones.
     match /profile_directory/{profileId} {
       allow read: if true;
-      allow create, update: if isSelf(profileId) || isAdmin();
+      allow create: if isPublicRegistrationProfile() || isSelf(profileId) || isAdmin();
+      allow update: if isSelf(profileId) || isAdmin();
       allow delete: if isSelf(profileId) || isAdmin();
     }
 
