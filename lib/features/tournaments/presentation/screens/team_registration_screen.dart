@@ -94,6 +94,11 @@ class _PlayerDialogState extends State<_PlayerDialog> {
     }
     final document = _document.text.trim();
     final existing = await _findProfile(document);
+    final selectedGender = (_gender ?? _firstValue(existing ?? {}, ['gender', 'genero', 'sex', 'sexo']) ?? '').trim();
+    if (selectedGender.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El género del jugador es obligatorio para calcular las tablas de goleadores.')));
+      return;
+    }
     final playerResult = <String, String>{
       'name': _name.text.trim().isNotEmpty ? _name.text.trim() : (existing?['name']?.toString() ?? ''),
       'document': document,
@@ -259,7 +264,8 @@ class _PlayerDialogState extends State<_PlayerDialog> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _gender,
-                decoration: const InputDecoration(labelText: 'Género (opcional)', prefixIcon: Icon(Icons.wc_outlined)),
+                decoration: const InputDecoration(labelText: 'Género *', prefixIcon: Icon(Icons.wc_outlined)),
+                validator: (value) => value == null || value.isEmpty ? 'Selecciona el género del jugador' : null,
                 items: (widget.tournamentBranch == 'masculino'
                         ? const ['masculino']
                         : widget.tournamentBranch == 'femenino'
