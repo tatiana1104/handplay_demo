@@ -427,16 +427,12 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     if (_coachDocument.text.trim().isEmpty) issues.add('El número de documento del entrenador es obligatorio.');
     if (_email.text.trim().isEmpty || !_email.text.trim().contains('@')) issues.add('El correo del entrenador es obligatorio y debe ser válido.');
     String normalizeDocument(String value) => value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    final coachDocument = normalizeDocument(_coachDocument.text);
     final playerDocuments = _players
         .map((player) => normalizeDocument(player['document'] ?? ''))
         .where((document) => document.isNotEmpty)
         .toList();
     final duplicateDocuments = playerDocuments.where((document) => playerDocuments.where((item) => item == document).length > 1).toSet();
     if (duplicateDocuments.isNotEmpty) issues.add('No puedes registrar dos jugadores con el mismo número de documento.');
-    if (coachDocument.isNotEmpty && playerDocuments.contains(coachDocument)) {
-      issues.add('El entrenador también puede ser jugador, pero su número de documento solo puede aparecer una vez en la planilla.');
-    }
     if (!_accepted) issues.add('Debes aceptar el reglamento y confirmar que la información es correcta.');
 
     if (issues.isNotEmpty) {

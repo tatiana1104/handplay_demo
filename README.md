@@ -155,6 +155,8 @@ Incluye la gestión completa de torneos, categorías, inscripciones, equipos, ju
 - [x] Inscripción pública de equipos desde el detalle del torneo, con categoría, entrenador, contacto y consentimiento
 - [x] Solicitudes guardadas en `tournaments/{id}/registrations` con estado `pending` para revisión administrativa
   - [x] Inscripción permitida desde la vista pública o con sesión de entrenador
+  - [x] El entrenador puede inscribirse también como jugador: puede aparecer en el bloque de entrenador y en la lista de jugadores, conservando los roles `entrenador` y `jugador`; si no participa como jugador, solo se registra como entrenador.
+  - [x] La validación evita documentos repetidos entre jugadores, pero permite que el documento del entrenador coincida con el de un jugador cuando tiene doble rol.
   - [x] Las solicitudes rechazadas muestran el motivo en rojo y permiten editar y reenviar el mismo formulario con los datos precargados; al reenviar, la solicitud vuelve a `pending` sin error de `FieldValue.delete()`.
   - [x] El botón de enviar ocupa todo el ancho y respeta el área segura inferior del teléfono para no quedar oculto por la navegación del sistema.
   - [x] El contador y la lista de Equipos usan directamente `registrations` con `status: approved`, que contiene la información completa de cada inscripción; la colección `teams` queda como índice auxiliar.
