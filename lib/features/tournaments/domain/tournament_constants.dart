@@ -15,6 +15,8 @@ abstract final class TournamentConstants {
   static const statuses = <String>['draft', 'upcoming', 'playing', 'finished'];
 }
 
+/// ES: Convierte un identificador con guiones bajos en un título legible.
+/// EN: Converts an underscore-separated identifier into a readable title.
 String titleCase(String value) => value
     .split('_')
     .map((part) => part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}')

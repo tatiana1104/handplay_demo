@@ -7,14 +7,21 @@ import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
 import '../../domain/tournament_constants.dart';
 
-/// Formulario exclusivo para administradores de liga.
+/// ES: Formulario exclusivo para administradores de liga.
+/// EN: Tournament form reserved for league administrators.
 class CreateTournamentScreen extends StatefulWidget {
+  /// ES: Crea el formulario para crear o editar un torneo.
+  /// EN: Creates the form for creating or editing a tournament.
   const CreateTournamentScreen({super.key, required this.adminId, this.tournament});
   final String adminId;
   final Tournament? tournament;
 
+  /// ES: Indica si el formulario está editando un torneo existente.
+  /// EN: Indicates whether the form is editing an existing tournament.
   bool get isEditing => tournament != null;
 
+  /// ES: Crea el estado que administra los datos del formulario.
+  /// EN: Creates the state that manages the form data.
   @override
   State<CreateTournamentScreen> createState() => _CreateTournamentScreenState();
 }
@@ -35,6 +42,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   bool _publicRegistration = true;
   bool _saving = false;
 
+  /// ES: Carga los datos iniciales cuando se abre en modo edición.
+  /// EN: Loads initial values when the screen opens in edit mode.
   @override
   void initState() {
     super.initState();
@@ -55,6 +64,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
   }
 
+  /// ES: Libera los controladores de texto del formulario.
+  /// EN: Releases the form's text controllers.
   @override
   void dispose() {
     _nameController.dispose();
@@ -64,6 +75,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     super.dispose();
   }
 
+  /// ES: Agrega la combinación de categoría y rama cuando ambas están elegidas.
+  /// EN: Adds a category/branch pair once both values are selected.
   void _addCategoryBranchIfComplete() {
     if (_selectedCategory == null || _selectedBranch == null) return;
 
@@ -74,6 +87,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     });
   }
 
+  /// ES: Valida los datos y crea o actualiza el torneo en Firestore.
+  /// EN: Validates the form and creates or updates the Firestore tournament.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final minPlayers = int.tryParse(_minPlayersController.text);
@@ -145,6 +160,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
   }
 
+  /// ES: Abre un selector de fecha y guarda la fecha elegida en el campo adecuado.
+  /// EN: Opens a date picker and stores its value in the selected date field.
   Future<void> _pickDate({required bool start, bool registration = false}) async {
     final today = _dateOnly(DateTime.now());
     final currentDate = registration
@@ -173,10 +190,16 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
   }
 
+  /// ES: Elimina la hora para comparar fechas por día calendario.
+  /// EN: Removes the time component for calendar-day comparisons.
   static DateTime _dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
 
+  /// ES: Muestra un mensaje breve de validación u operación.
+  /// EN: Shows a brief validation or operation message.
   void _showMessage(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
+  /// ES: Construye el formulario y sus controles de configuración del torneo.
+  /// EN: Builds the form and the tournament configuration controls.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -274,11 +297,15 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 }
 
 class _DateButton extends StatelessWidget {
+  /// ES: Crea un botón que muestra una etiqueta o una fecha seleccionada.
+  /// EN: Creates a button that shows a label or a selected date.
   const _DateButton({required this.label, required this.value, required this.onPressed});
   final String label;
   final DateTime? value;
   final VoidCallback onPressed;
 
+  /// ES: Construye el botón de fecha con su valor legible.
+  /// EN: Builds the date button with its readable value.
   @override
   Widget build(BuildContext context) => OutlinedButton(
         onPressed: onPressed,

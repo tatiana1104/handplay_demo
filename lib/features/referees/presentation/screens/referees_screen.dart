@@ -10,9 +10,15 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
+/// ES: Lista árbitros únicos y permite filtrar por acreditación.
+/// EN: Lists unique referees and filters them by accreditation.
 class RefereesScreen extends StatefulWidget {
+  /// ES: Crea la pantalla del directorio de árbitros.
+  /// EN: Creates the referee directory screen.
   const RefereesScreen({super.key});
 
+  /// ES: Crea el estado que controla el filtro de acreditación.
+  /// EN: Creates the state that controls the accreditation filter.
   @override
   State<RefereesScreen> createState() => _RefereesScreenState();
 }
@@ -20,6 +26,8 @@ class RefereesScreen extends StatefulWidget {
 class _RefereesScreenState extends State<RefereesScreen> {
   String _selectedAccreditation = 'all';
 
+  /// ES: Carga, deduplica y presenta árbitros con acciones para administradores.
+  /// EN: Loads, deduplicates, and displays referees with admin actions.
   @override
   Widget build(BuildContext context) {
     final referees = FirebaseFirestore.instance
@@ -123,6 +131,8 @@ class _RefereesScreenState extends State<RefereesScreen> {
   }
 }
 
+/// ES: Cuenta campos útiles para elegir el perfil duplicado más completo.
+/// EN: Counts useful fields to select the most complete duplicate profile.
 int _profileCompleteness(Map<String, dynamic> data) => [
       data['displayName'],
       data['document'],
@@ -134,6 +144,8 @@ int _profileCompleteness(Map<String, dynamic> data) => [
       data['category'],
     ].where((value) => value != null && value.toString().trim().isNotEmpty).length;
 
+/// ES: Convierte el identificador de acreditación en una etiqueta visible.
+/// EN: Converts an accreditation identifier into a display label.
 String _accreditationLabel(String value) => switch (value) {
       'municipal' => 'Municipal',
       'departamental' => 'Departamental',
@@ -141,13 +153,19 @@ String _accreditationLabel(String value) => switch (value) {
       _ => value[0].toUpperCase() + value.substring(1),
     };
 
+/// ES: Opción visual para filtrar el directorio por acreditación.
+/// EN: Visual option for filtering the directory by accreditation.
 class _AccreditationFilterChip extends StatelessWidget {
+  /// ES: Crea una opción de filtro con su acción de selección.
+  /// EN: Creates a filter option with its selection callback.
   const _AccreditationFilterChip({required this.label, required this.selected, required this.onTap});
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
+  /// ES: Dibuja el filtro e indica si está seleccionado.
+  /// EN: Renders the filter and indicates whether it is selected.
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -179,11 +197,17 @@ class _AccreditationFilterChip extends StatelessWidget {
   }
 }
 
+/// ES: Ficha de contacto y acreditaciones de un árbitro.
+/// EN: Contact and accreditation profile for one referee.
 class RefereeDetailScreen extends StatefulWidget {
+  /// ES: Crea la ficha con el ID y datos actuales del árbitro.
+  /// EN: Creates the profile with the referee's ID and current data.
   const RefereeDetailScreen({required this.refereeId, required this.data, super.key});
   final String refereeId;
   final Map<String, dynamic> data;
 
+  /// ES: Crea el estado que permite administrar sus acreditaciones.
+  /// EN: Creates the state that manages the referee's accreditations.
   @override
   State<RefereeDetailScreen> createState() => _RefereeDetailScreenState();
 }
@@ -192,12 +216,16 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
   late String _level;
   bool _saving = false;
 
+  /// ES: Inicializa el nivel desde los datos guardados del árbitro.
+  /// EN: Initializes the level from the referee's stored data.
   @override
   void initState() {
     super.initState();
     _level = widget.data['accreditation']?.toString() ?? widget.data['nivel']?.toString() ?? 'municipal';
   }
 
+  /// ES: Devuelve los niveles acreditados hasta el nivel actual.
+  /// EN: Returns the accreditation levels covered by the current level.
   List<String> get _levels {
     final result = <String>['municipal'];
     if (_level == 'departamental' || _level == 'nacional') result.add('departamental');
@@ -205,6 +233,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     return result;
   }
 
+  /// ES: Traduce el nivel interno a una etiqueta descriptiva.
+  /// EN: Converts the internal level into a descriptive label.
   String _label(String value) => switch (value) {
         'municipal' => 'Municipal (básico)',
         'departamental' => 'Departamental (intermedio)',
@@ -212,6 +242,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
         _ => value,
       };
 
+  /// ES: Calcula el siguiente nivel de acreditación que puede añadirse.
+  /// EN: Determines the next accreditation level that can be added.
   String? get _nextLevel {
     switch (_level) {
       case 'municipal':
@@ -223,6 +255,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     }
   }
 
+  /// ES: Solicita el siguiente nivel y guarda la acreditación seleccionada.
+  /// EN: Prompts for the next level and saves the selected accreditation.
   Future<void> _selectNextLevel() async {
     final nextLevel = _nextLevel;
     if (nextLevel == null) return;
@@ -250,6 +284,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     await _saveLevel();
   }
 
+  /// ES: Elimina solo el rol y los datos de árbitro tras confirmación.
+  /// EN: Removes only the referee role and data after confirmation.
   Future<void> _removeRefereeRole() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -291,6 +327,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     }
   }
 
+  /// ES: Actualiza en Firestore el nivel de acreditación del árbitro.
+  /// EN: Updates the referee's accreditation level in Firestore.
   Future<void> _saveLevel() async {
     setState(() => _saving = true);
     try {
@@ -306,6 +344,8 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
     }
   }
 
+  /// ES: Muestra contacto, certificaciones y acciones administrativas.
+  /// EN: Displays contact details, certifications, and admin actions.
   @override
   Widget build(BuildContext context) {
     final name = widget.data['displayName']?.toString() ?? widget.data['nombre']?.toString() ?? 'Árbitro';
@@ -396,11 +436,17 @@ class _RefereeDetailScreenState extends State<RefereeDetailScreen> {
   }
 }
 
+/// ES: Vista de datos básicos de un perfil asociado a un rol.
+/// EN: Basic profile view for an account associated with a role.
 class RoleProfileScreen extends StatelessWidget {
+  /// ES: Crea la ficha con título y datos de perfil.
+  /// EN: Creates the profile view with a title and profile data.
   const RoleProfileScreen({required this.title, required this.data, super.key});
   final String title;
   final Map<String, dynamic> data;
 
+  /// ES: Construye la ficha con nombre y datos de contacto.
+  /// EN: Builds the profile with name and contact details.
   @override
   Widget build(BuildContext context) {
     final name = data['displayName']?.toString() ?? data['nombre']?.toString() ?? 'Usuario';
@@ -423,9 +469,15 @@ class RoleProfileScreen extends StatelessWidget {
   }
 }
 
+/// ES: Formulario administrativo para buscar o registrar un árbitro.
+/// EN: Admin form for finding or registering a referee.
 class NewRefereeScreen extends StatefulWidget {
+  /// ES: Crea el formulario de alta de árbitro.
+  /// EN: Creates the referee registration form.
   const NewRefereeScreen({super.key});
 
+  /// ES: Crea el estado que administra la búsqueda y el formulario.
+  /// EN: Creates the state that manages search and form data.
   @override
   State<NewRefereeScreen> createState() => _NewRefereeScreenState();
 }
@@ -442,6 +494,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
   String _existingAccreditation = 'municipal';
   DocumentReference<Map<String, dynamic>>? _userRef;
 
+  /// ES: Limita los niveles disponibles según el historial de acreditación.
+  /// EN: Limits available levels based on existing accreditation.
   List<String> get _availableAccreditations {
     final levels = <String>['municipal'];
     if (_userRef != null || _existingAccreditation == 'departamental' || _existingAccreditation == 'nacional') {
@@ -451,6 +505,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     return levels;
   }
 
+  /// ES: Libera los controladores de texto del formulario.
+  /// EN: Releases the form's text controllers.
   @override
   void dispose() {
     _document.dispose();
@@ -460,6 +516,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     super.dispose();
   }
 
+  /// ES: Busca perfiles por documento y precarga sus datos si existen.
+  /// EN: Searches profiles by identity document and loads any matching data.
   Future<void> _findByDocument() async {
     final document = _document.text.trim();
     if (document.isEmpty) return;
@@ -509,6 +567,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     }
   }
 
+  /// ES: Valida y guarda el perfil del árbitro y su nivel.
+  /// EN: Validates and saves the referee profile and accreditation level.
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || !_searched) return;
     setState(() => _loading = true);
@@ -574,6 +634,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
     }
   }
 
+  /// ES: Convierte el nivel de acreditación en su etiqueta legible.
+  /// EN: Converts an accreditation level into its readable label.
   String _levelLabel(String level) => switch (level) {
         'municipal' => 'Municipal (básico)',
         'departamental' => 'Departamental (intermedio)',
@@ -581,6 +643,8 @@ class _NewRefereeScreenState extends State<NewRefereeScreen> {
         _ => level,
       };
 
+  /// ES: Construye los campos de búsqueda, perfil y acreditación.
+  /// EN: Builds the search, profile, and accreditation form fields.
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Nuevo árbitro')),

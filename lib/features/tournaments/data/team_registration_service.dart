@@ -1,0 +1,324 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+
+/// ES: Resultado que la pantalla necesita tras guardar la inscripción.
+/// EN: Result needed by the screen after saving a registration.
+class TeamRegistrationResult {
+  /// ES: Crea el resultado de cuenta e invitación del entrenador.
+  /// EN: Creates a result describing coach-account and invitation outcomes.
+  const TeamRegistrationResult({
+    required this.isCoachAccount,
+    required this.coachLinkSent,
+  });
+
+  final bool isCoachAccount;
+  final bool coachLinkSent;
+}
+
+/// ES: Guarda la inscripción y ejecuta operaciones relacionadas en Firebase.
+/// EN: Persists the registration and performs related Firebase operations.
+class TeamRegistrationService {
+  /// ES: Crea el servicio con clientes Firebase recibidos o predeterminados.
+  /// EN: Creates the service with supplied or default Firebase clients.
+  TeamRegistrationService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  /// ES: Guarda la solicitud, indexa sus personas e invita al entrenador si corresponde.
+  /// EN: Saves the request, indexes its people, and optionally invites its coach.
+  Future<TeamRegistrationResult> submit({
+    required String tournamentId,
+    required String? registrationId,
+    required String teamName,
+    required List<String> clubs,
+    required String coachName,
+    required String coachDocument,
+    required String coachPhone,
+    required String coachEmail,
+    required String? category,
+    required String uniformColor,
+    required List<Map<String, String>> players,
+  }) async {
+    final normalizedCoachEmail = coachEmail.trim().toLowerCase();
+    final normalizedCoachDocument = _normalizeDocument(coachDocument);
+    final enrichedPlayers = await _enrichPlayers(players);
+    final currentUser = _auth.currentUser;
+    final isCoachAccount =
+        currentUser?.email?.trim().toLowerCase() == normalizedCoachEmail;
+    final registrations = _firestore
+        .collection('tournaments')
+        .doc(tournamentId)
+        .collection('registrations');
+    final registration = registrationId == null
+        ? registrations.doc()
+        : registrations.doc(registrationId);
+    final teamData = {
+      'id': registration.id,
+      'tournamentId': tournamentId,
+      'registrationId': registration.id,
+      'teamName': teamName.trim(),
+      'clubName': clubs.join(', '),
+      'clubs': List<String>.from(clubs),
+      'coachName': coachName.trim(),
+      'coachDocument': coachDocument.trim(),
+      'coachPhone': coachPhone.trim(),
+      'coachEmail': normalizedCoachEmail,
+      'category': category,
+      'uniformColor': uniformColor,
+      'logoUrl': null,
+      'players': enrichedPlayers,
+      'playerCount': players.length,
+      'status': 'pending',
+      if (registrationId == null) 'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (registrationId != null) 'rejectionReason': FieldValue.delete(),
+      if (isCoachAccount) 'coachUid': currentUser!.uid,
+    };
+    final registrationBatch = _firestore.batch();
+    final directoryBatch = _firestore.batch();
+    final users = _firestore.collection('users');
+    final profileDirectory = _firestore.collection('profile_directory');
+
+    final coachIsAlsoPlayer = enrichedPlayers.any(
+      (player) =>
+          _normalizeDocument(player['document'] ?? '') ==
+              normalizedCoachDocument &&
+          normalizedCoachDocument.isNotEmpty,
+    );
+    if (!coachIsAlsoPlayer) {
+      _addDirectoryUser(
+        directoryBatch: directoryBatch,
+        users: users,
+        profileDirectory: profileDirectory,
+        name: coachName,
+        document: normalizedCoachDocument,
+        roles: const ['entrenador'],
+        email: normalizedCoachEmail,
+        phone: coachPhone,
+        extra: {'teamName': teamName.trim()},
+      );
+    }
+    for (final player in enrichedPlayers) {
+      final playerDocument = player['document'] ?? '';
+      final isCoachPlayer =
+          playerDocument == normalizedCoachDocument &&
+          normalizedCoachDocument.isNotEmpty;
+      _addDirectoryUser(
+        directoryBatch: directoryBatch,
+        users: users,
+        profileDirectory: profileDirectory,
+        name: player['name'] ?? '',
+        document: playerDocument,
+        roles: isCoachPlayer
+            ? const ['entrenador', 'jugador']
+            : const ['jugador'],
+        extra: {
+          'number': player['number'] ?? '',
+          'shirtNumber': player['number'] ?? '',
+          'position': player['position'] ?? '',
+          'gender': player['gender'] ?? '',
+          'club': player['club'] ?? '',
+          'teamName': teamName.trim(),
+        },
+      );
+    }
+
+    registrationBatch.set(registration, {
+      ...teamData,
+      'verificationMessage':
+          'Solicitud recibida. Debes esperar a que el administrador verifique la información.',
+      'termsAccepted': true,
+    }, SetOptions(merge: true));
+    if (isCoachAccount) {
+      registrationBatch.set(profileDirectory.doc(currentUser!.uid), {
+        'name': coachName.trim(),
+        'document': coachDocument.trim(),
+        'email': normalizedCoachEmail,
+        'phone': coachPhone.trim(),
+        'roles': FieldValue.arrayUnion(
+          coachIsAlsoPlayer ? ['entrenador', 'jugador'] : ['entrenador'],
+        ),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      registrationBatch.set(users.doc(currentUser.uid), {
+        'uid': currentUser.uid,
+        'email': currentUser.email,
+        'nombre': coachName.trim(),
+        'roles': FieldValue.arrayUnion(
+          coachIsAlsoPlayer ? ['entrenador', 'jugador'] : ['entrenador'],
+        ),
+        'rol': 'entrenador',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      registrationBatch.set(
+        _firestore
+            .collection('tournaments')
+            .doc(tournamentId)
+            .collection('teams')
+            .doc(registration.id),
+        teamData,
+        SetOptions(merge: true),
+      );
+    }
+
+    await registrationBatch.commit().timeout(
+      const Duration(seconds: 20),
+      onTimeout: () => throw FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'deadline-exceeded',
+        message:
+            'La conexión con Firebase tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.',
+      ),
+    );
+    try {
+      await directoryBatch.commit();
+    } on FirebaseException catch (error) {
+      debugPrint(
+        '[handplay] No se pudieron sincronizar perfiles del directorio: ${error.code}',
+      );
+    }
+
+    var coachLinkSent = false;
+    if (!isCoachAccount && registrationId == null) {
+      try {
+        final coachAuthUid = await _sendCoachSetupLink(normalizedCoachEmail);
+        coachLinkSent = normalizedCoachEmail.isNotEmpty;
+        if (coachAuthUid != null) {
+          try {
+            await users.doc('document_$normalizedCoachDocument').set({
+              'authUid': coachAuthUid,
+              'email': normalizedCoachEmail,
+              'updatedAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          } on FirebaseException catch (error) {
+            debugPrint(
+              '[handplay] No se pudo vincular la cuenta del entrenador: ${error.code}',
+            );
+          }
+        }
+      } on FirebaseAuthException {
+        coachLinkSent = false;
+      }
+    }
+
+    return TeamRegistrationResult(
+      isCoachAccount: isCoachAccount,
+      coachLinkSent: coachLinkSent,
+    );
+  }
+
+  /// ES: Completa cada jugador con los datos encontrados en el directorio.
+  /// EN: Enriches each submitted player with matching directory data.
+  Future<List<Map<String, String>>> _enrichPlayers(
+    List<Map<String, String>> players,
+  ) async {
+    final enrichedPlayers = <Map<String, String>>[];
+    final directory = _firestore.collection('profile_directory');
+    for (final player in players) {
+      final document = player['document']?.trim() ?? '';
+      final documentValues = <dynamic>{
+        document,
+        int.tryParse(document),
+      }.where((value) => value != null).toList();
+      var matches = await directory
+          .where('document', isEqualTo: document)
+          .limit(1)
+          .get();
+      if (matches.docs.isEmpty && documentValues.length > 1) {
+        matches = await directory
+            .where('document', isEqualTo: documentValues.last)
+            .limit(1)
+            .get();
+      }
+      final matchesByNumber = matches.docs.isEmpty
+          ? await directory
+                .where('documentNumber', isEqualTo: document)
+                .limit(1)
+                .get()
+          : matches;
+      final existing = matchesByNumber.docs.isEmpty
+          ? null
+          : matchesByNumber.docs.first.data();
+      enrichedPlayers.add({
+        ...?existing?.map(
+          (key, value) => MapEntry(key, value?.toString() ?? ''),
+        ),
+        ...player,
+        'document': document,
+      });
+    }
+    return enrichedPlayers;
+  }
+
+  /// ES: Agrega al batch los perfiles mínimos de una persona.
+  /// EN: Queues one person's minimal user and directory records in a batch.
+  void _addDirectoryUser({
+    required WriteBatch directoryBatch,
+    required CollectionReference<Map<String, dynamic>> users,
+    required CollectionReference<Map<String, dynamic>> profileDirectory,
+    required String name,
+    required String document,
+    required List<String> roles,
+    String? email,
+    String? phone,
+    Map<String, dynamic> extra = const {},
+  }) {
+    final normalizedDocument = _normalizeDocument(document);
+    if (normalizedDocument.isEmpty) return;
+    final userRef = users.doc('document_$normalizedDocument');
+    final directoryRef = profileDirectory.doc('document_$normalizedDocument');
+    final data = <String, dynamic>{
+      'uid': userRef.id,
+      'displayName': name.trim(),
+      'nombre': name.trim(),
+      'document': normalizedDocument,
+      'email': email?.trim().toLowerCase() ?? '',
+      'phone': phone?.trim() ?? '',
+      'roles': FieldValue.arrayUnion(roles),
+      ...extra,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    directoryBatch.set(userRef, data, SetOptions(merge: true));
+    directoryBatch.set(directoryRef, data, SetOptions(merge: true));
+  }
+
+  /// ES: Crea la cuenta de un entrenador nuevo y envía el enlace de contraseña.
+  /// EN: Creates a new coach account and emails a password setup link.
+  Future<String?> _sendCoachSetupLink(String email) async {
+    if (email.isEmpty || _auth.currentUser != null) return null;
+    const alphabet =
+        'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#';
+    final random = Random.secure();
+    final temporaryPassword = List.generate(
+      28,
+      (_) => alphabet[random.nextInt(alphabet.length)],
+    ).join();
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: temporaryPassword,
+      );
+      final uid = credential.user?.uid;
+      await _auth.sendPasswordResetEmail(email: email);
+      await _auth.signOut();
+      return uid;
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'email-already-in-use') {
+        await _auth.sendPasswordResetEmail(email: email);
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// ES: Elimina puntuación y diferencias de mayúsculas en documentos.
+  /// EN: Removes punctuation and casing differences from identity documents.
+  String _normalizeDocument(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+}

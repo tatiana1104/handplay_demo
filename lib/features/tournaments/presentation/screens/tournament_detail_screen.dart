@@ -22,6 +22,11 @@ import '../utils/standings_calculator.dart';
 
 /// Resumen responsive del torneo seleccionado.
 /// El ListView permite que la información crezca sin desbordarse.
+/// EN: Responsive overview of the selected tournament and its live information.
+/// ES: Resume el torneo seleccionado con información adaptable y en vivo.
+
+/// ES: Normaliza nombres de roles para comparar variantes con y sin tilde.
+/// EN: Normalizes role names so accented and unaccented variants match.
 String _normalizeRole(String role) => role
     .trim()
     .toLowerCase()
@@ -32,10 +37,14 @@ String _normalizeRole(String role) => role
     .replaceAll('ú', 'u');
 
 class TournamentDetailScreen extends StatelessWidget {
+  /// ES: Crea la vista de detalle del torneo.
+  /// EN: Creates the tournament detail view.
   const TournamentDetailScreen({required this.tournament, super.key});
 
   final Tournament tournament;
 
+  /// ES: Calcula permisos y compone los datos y acciones del torneo.
+  /// EN: Resolves permissions and builds tournament data and actions.
   @override
   Widget build(BuildContext context) {
     final status = tournament.status.toLowerCase();
@@ -117,10 +126,16 @@ class TournamentDetailScreen extends StatelessWidget {
   }
 }
 
+/// ES: Muestra conteos de equipos y jornadas obtenidos en vivo.
+/// EN: Shows live counts of approved teams and match rounds.
 class _StatsGrid extends StatelessWidget {
+  /// ES: Crea la cuadrícula de métricas del torneo.
+  /// EN: Creates the tournament metrics grid.
   const _StatsGrid({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Suscribe los conteos y permite abrir sus listas detalladas.
+  /// EN: Subscribes to counts and opens their detailed lists.
   @override
   Widget build(BuildContext context) {
     final approvedTeams = FirebaseFirestore.instance
@@ -178,10 +193,16 @@ class _StatsGrid extends StatelessWidget {
   }
 }
 
+/// ES: Contenedor de jornadas y partidos del torneo.
+/// EN: Container for the tournament's rounds and matches.
 class _MatchesScreen extends StatelessWidget {
+  /// ES: Crea la pantalla de partidos y jornadas.
+  /// EN: Creates the rounds and matches screen.
   const _MatchesScreen({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Construye la lista de partidos y la acción de alta para el admin.
+  /// EN: Builds the match list and the administrator's add action.
   @override
   Widget build(BuildContext context) {
     final isAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
@@ -209,12 +230,18 @@ class _MatchesScreen extends StatelessWidget {
   }
 }
 
+/// ES: Formulario para crear o editar un partido y asignar sus oficiales.
+/// EN: Form for creating or editing a match and assigning its officials.
 class _NewMatchScreen extends StatefulWidget {
+  /// ES: Crea el formulario en modo nuevo o edición.
+  /// EN: Creates the form in create or edit mode.
   const _NewMatchScreen({required this.tournament, this.match, this.matchId});
   final Tournament tournament;
   final Map<String, dynamic>? match;
   final String? matchId;
 
+  /// ES: Crea el estado que administra campos y validaciones.
+  /// EN: Creates the state that manages match fields and validation.
   @override
   State<_NewMatchScreen> createState() => _NewMatchScreenState();
 }
@@ -235,6 +262,8 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
   RefereeDirectory _refereeDirectory = RefereeDirectory.fromDocs(const []);
   bool _saving = false;
 
+  /// ES: Restaura los datos al editar un partido existente.
+  /// EN: Restores values when editing an existing match.
   @override
   void initState() {
     super.initState();
@@ -253,9 +282,13 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     if (date != null) { _date = date; _time = TimeOfDay.fromDateTime(date); }
   }
 
+  /// ES: Libera el controlador del campo de sede.
+  /// EN: Releases the venue field controller.
   @override
   void dispose() { _venue.dispose(); super.dispose(); }
 
+  /// ES: Valida conflictos de oficiales y guarda el partido.
+  /// EN: Validates official conflicts and saves the match.
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _home == _away || _date == null || _time == null) return;
 
@@ -306,6 +339,8 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
+  /// ES: Detecta si un árbitro de campo también juega en uno de los equipos.
+  /// EN: Checks whether a field referee also plays for either team.
   String? _refereeConflict() {
     final selectedReferees = <String, String>{
       for (final id in _refereeDirectory.find(_refereeOne)?.aliasIds ?? {if (_refereeOne != null) _refereeOne!}) id: 'Árbitro de campo 1',
@@ -328,6 +363,8 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     return null;
   }
 
+  /// ES: Extrae un ID de jugador desde los formatos de datos admitidos.
+  /// EN: Extracts a player ID from supported data formats.
   String _playerId(dynamic player) {
     if (player is String) return player;
     if (player is Map) {
@@ -336,8 +373,12 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     return '';
   }
 
+  /// ES: Busca el nombre del árbitro o devuelve su ID como alternativa.
+  /// EN: Looks up the referee name or falls back to the ID.
   String _refereeName(String id) => _refereeDirectory.find(id)?.name ?? id;
 
+  /// ES: Crea los campos Firestore del oficial seleccionado.
+  /// EN: Builds the Firestore fields for the selected official.
   Map<String, dynamic> _officialFields(String key, String? id) {
     final official = _refereeDirectory.find(id);
     return {
@@ -348,10 +389,16 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     };
   }
 
+  /// ES: Obtiene el nombre visible del equipo desde las opciones cargadas.
+  /// EN: Resolves the team's display name from the loaded options.
   String _teamName(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'name': id ?? 'Equipo'} )['name'].toString();
 
+  /// ES: Obtiene el color de uniforme del equipo seleccionado.
+  /// EN: Gets the uniform color for the selected team.
   dynamic _teamColor(String? id) => _teamOptions.firstWhere((team) => team['id'] == id, orElse: () => {'color': null})['color'];
 
+  /// ES: Carga equipos y oficiales y construye el formulario del partido.
+  /// EN: Loads teams and officials, then builds the match form.
   @override
   Widget build(BuildContext context) {
     final teams = FirebaseFirestore.instance.collection('tournaments').doc(widget.tournament.id).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
@@ -397,13 +444,21 @@ class _NewMatchScreenState extends State<_NewMatchScreen> {
     );
   }
 
+  /// ES: Construye un selector obligatorio de equipo u oficial.
+  /// EN: Builds a required dropdown for a team or match official.
   Widget _matchDropdown(String label, String? value, List<MapEntry<String, String>> options, ValueChanged<String?> onChanged) => Padding(padding: const EdgeInsets.only(bottom: 10), child: DropdownButtonFormField<String>(value: options.any((item) => item.key == value) ? value : null, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()), items: options.map((item) => DropdownMenuItem(value: item.key, child: Text(item.value))).toList(), onChanged: onChanged, validator: (value) => value == null ? 'Selecciona una opción' : null));
 }
 
+/// ES: Agrupa partidos por fecha y muestra detalles de cada encuentro.
+/// EN: Groups matches by date and displays each match's details.
 class _MatchesSection extends StatelessWidget {
+  /// ES: Crea la sección de partidos para el torneo indicado.
+  /// EN: Creates the match section for the supplied tournament.
   const _MatchesSection({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Resuelve nombres y uniformes y presenta los partidos agrupados.
+  /// EN: Resolves team names and uniforms and displays grouped matches.
   @override
   Widget build(BuildContext context) {
     final isAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
@@ -566,13 +621,19 @@ class _MatchesSection extends StatelessWidget {
   }
 }
 
+/// ES: Etiqueta local/visitante con nombre y color del equipo.
+/// EN: Home/away label showing a team's name and color.
 class _TeamMatchLabel extends StatelessWidget {
+  /// ES: Crea la etiqueta de equipo para una tarjeta de partido.
+  /// EN: Creates a team label for a match card.
   const _TeamMatchLabel({required this.label, required this.name, required this.color, this.alignEnd = false});
   final String label;
   final String name;
   final Color color;
   final bool alignEnd;
 
+  /// ES: Alinea y dibuja la etiqueta del equipo.
+  /// EN: Aligns and renders the team label.
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -589,6 +650,8 @@ class _TeamMatchLabel extends StatelessWidget {
       );
 }
 
+/// ES: Elige el color semántico que corresponde al estado del torneo.
+/// EN: Selects the semantic color for the tournament's status.
 Color _tournamentStatusColor(String? status) {
   final value = status?.trim().toLowerCase();
   if (value == 'active' || value == 'playing' || value == 'jugando' || value == 'en_curso') return Colors.green.shade700;
@@ -596,6 +659,8 @@ Color _tournamentStatusColor(String? status) {
   return Colors.amber.shade700;
 }
 
+/// ES: Convierte un color guardado o nombre de uniforme a Color de Flutter.
+/// EN: Converts a stored color or uniform name into a Flutter Color.
 Color _teamColorFromValue(dynamic value, Color fallback) {
   if (value is int) return Color(value);
   if (value is String) {
@@ -612,41 +677,59 @@ Color _teamColorFromValue(dynamic value, Color fallback) {
   return fallback;
 }
 
+/// ES: Resuelve el nombre del equipo desde la inscripción o un valor alternativo.
+/// EN: Resolves a team name from its registration or a fallback value.
 String _registrationTeamName(Map<String, dynamic>? registration, dynamic fallback) {
   if (registration == null) return fallback.toString();
   return registration['teamName']?.toString() ?? registration['clubName']?.toString() ?? registration['name']?.toString() ?? fallback.toString();
 }
 
+/// ES: Genera una clave estable para agrupar partidos por fecha.
+/// EN: Generates a stable key for grouping matches by date.
 String _matchDateKey(dynamic value) {
   if (value is Timestamp) return value.toDate().toIso8601String();
   return value?.toString() ?? 'Fecha por definir';
 }
 
+/// ES: Convierte una clave de fecha en una etiqueta legible.
+/// EN: Converts a date key into a readable label.
 String _matchDateLabel(String value) {
   final parsed = DateTime.tryParse(value);
   if (parsed == null) return value;
   return '${_weekdayName(parsed.weekday)} ${parsed.day} de ${_monthName(parsed.month)}';
 }
 
+/// ES: Extrae la hora desde una fecha o muestra un texto alternativo.
+/// EN: Extracts the time from a date value or returns a fallback label.
 String _matchTimeLabel(dynamic value) {
   final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
   if (date != null) return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   return 'Hora por definir';
 }
 
+/// ES: Devuelve el nombre en español del día de la semana.
+/// EN: Returns the Spanish name of the weekday.
 String _weekdayName(int weekday) => const ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][weekday];
 
+/// ES: Devuelve el nombre en español del mes indicado.
+/// EN: Returns the Spanish name of the specified month.
 String _monthName(int month) => const [
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
     ][month - 1];
 
+/// ES: Métrica compacta que puede abrir una pantalla de detalle.
+/// EN: Compact metric that can open a detailed screen.
 class _StatCard extends StatelessWidget {
+  /// ES: Crea la tarjeta de métrica y su acción opcional.
+  /// EN: Creates the metric card and its optional action.
   const _StatCard({required this.label, required this.value, this.onTap});
   final String label;
   final String value;
   final VoidCallback? onTap;
 
+  /// ES: Construye la tarjeta con etiqueta, valor y acción.
+  /// EN: Builds the card with its label, value, and action.
   @override
   Widget build(BuildContext context) => Card(
         clipBehavior: Clip.antiAlias,
@@ -668,11 +751,17 @@ class _StatCard extends StatelessWidget {
       );
 }
 
+/// ES: Lista las inscripciones de equipo aprobadas del torneo.
+/// EN: Lists approved team registrations for the tournament.
 class _ApprovedTeamsScreen extends StatelessWidget {
+  /// ES: Crea la pantalla de equipos aprobados.
+  /// EN: Creates the approved teams screen.
   const _ApprovedTeamsScreen({required this.tournament});
 
   final Tournament tournament;
 
+  /// ES: Observa inscripciones aprobadas y permite abrir cada ficha.
+  /// EN: Watches approved registrations and opens each team profile.
   @override
   Widget build(BuildContext context) {
     final stream = TeamRepository().watchTournamentRegistrationDocuments(tournament.id);
@@ -735,6 +824,8 @@ class _ApprovedTeamsScreen extends StatelessWidget {
     );
   }
 
+  /// ES: Convierte el nombre del uniforme a su color visual.
+  /// EN: Converts a uniform name into its display color.
   Color _uniformColor(String? value) {
     switch (value?.trim().toLowerCase()) {
       case 'verde':
@@ -756,23 +847,37 @@ class _ApprovedTeamsScreen extends StatelessWidget {
     }
   }
 
+  /// ES: Elige texto negro o blanco según el contraste del fondo.
+  /// EN: Chooses black or white text based on background contrast.
   Color _contrastColor(Color color) => color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 }
 
+/// ES: Título de sección con una acción opcional al final.
+/// EN: Section heading with an optional trailing action.
 class _SectionTitle extends StatelessWidget {
+  /// ES: Crea un título y, opcionalmente, un botón de acción.
+  /// EN: Creates a heading and an optional action button.
   const _SectionTitle({required this.title, this.action, this.onAction});
   final String title;
   final String? action;
   final VoidCallback? onAction;
 
+  /// ES: Construye el título y su acción opcional.
+  /// EN: Builds the heading and its optional action.
   @override
   Widget build(BuildContext context) => Row(children: [Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)), if (action != null) TextButton(onPressed: onAction, child: Text(action!))]);
 }
 
+/// ES: Muestra una vista resumida del líder de la tabla.
+/// EN: Shows a summary of the current standings leader.
 class _StandingsSummary extends StatelessWidget {
+  /// ES: Crea el resumen para el torneo indicado.
+  /// EN: Creates the standings summary for the supplied tournament.
   const _StandingsSummary({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Presenta el líder y sus puntos de la tabla calculada.
+  /// EN: Displays the leader and points from the calculated standings.
   @override
   Widget build(BuildContext context) => _StandingsData(
         tournament: tournament,
@@ -789,11 +894,17 @@ class _StandingsSummary extends StatelessWidget {
       );
 }
 
+/// ES: Escucha inscripciones y partidos y calcula las posiciones.
+/// EN: Watches registrations and matches and calculates standings.
 class _StandingsData extends StatelessWidget {
+  /// ES: Crea el proveedor de tabla con el builder de presentación.
+  /// EN: Creates the standings provider with its presentation builder.
   const _StandingsData({required this.tournament, required this.builder});
   final Tournament tournament;
   final Widget Function(List<StandingEntry> rows) builder;
 
+  /// ES: Combina streams de Firestore y entrega filas al builder.
+  /// EN: Combines Firestore streams and passes standings rows to the builder.
   @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
@@ -808,10 +919,16 @@ class _StandingsData extends StatelessWidget {
       );
 }
 
+/// ES: Muestra la tabla completa de posiciones del torneo.
+/// EN: Displays the complete tournament standings table.
 class _FullStandingsScreen extends StatelessWidget {
+  /// ES: Crea la pantalla de posiciones completas.
+  /// EN: Creates the full standings screen.
   const _FullStandingsScreen({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Renderiza todas las filas de posiciones y estadísticas.
+  /// EN: Renders all standings rows and statistics.
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Tabla de posiciones')),
@@ -836,7 +953,11 @@ class _FullStandingsScreen extends StatelessWidget {
       );
 }
 
+/// ES: Fila de tabla con posición, puntos y rendimiento del equipo.
+/// EN: Standings row showing rank, points, and team performance.
 class _StandingRow extends StatelessWidget {
+  /// ES: Crea una fila de posiciones con sus métricas.
+  /// EN: Creates a standings row with its metrics.
   const _StandingRow({required this.position, required this.team, required this.points, this.played = 0, this.wins = 0, this.draws = 0, this.losses = 0, this.goalsFor = 0, this.goalsAgainst = 0});
   final String position;
   final String team;
@@ -848,6 +969,8 @@ class _StandingRow extends StatelessWidget {
   final int goalsFor;
   final int goalsAgainst;
 
+  /// ES: Construye la fila con partidos, resultados y goles.
+  /// EN: Builds the row with matches, results, and goals.
   @override
   Widget build(BuildContext context) {
     final goalDifference = goalsFor - goalsAgainst;
@@ -870,10 +993,16 @@ class _StandingRow extends StatelessWidget {
   }
 }
 
+/// ES: Calcula los líderes de goles y los porteros con menos goles recibidos.
+/// EN: Calculates top scorers and goalkeepers with the fewest goals conceded.
 class _Highlights extends StatelessWidget {
+  /// ES: Crea la sección de destacados del torneo.
+  /// EN: Creates the tournament highlights section.
   const _Highlights({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Agrega eventos y marcadores y presenta los líderes calculados.
+  /// EN: Aggregates match events and scores, then displays the leaders.
   @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots(),
@@ -975,26 +1104,52 @@ class _Highlights extends StatelessWidget {
       );
 }
 
+/// ES: Tipos de tablas destacadas que se pueden abrir.
+/// EN: Types of highlight tables that can be opened.
 enum _HighlightType { maleScorers, femaleScorers, goalkeepers }
 
+/// ES: Elemento de una tabla de goleadores o porteros destacados.
+/// EN: Entry in a top scorers or goalkeepers table.
 class _HighlightEntry {
+  /// ES: Crea una fila con nombre, valor y equipo opcional.
+  /// EN: Creates a row with a name, value, and optional team.
   const _HighlightEntry({required this.name, required this.value, this.team});
   final String name;
   final int value;
   final String? team;
 }
 
+/// ES: Muestra el listado completo de una categoría destacada.
+/// EN: Displays the complete list for a selected highlight category.
 class _FullHighlightScreen extends StatelessWidget {
+  /// ES: Crea la tabla completa para el tipo de destacado seleccionado.
+  /// EN: Creates the full table for the selected highlight type.
   const _FullHighlightScreen({required this.tournament, required this.type});
   final Tournament tournament;
   final _HighlightType type;
 
+  /// ES: Convierte cualquier valor opcional en texto recortado.
+  /// EN: Converts an optional value into trimmed text.
   String _text(Object? value) => value?.toString().trim() ?? '';
+
+  /// ES: Obtiene y normaliza el género registrado de un jugador.
+  /// EN: Reads and normalizes a player's stored gender.
   String _gender(Map<String, dynamic> player) => _text(player['gender'] ?? player['genero'] ?? player['sex']).toLowerCase();
+
+  /// ES: Busca el nombre del jugador en los campos admitidos.
+  /// EN: Reads a player's name from supported fields.
   String _playerName(Map<String, dynamic> player) => _text(player['name'] ?? player['nombre'] ?? player['displayName'] ?? player['fullName']);
+
+  /// ES: Obtiene la clave estable usada para asociar eventos al jugador.
+  /// EN: Gets the stable key used to associate events with a player.
   String _playerKey(Map<String, dynamic> player) => _text(player['id'] ?? player['uid'] ?? player['playerId'] ?? _playerName(player));
+
+  /// ES: Resuelve el nombre del equipo o usa el texto alternativo.
+  /// EN: Resolves the team name or uses the supplied fallback.
   String _teamName(Map<String, dynamic> team, String fallback) => _text(team['teamName'] ?? team['name'] ?? team['displayName']) .isEmpty ? fallback : _text(team['teamName'] ?? team['name'] ?? team['displayName']);
 
+  /// ES: Lee inscripciones y partidos y calcula las filas del ranking.
+  /// EN: Loads registrations and matches and calculates ranking entries.
   Future<List<_HighlightEntry>> _loadEntries() async {
     final ref = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id);
     final registrationSnapshot = await ref.collection('registrations').get();
@@ -1005,7 +1160,12 @@ class _FullHighlightScreen extends StatelessWidget {
     final teamNames = <String, String>{};
     final entries = <String, int>{};
 
+    /// ES: Normaliza IDs y nombres de equipo para cruzar datos de partidos.
+    /// EN: Normalizes team IDs and names to match data across documents.
     String normalize(Object? value) => value.toString().trim().toLowerCase();
+
+    /// ES: Obtiene alias de equipo almacenados como texto o mapa.
+    /// EN: Extracts team aliases stored as text or a map.
     List<String> teamIdentifiers(Object? raw) {
       if (raw is Map) return [raw['id'], raw['teamId'], raw['registrationId'], raw['name'], raw['teamName']].where((v) => v != null && _text(v).isNotEmpty).map(_text).toList();
       return _text(raw).isEmpty ? const [] : [_text(raw)];
@@ -1072,6 +1232,8 @@ class _FullHighlightScreen extends StatelessWidget {
       ..sort((a, b) => type == _HighlightType.goalkeepers ? a.value.compareTo(b.value) : b.value.compareTo(a.value));
   }
 
+  /// ES: Muestra carga, tabla vacía o filas del ranking seleccionado.
+  /// EN: Displays loading, an empty state, or rows for the selected ranking.
   @override
   Widget build(BuildContext context) {
     final title = switch (type) {
@@ -1099,7 +1261,11 @@ class _FullHighlightScreen extends StatelessWidget {
   }
 }
 
+/// ES: Tarjeta de resumen que abre la tabla completa del destacado.
+/// EN: Summary card that opens the full highlight table.
 class _HighlightCard extends StatelessWidget {
+  /// ES: Crea la tarjeta de destacado con acción opcional.
+  /// EN: Creates a highlight card with an optional action.
   const _HighlightCard({required this.icon, required this.title, required this.subtitle, required this.value, this.onPressed});
   final IconData icon;
   final String title;
@@ -1107,6 +1273,8 @@ class _HighlightCard extends StatelessWidget {
   final String value;
   final VoidCallback? onPressed;
 
+  /// ES: Construye la tarjeta con icono, resumen y valor calculado.
+  /// EN: Builds the card with icon, summary, and calculated value.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1154,10 +1322,16 @@ class _HighlightCard extends StatelessWidget {
   }
 }
 
+/// ES: Presenta categorías, ramas y fechas principales del torneo.
+/// EN: Presents the tournament's categories, branches, and key dates.
 class _DetailsCard extends StatelessWidget {
+  /// ES: Crea la tarjeta de información del torneo.
+  /// EN: Creates the tournament details card.
   const _DetailsCard({required this.tournament});
   final Tournament tournament;
 
+  /// ES: Construye los datos descriptivos del torneo.
+  /// EN: Builds the tournament's descriptive details.
   @override
   Widget build(BuildContext context) => Card(
         child: Padding(
@@ -1174,28 +1348,38 @@ class _DetailsCard extends StatelessWidget {
         ),
       );
 
+  /// ES: Da formato día/mes/año a una fecha.
+  /// EN: Formats a date as day/month/year.
   String _date(DateTime value) => '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
 }
 
+/// ES: Combina el estado del torneo con los partidos activos en tiempo real.
+/// EN: Combines tournament status with live match activity.
 class _TournamentLiveStatus extends StatelessWidget {
+  /// ES: Crea el indicador con el estado alternativo del torneo.
+  /// EN: Creates the indicator with the tournament's fallback status.
   const _TournamentLiveStatus({required this.tournament, required this.fallbackStatus});
   final Tournament tournament;
   final String fallbackStatus;
 
+  /// ES: Observa partidos y muestra el estado actual del torneo.
+  /// EN: Watches matches and displays the tournament's current status.
   @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('matches').snapshots(),
         builder: (context, snapshot) {
           final statuses = snapshot.data?.docs.map((doc) => (doc.data()['status'] ?? '').toString().toLowerCase()).toList() ?? const <String>[];
           final hasLive = statuses.any((value) => ['active', 'playing', 'jugando', 'en_curso', 'live', 'tiempo_muerto'].contains(value));
-  // El estado del torneo es la fuente de verdad; un partido finalizado no
-  // significa que todo el torneo haya terminado.
+  // ES: El estado del torneo manda; terminar un partido no finaliza el torneo.
+  // EN: Tournament status is authoritative; finishing one match does not end it.
   final status = hasLive ? 'En curso' : _formatTournamentStatus(fallbackStatus);
           return _InfoBadge(label: status, color: _tournamentStatusColor(status.toLowerCase()));
         },
       );
 }
 
+/// ES: Convierte estados internos del torneo en etiquetas visibles.
+/// EN: Converts internal tournament statuses into display labels.
 String _formatTournamentStatus(String status) {
   final normalized = status.trim().toLowerCase();
   if (normalized == 'active' || normalized == 'playing' || normalized == 'jugando' || normalized == 'en_curso' || normalized == 'en curso') return 'En curso';
@@ -1203,13 +1387,21 @@ String _formatTournamentStatus(String status) {
   return 'Por iniciar';
 }
 
+/// ES: Insignia de color para mostrar un estado o formato.
+/// EN: Colored badge for displaying a status or format.
 class _InfoBadge extends StatelessWidget {
+  /// ES: Crea una insignia con etiqueta y color.
+  /// EN: Creates a badge with a label and color.
   const _InfoBadge({required this.label, required this.color});
   final String label;
   final Color color;
 
+  /// ES: Construye la insignia con fondo y texto coordinados.
+  /// EN: Builds the badge with matching background and text colors.
   @override
   Widget build(BuildContext context) => DecoratedBox(decoration: BoxDecoration(color: color.withValues(alpha: .18), borderRadius: BorderRadius.circular(8)), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600))));
 }
 
+/// ES: Convierte identificadores de formato en etiquetas legibles.
+/// EN: Converts format identifiers into readable labels.
 String _formatLabel(String value) => value == 'todos_contra_todos' ? 'Todos contra todos' : value == 'por_grupos' ? 'Por grupos' : value;

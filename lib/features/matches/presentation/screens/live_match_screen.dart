@@ -8,11 +8,17 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
+/// ES: Vista del partido en vivo, su marcador y planilla digital.
+/// EN: Live match view with its score and digital score sheet.
 class LiveMatchScreen extends StatefulWidget {
+  /// ES: Crea la pantalla con el ID y los datos iniciales del partido.
+  /// EN: Creates the screen with the match ID and initial match data.
   const LiveMatchScreen({super.key, required this.matchId, required this.match});
   final String matchId;
   final Map<String, dynamic> match;
 
+  /// ES: Crea el estado que controla cronómetros, eventos y marcador.
+  /// EN: Creates the state that manages timers, events, and score.
   @override
   State<LiveMatchScreen> createState() => _LiveMatchScreenState();
 }
@@ -32,8 +38,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   bool _isPaused = true;
   String? _selectedRoster;
 
+  /// ES: Indica si la alineación ya fue aprobada y no puede editarse.
+  /// EN: Indicates whether the lineup has been approved and locked.
   bool get _isRosterLocked => _match['lineupStatus']?.toString().toLowerCase() == 'approved';
 
+  /// ES: Aprueba la alineación si el usuario puede usar la planilla.
+  /// EN: Approves the lineup when the user can operate the score sheet.
   Future<void> _approveRoster() async {
     if (!_canUseScoreSheet || _isRosterLocked) return;
     await _saveMatch({
@@ -44,6 +54,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Restaura el cronómetro y carga nombres de equipos y oficiales.
+  /// EN: Restores the timer and loads team and official names.
   @override
   void initState() {
     super.initState();
@@ -54,6 +66,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     _loadTeamNames();
   }
 
+  /// ES: Busca inscripciones aprobadas para resolver nombres de los equipos.
+  /// EN: Loads approved registrations to resolve team names.
   Future<void> _loadTeamNames() async {
     final tournamentId = _match['tournamentId']?.toString();
     if (tournamentId == null || tournamentId.isEmpty) return;
@@ -69,6 +83,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  /// ES: Carga nombres y correos de los oficiales asignados al partido.
+  /// EN: Loads names and emails for the officials assigned to the match.
   Future<void> _loadOfficialNames() async {
     final ids = ['refereeOne', 'refereeTwo', 'timekeeper', 'scorer']
         .map((key) => _match[key]?.toString())
@@ -88,12 +104,16 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  /// ES: Obtiene el nombre del oficial o un texto alternativo.
+  /// EN: Gets an official's display name or a fallback label.
   String _officialDisplayName(String key) {
     final value = _match[key]?.toString();
     if (value == null || value.isEmpty) return 'Sin asignar';
     return _match['${key}Name']?.toString() ?? _officialNames[value] ?? 'Sin nombre';
   }
 
+  /// ES: Comprueba si el usuario autenticado tiene rol de árbitro.
+  /// EN: Checks whether the authenticated user has the referee role.
   bool get _isReferee {
     final state = context.read<AuthBloc>().state;
     if (state is! AuthAuthenticated) return false;
@@ -102,11 +122,15 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         .any((role) => role == 'arbitro' || role == 'árbitro' || role == 'referee');
   }
 
+  /// ES: Devuelve el UID del usuario autenticado, si existe.
+  /// EN: Returns the authenticated user's UID, when available.
   String? get _currentUid {
     final state = context.read<AuthBloc>().state;
     return state is AuthAuthenticated ? state.user.uid : null;
   }
 
+  /// ES: Devuelve el correo normalizado del usuario autenticado.
+  /// EN: Returns the authenticated user's normalized email.
   String? get _currentEmail {
     final state = context.read<AuthBloc>().state;
     return state is AuthAuthenticated ? state.user.email?.trim().toLowerCase() : null;
@@ -114,6 +138,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   /// Un oficial puede tener varios documentos en `users` (cuenta de login y
   /// registro manual), así que se compara contra todos sus ids y su correo.
+  /// EN: Checks all account aliases and email because one official may have multiple user documents.
   bool _isAssignedAs(String key) {
     final uid = _currentUid;
     if (uid == null) return false;
@@ -128,11 +153,15 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     return assignedEmail == email;
   }
 
+  /// ES: Permisos de operación según el rol asignado en la mesa.
+  /// EN: Score-sheet permissions based on the assigned table role.
   bool get _isTimekeeper => _isAssignedAs('timekeeper');
   bool get _isScorer => _isAssignedAs('scorer');
   bool get _canOperate => _isTimekeeper || _isScorer;
   bool get _canUseScoreSheet => _isTimekeeper || _isScorer;
 
+  /// ES: Cancela los cronómetros antes de destruir la pantalla.
+  /// EN: Cancels timers before disposing the screen.
   @override
   void dispose() {
     _timer?.cancel();
@@ -141,6 +170,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     super.dispose();
   }
 
+  /// ES: Inicia el cronómetro local que actualiza el tiempo transcurrido.
+  /// EN: Starts the local timer that updates elapsed match time.
   void _startLocalTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -149,6 +180,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Permite al cronometrador iniciar o reanudar un tiempo muerto.
+  /// EN: Lets the timekeeper start or resume a timeout.
   Future<void> _handleTimeout() async {
     if (!_isTimekeeper) return;
     if (_isPaused && _timeoutOwner == 'arbitros') {
@@ -184,6 +217,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     if (owner != 'arbitros') _startTeamTimeoutCountdown();
   }
 
+  /// ES: Cuenta el tiempo muerto del equipo y reanuda el partido al terminar.
+  /// EN: Counts down a team timeout and resumes play when it expires.
   void _startTeamTimeoutCountdown() {
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
@@ -199,6 +234,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Pausa o reanuda el cronómetro y sincroniza el estado en Firestore.
+  /// EN: Pauses or resumes the timer and syncs the match state to Firestore.
   Future<void> _toggleTimer() async {
     if (!_isTimekeeper) return;
     final shouldPause = !_isPaused;
@@ -214,6 +251,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Guarda cambios del partido y actualiza la copia local.
+  /// EN: Saves match changes and updates the local copy.
   Future<void> _saveMatch(Map<String, dynamic> data) async {
     await FirebaseFirestore.instance.collection('tournaments').doc(_match['tournamentId']).collection('matches').doc(widget.matchId).update(data);
     if (!mounted) return;
@@ -224,6 +263,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     setState(() => _match.addAll(localData));
   }
 
+  /// ES: Inicia el partido y persiste su primer estado en curso.
+  /// EN: Starts the match and persists its first live state.
   Future<void> _startMatch() async {
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
     setState(() {
@@ -239,6 +280,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Cambia el período y reinicia el cronómetro en pausa.
+  /// EN: Changes the period and resets the timer in a paused state.
   Future<void> _changePeriod(int period) async {
     if (!_isTimekeeper) return;
     await _saveMatch({'period': period, 'elapsedSeconds': 0, 'status': 'paused'});
@@ -249,6 +292,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Inicia un período y guarda su tiempo y estado.
+  /// EN: Starts a period and saves its time and status.
   Future<void> _startPeriod(int period) async {
     if (!_isTimekeeper) return;
     _timer?.cancel();
@@ -269,8 +314,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Reinicia el partido para comenzar el segundo período.
+  /// EN: Resets the match to begin the second period.
   Future<void> _resetToSecondPeriod() => _startPeriod(2);
 
+  /// ES: Confirma con el usuario antes de finalizar el encuentro.
+  /// EN: Confirms with the user before ending the match.
   Future<void> _confirmFinishMatch() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     final confirmed = await showDialog<bool>(
@@ -287,6 +336,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     if (confirmed == true) await _finishMatch();
   }
 
+  /// ES: Permite finalizar el partido o avanzar a un período adicional.
+  /// EN: Lets the timekeeper finish the match or advance to another period.
   Future<void> _handlePeriodEnd() async {
     if (!_isTimekeeper) return;
     final shouldContinue = await showDialog<bool>(
@@ -312,8 +363,12 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  /// ES: Actualiza puntos y goles de ambos equipos en una transacción.
+  /// EN: Updates both teams' points and goals in one transaction.
   Future<void> _updateTournamentStandings(int homeScore, int awayScore) async {
     final tournamentId = _match['tournamentId']?.toString();
+    /// ES: Extrae un identificador de equipo desde texto o mapa.
+    /// EN: Extracts a team identifier from a string or map.
     String? identifierFor(Object? value) {
       if (value is Map) {
         for (final key in ['id', 'teamId', 'registrationId', 'uid', 'name', 'teamName']) {
@@ -328,6 +383,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     final awayIdentifier = identifierFor(_match['awayTeamId'] ?? _match['awayTeam'] ?? _match['awayTeamName']);
     if (tournamentId == null || homeIdentifier == null || awayIdentifier == null) return;
     final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').get();
+    /// ES: Busca la inscripción que corresponde a un identificador de equipo.
+    /// EN: Finds the registration matching a team identifier.
     QueryDocumentSnapshot<Map<String, dynamic>>? findRegistration(String identifier) {
       for (final doc in registrations.docs) {
         final data = doc.data();
@@ -346,6 +403,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       final away = (await transaction.get(awayRef)).data() ?? <String, dynamic>{};
       final homeWin = homeScore > awayScore;
       final awayWin = awayScore > homeScore;
+      /// ES: Calcula los acumulados del equipo tras este resultado.
+      /// EN: Calculates a team's cumulative statistics after this result.
       Map<String, dynamic> stats(Map<String, dynamic> current, bool win, bool draw) => {
         'points': ((current['points'] as num?)?.toInt() ?? 0) + (win ? 3 : draw ? 1 : 0),
         'played': ((current['played'] as num?)?.toInt() ?? 0) + 1,
@@ -361,6 +420,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       homeStats['goalsAgainst'] = ((home['goalsAgainst'] as num?)?.toInt() ?? 0) + awayScore;
       awayStats['goalsFor'] = ((away['goalsFor'] as num?)?.toInt() ?? 0) + awayScore;
       awayStats['goalsAgainst'] = ((away['goalsAgainst'] as num?)?.toInt() ?? 0) + homeScore;
+      /// ES: Mantiene alias cortos para compatibilidad con otros lectores.
+      /// EN: Keeps short aliases for compatibility with existing readers.
       void addAliases(Map<String, dynamic> stats) {
         stats['pts'] = stats['points'];
         stats['pj'] = stats['played'];
@@ -377,6 +438,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Calcula posiciones y guarda el marcador final y los eventos.
+  /// EN: Updates standings and saves the final score and match events.
   Future<void> _finishMatch() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     _timer?.cancel();
@@ -385,7 +448,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     try {
       await _updateTournamentStandings(finalHomeScore, finalAwayScore);
     } catch (_) {
-      // El partido debe finalizar aunque la actualización de la tabla no esté disponible.
+      // ES: El partido debe finalizar aunque no se actualice la tabla.
+      // EN: The match must finish even if standings cannot be updated.
     }
     await _saveMatch({
       'status': 'finished',
@@ -410,6 +474,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Decide si se avanza de período o se finaliza el partido.
+  /// EN: Decides whether to advance the period or finish the match.
   Future<void> _stopAndAdvancePeriod() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     final currentPeriod = (_match['period'] as num?)?.toInt() ?? 1;
@@ -437,6 +503,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Construye marcador, cronómetro, planilla y controles según el rol.
+  /// EN: Builds the score, timer, score sheet, and role-specific controls.
   @override
   Widget build(BuildContext context) {
     final home = _match['homeTeamName'] ?? _match['localName'] ?? 'Equipo local';
@@ -664,11 +732,15 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
+  /// ES: Reconoce los valores almacenados que significan partido en vivo.
+  /// EN: Recognizes stored values that indicate a live match.
   bool _isLiveStatus(String? status) {
     final value = status?.trim().toLowerCase();
     return value == 'en_curso' || value == 'en curso' || value == 'en_vivo' || value == 'en vivo' || value == 'playing' || value == 'live' || value == 'jugando';
   }
 
+  /// ES: Convierte el estado del partido en una etiqueta para la interfaz.
+  /// EN: Converts match status into a user-facing label.
   String _statusLabel(String? status) {
   if (status == 'tiempo_muerto' || status == 'tiempo muerto' || status == 'timeout') return 'TIEMPO MUERTO';
   if (_isLiveStatus(status)) return 'EN VIVO';
@@ -676,27 +748,39 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   return 'POR INICIAR';
   }
 
+  /// ES: Elige un color de estado para vivo, pausa, finalizado o programado.
+  /// EN: Chooses a status color for live, paused, finished, or scheduled matches.
   Color _statusColor(String? status) => status == 'tiempo_muerto' || status == 'tiempo muerto' || status == 'timeout' ? Colors.amber.shade700 : _isLiveStatus(status) ? Colors.green : status == 'finished' ? Colors.blueGrey : Colors.orange;
 
+  /// ES: Formatea el tiempo transcurrido como minutos y segundos.
+  /// EN: Formats elapsed time as minutes and seconds.
   String _elapsedLabel() {
     final seconds = _elapsedSeconds > 0 ? _elapsedSeconds : ((_match['elapsedSeconds'] as num?)?.toInt() ?? 0);
     return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
   }
 
+  /// ES: Obtiene el stream de inscripciones aprobadas del torneo actual.
+  /// EN: Returns the current tournament's approved registrations stream.
   Stream<QuerySnapshot<Map<String, dynamic>>>? get _registrationStream {
     final tournamentId = _match['tournamentId']?.toString();
     if (tournamentId == null || tournamentId.isEmpty) return null;
     return FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
   }
 
+  /// ES: Busca la plantilla que corresponde al equipo local o visitante.
+  /// EN: Finds the roster matching the home or away team.
   List<dynamic> _teamRoster(List<Map<String, dynamic>> registrations, String teamKey, String idKey) {
     final id = _match[idKey]?.toString() ?? _match[teamKey]?.toString();
     final registration = registrations.firstWhere((item) => item['id']?.toString() == id || item['teamId']?.toString() == id || item['teamName']?.toString() == _match['${teamKey}Name']?.toString(), orElse: () => <String, dynamic>{});
     return registration['players'] is List ? List<dynamic>.from(registration['players'] as List) : const [];
   }
 
+  /// ES: Devuelve el nombre visible del equipo con alternativa por ID.
+  /// EN: Returns the team's display name, falling back to its ID.
   String _teamName(String nameKey, String idKey) => _match[nameKey]?.toString() ?? _match[idKey]?.toString() ?? 'Equipo';
 
+  /// ES: Traduce el color de uniforme del equipo a un color de interfaz.
+  /// EN: Maps a team's uniform color to a UI color.
   Color _teamIndicatorColor(String side) {
     final rawColor = _match[side == 'home' ? 'homeTeamColor' : 'awayTeamColor']?.toString().trim().toLowerCase();
     switch (rawColor) {
@@ -725,6 +809,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  /// ES: Asigna un icono al tipo de evento de la cronología.
+  /// EN: Selects an icon for a match chronology event type.
   IconData _chronologyIcon(String? type) {
   switch (type) {
   case 'goal':
@@ -746,6 +832,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   }
   }
 
+  /// ES: Asigna un color al tipo de evento de la cronología.
+  /// EN: Selects a color for a match chronology event type.
   Color _chronologyColor(String? type) {
   switch (type) {
   case 'goal':
@@ -766,6 +854,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   }
   }
 
+  /// ES: Crea una descripción legible para un evento registrado.
+  /// EN: Creates a readable description for a recorded event.
   String _eventDescription(Map<String, dynamic> event) {
     final player = event['playerName']?.toString() ?? event['player']?.toString() ?? 'Jugador';
     final type = event['type']?.toString();
@@ -789,12 +879,16 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
+  /// ES: Formatea el tiempo del período asociado al evento.
+  /// EN: Formats the period time associated with an event.
   String _eventTime(Map<String, dynamic> event) {
     final seconds = (event['elapsedSeconds'] as num?)?.toInt();
     if (seconds == null) return "--'";
     return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
   }
 
+  /// ES: Muestra una exclusión activa y el tiempo que falta.
+  /// EN: Displays an active suspension and its remaining time.
   Widget _suspensionCard(Map<String, dynamic> suspension) {
     final remaining = (suspension['endsAt'] as DateTime).difference(DateTime.now()).inSeconds.clamp(0, 120);
     final minutes = remaining ~/ 60;
@@ -817,6 +911,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
+  /// ES: Abre o cierra la plantilla de un lado del partido.
+  /// EN: Expands or collapses a match side's roster.
   Widget _rosterTeamButton(String side, String teamName) => OutlinedButton(
     onPressed: () => setState(() => _selectedRoster = _selectedRoster == side ? null : side),
     style: OutlinedButton.styleFrom(
@@ -843,11 +939,18 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     ),
   );
 
+  /// ES: Agrupa widgets bajo un encabezado de sección.
+  /// EN: Groups widgets under a section heading.
   Widget _section(String title, List<Widget> children) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 7), ...children]);
+
+  /// ES: Presenta el rol y el nombre de un oficial asignado.
+  /// EN: Displays the role and name of an assigned official.
   Widget _official(String role, dynamic name) => ListTile(dense: true, title: Text(role), trailing: Text(name?.toString() ?? 'Sin asignar'));
 
   final Map<String, Map<String, int>> _playerEvents = {};
 
+  /// ES: Actualiza cada segundo las exclusiones activas y las elimina al vencer.
+  /// EN: Updates active suspensions each second and removes expired ones.
   void _startSuspensionCountdown() {
     _suspensionTimer?.cancel();
     _suspensionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -857,6 +960,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Registra un gol, tarjeta o exclusión y sincroniza marcador/eventos.
+  /// EN: Records a goal, card, or suspension and syncs scores and events.
   Future<void> _recordPlayerEvent(String playerKey, String event, {bool? isHome, String? playerName}) async {
   if (!_canUseScoreSheet || _isRosterLocked || _match['status']?.toString().toLowerCase() == 'finished' || _match['status']?.toString().toLowerCase() == 'finalizado') return;
     final nextHomeScore = ((_match['homeScore'] as num?)?.toInt() ?? 0) + (event == 'goal' && isHome == true ? 1 : 0);
@@ -877,6 +982,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     });
   }
 
+  /// ES: Construye una fila de jugador con sus estadísticas y acciones.
+  /// EN: Builds a player row with statistics and event actions.
   Widget _playerRow(String number, String name, int goals, bool isHome) {
     final key = '$number-$name';
     final events = _playerEvents[key] ?? const <String, int>{};
@@ -909,6 +1016,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     );
   }
 
+  /// ES: Aplica estilo común a los botones de evento de la planilla.
+  /// EN: Applies shared styling to score-sheet event buttons.
   ButtonStyle _eventButtonStyle(Color color) => IconButton.styleFrom(
         backgroundColor: color.withValues(alpha: Theme.of(context).brightness == Brightness.light ? 0.14 : 0.22),
         foregroundColor: color,
@@ -919,6 +1028,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       );
 
+  /// ES: Crea un botón con icono para registrar un evento del jugador.
+  /// EN: Creates an icon button for recording a player event.
   Widget _eventButton(IconData icon, String event, String playerKey, Color color, bool isHome, String playerName, {bool enabled = true}) => IconButton(
         tooltip: event == 'goal' ? 'Anotar gol' : event == 'yellowCard' ? 'Registrar tarjeta amarilla' : 'Registrar tarjeta roja',
         style: _eventButtonStyle(color),
@@ -926,6 +1037,8 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
         icon: Icon(icon, color: color, size: 24),
       );
 
+  /// ES: Crea un botón textual para registrar una exclusión.
+  /// EN: Creates a text button for recording a suspension.
   Widget _textEventButton(String label, String event, String playerKey, Color color, bool isHome, String playerName, {bool enabled = true}) => IconButton(
         tooltip: 'Exclusión 2 minutos',
         style: _eventButtonStyle(color),

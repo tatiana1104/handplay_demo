@@ -47,3 +47,5 @@ app.*.map.json
 # Firebase Admin credentials and local scripts
 serviceAccountKey.json
 scripts/check-admin.cjs
+# Widget Preview related
+.widget_preview/

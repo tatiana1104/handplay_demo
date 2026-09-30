@@ -8,9 +8,15 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+/// ES: Recopila datos de cuenta y los envía al BLoC de autenticación.
+/// EN: Collects new-account details and submits them to the authentication BLoC.
 class RegisterScreen extends StatefulWidget {
+  /// ES: Crea la pantalla de registro.
+  /// EN: Creates the registration screen.
   const RegisterScreen({super.key});
 
+  /// ES: Crea el estado que administra los campos de registro.
+  /// EN: Creates the state that owns the registration form controllers.
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
@@ -23,6 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _showPassword = false;
   bool _showConfirmation = false;
 
+  /// ES: Libera los controladores del formulario de registro.
+  /// EN: Releases all controllers used by the registration form.
   @override
   void dispose() {
     _name.dispose();
@@ -32,6 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  /// ES: Comprueba la confirmación y envía el evento de registro.
+  /// EN: Checks the password confirmation and dispatches the registration event.
   void _register(BuildContext context) {
     if (_password.text != _confirmation.text) {
       ScaffoldMessenger.of(context)
@@ -47,6 +57,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
   }
 
+  /// ES: Construye el formulario y muestra respuestas de autenticación.
+  /// EN: Builds the registration form and displays authentication feedback.
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;

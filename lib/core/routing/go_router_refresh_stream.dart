@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 /// exitoso saca automáticamente al usuario de la pantalla de login sin
 /// que la UI tenga que llamar `context.go()` a mano.
 class GoRouterRefreshStream extends ChangeNotifier {
+  /// ES: Notifica al router cada vez que [stream] emite un valor.
+  /// EN: Notifies router listeners whenever [stream] emits a value.
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
@@ -17,6 +19,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
 
   late final StreamSubscription<dynamic> _subscription;
 
+  /// ES: Cancela la escucha del stream y libera este notificador.
+  /// EN: Cancels the stream listener and releases this notifier.
   @override
   void dispose() {
     _subscription.cancel();

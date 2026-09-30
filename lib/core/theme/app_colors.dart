@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 /// escrito directamente en un widget), sino siempre referirse a estas
 /// constantes o al `Theme.of(context)`.
 class AppColors {
+  /// ES: Impide crear instancias de esta paleta estática de colores.
+  /// EN: Prevents creating instances of the static color palette.
   AppColors._();
 
   // Verde institucional de la Liga. El tono cambia levemente entre

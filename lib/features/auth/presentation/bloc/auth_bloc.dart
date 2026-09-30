@@ -30,6 +30,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   StreamSubscription<AppUser?>? _authStateSubscription;
 
+  /// ES: Registra manejadores y escucha el stream de sesión del repositorio.
+  /// EN: Registers event handlers and listens to the repository's session stream.
   AuthBloc({
     required SignInWithEmailPassword signIn,
     required RegisterWithEmailPassword register,
@@ -56,6 +58,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
   }
 
+  /// ES: Convierte cambios de sesión en estados autenticados o desconectados.
+  /// EN: Converts session updates into authenticated or signed-out states.
   void _onUserChanged(AuthUserChanged event, Emitter<AuthState> emit) {
     if (event.user != null) {
       emit(AuthAuthenticated(event.user!));
@@ -64,6 +68,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  /// ES: Ejecuta el acceso por correo y emite carga y resultado.
+  /// EN: Runs email/password sign-in and emits loading and result states.
   Future<void> _onLoginRequested(
     AuthLoginRequested event,
     Emitter<AuthState> emit,
@@ -76,6 +82,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// ES: Registra la cuenta y emite los estados de carga y resultado.
+  /// EN: Runs account registration and emits loading and result states.
   Future<void> _onRegisterRequested(
     AuthRegisterRequested event,
     Emitter<AuthState> emit,
@@ -92,6 +100,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// ES: Ejecuta el acceso con Google y emite carga y resultado.
+  /// EN: Runs Google sign-in and emits loading and result states.
   Future<void> _onGoogleSignInRequested(
     AuthGoogleSignInRequested event,
     Emitter<AuthState> emit,
@@ -104,6 +114,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// ES: Envía el correo de recuperación y emite confirmación o error.
+  /// EN: Sends a recovery email and emits confirmation or failure.
   Future<void> _onPasswordResetRequested(
     AuthPasswordResetRequested event,
     Emitter<AuthState> emit,
@@ -116,6 +128,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// ES: Solicita cerrar sesión; el stream de auth emitirá el nuevo estado.
+  /// EN: Requests sign-out; the auth-state stream emits the resulting state.
   Future<void> _onLogoutRequested(
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
@@ -127,6 +141,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _signOut();
   }
 
+  /// ES: Cancela el listener de Firebase antes de cerrar el BLoC.
+  /// EN: Cancels the Firebase session listener before closing the BLoC.
   @override
   Future<void> close() {
     _authStateSubscription?.cancel();

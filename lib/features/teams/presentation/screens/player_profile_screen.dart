@@ -8,7 +8,10 @@ import 'team_detail_screen.dart';
 
 /// Ficha del jugador con estadísticas reales calculadas a partir de los
 /// eventos registrados por el planillero en los partidos finalizados.
+/// EN: Player profile with statistics calculated from recorded events in completed matches.
 class PlayerProfileScreen extends StatelessWidget {
+  /// ES: Crea la ficha del jugador dentro de un torneo y equipo.
+  /// EN: Creates the player's profile within a tournament and team.
   const PlayerProfileScreen({
     required this.tournament,
     required this.player,
@@ -24,6 +27,8 @@ class PlayerProfileScreen extends StatelessWidget {
   final Color teamColor;
   final Set<String> teamIdentifiers;
 
+  /// ES: Calcula y muestra estadísticas e historial en tiempo real.
+  /// EN: Calculates and displays live statistics and match history.
   @override
   Widget build(BuildContext context) {
     final name = capitalize((player['name'] ?? player['nombre'] ?? 'Jugador').toString());
@@ -101,6 +106,8 @@ class PlayerProfileScreen extends StatelessWidget {
     );
   }
 
+  /// ES: Resume goles y sanciones del jugador para una línea del historial.
+  /// EN: Summarizes a player's goals and sanctions for one history row.
   String? _lineDetail(PlayerMatchLine line) {
     final parts = [
       if (line.goals > 0) '${line.goals} ${line.goals == 1 ? 'gol' : 'goles'}',
@@ -111,14 +118,22 @@ class PlayerProfileScreen extends StatelessWidget {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
+  /// ES: Oculta el documento y deja visibles solo sus últimos cuatro caracteres.
+  /// EN: Masks the identity document while keeping its last four characters visible.
   String _maskDocument(String value) => value.length <= 4 ? value : '${'•' * (value.length - 4)}${value.substring(value.length - 4)}';
 }
 
+/// ES: Presenta una etiqueta y un valor personal del jugador.
+/// EN: Presents one of the player's personal details as a label-value row.
 class _DataRow extends StatelessWidget {
+  /// ES: Crea una fila de datos personales.
+  /// EN: Creates a personal data row.
   const _DataRow({required this.label, required this.value});
   final String label;
   final String value;
 
+  /// ES: Construye la fila con el valor alineado al extremo derecho.
+  /// EN: Builds the row with its value aligned to the trailing edge.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

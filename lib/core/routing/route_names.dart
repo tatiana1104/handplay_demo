@@ -11,20 +11,28 @@
 /// Nombres y paths de ruta de Cancha, organizados según el mapa de
 /// navegación del PRD. Cada ruta se define como una constante estática de la clase
 class RouteNames {
+  /// ES: Impide crear instancias de este catálogo estático de rutas.
+  /// EN: Prevents creating instances of this static route catalog.
   RouteNames._();
 
-  static const String splash = '/'; // Ruta de la pantalla de splash (pantalla inicial que se muestra al abrir la app)
-  static const String home = '/torneos'; // Ruta de la pantalla de inicio (lista de torneos)
-  static const String tournamentDetail = '/torneos/detalle'; // Detalle público de torneo
+  static const String splash =
+      '/'; // Ruta de la pantalla de splash (pantalla inicial que se muestra al abrir la app)
+  static const String home =
+      '/torneos'; // Ruta de la pantalla de inicio (lista de torneos)
+  static const String tournamentDetail =
+      '/torneos/detalle'; // Detalle público de torneo
   static const String profile = '/perfil'; // Perfil de la cuenta autenticada
   static const String calendar = '/calendario'; // Calendario de partidos
   static const String referees = '/arbitros'; // Gestión de árbitros
   static const String liveMatch = '/partido-en-vivo'; // Partido en vivo
   static const String internal = '/_internal'; // Navegación interna unificada
-  static const String createTournament = '/torneos/nuevo'; // Alta de torneo para admin de liga
+  static const String createTournament =
+      '/torneos/nuevo'; // Alta de torneo para admin de liga
+  static const String clubs = '/clubes';
   static const String login = '/login'; // Ruta de la pantalla de login
   static const String register = '/register'; // Ruta de la pantalla de registro
-  static const String recoverPassword = '/recover-password'; // Ruta de la pantalla de recuperación de contraseña
+  static const String recoverPassword =
+      '/recover-password'; // Ruta de la pantalla de recuperación de contraseña
   static const String editProfile = '/perfil/editar';
   static const String changePassword = '/perfil/cambiar-contrasena';
 }

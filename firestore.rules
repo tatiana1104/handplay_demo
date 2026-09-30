@@ -22,6 +22,26 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // El catálogo de clubes se consulta para inscribir equipos; solo la liga lo administra.
+    match /clubs/{clubId} {
+      allow read: if true;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'createdBy', 'createdAt', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'createdBy', 'createdAt', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if isAdmin();
+    }
+
     function tournamentMember(tournamentId) {
       return signedIn()
         && get(/databases/$(database)/documents/tournaments/$(tournamentId))
@@ -106,8 +126,8 @@ service cloud.firestore {
         allow create: if get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.publicRegistration == true
           && request.resource.data.status == 'pending'
           && request.resource.data.termsAccepted == true
-          && (get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline == null
-            || request.time <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.registrationDeadline)
+          && (get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('registrationDeadline', null) == null
+            || request.time <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('registrationDeadline', null))
           && request.resource.data.teamName is string
           && request.resource.data.coachName is string
           && request.resource.data.coachName.size() > 0
@@ -116,8 +136,8 @@ service cloud.firestore {
           && request.resource.data.coachEmail is string
           && request.resource.data.coachEmail.size() > 3
           && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
-          && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
-          && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam;
+          && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('minPlayersPerTeam', 1)
+          && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('maxPlayersPerTeam', 99);
         allow read: if canManageTournament(tournamentId)
           || resource.data.status == 'approved'
           || (signedIn()
@@ -128,8 +148,8 @@ service cloud.firestore {
             && request.resource.data.coachEmail == resource.data.coachEmail
             && request.resource.data.status == 'pending'
             && request.resource.data.termsAccepted == true
-            && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.minPlayersPerTeam
-            && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.maxPlayersPerTeam);
+            && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('minPlayersPerTeam', 1)
+            && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('maxPlayersPerTeam', 99));
         allow delete: if canManageTournament(tournamentId);
       }
 

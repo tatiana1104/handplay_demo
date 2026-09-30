@@ -16,6 +16,8 @@ class AppUser extends Equatable {
   final String? photoUrl;
   final List<String> roles;
 
+  /// ES: Crea un usuario inmutable e independiente de los tipos de Firebase.
+  /// EN: Creates an immutable user independent of Firebase types.
   const AppUser({
     required this.uid,
     this.email,
@@ -24,10 +26,16 @@ class AppUser extends Equatable {
     this.roles = const ['jugador'],
   });
 
+  /// ES: Comprueba si el usuario tiene el rol indicado.
+  /// EN: Checks whether this user has the requested application role.
   bool hasRole(String role) => roles.contains(role);
 
+  /// ES: Indica si este usuario puede administrar la liga.
+  /// EN: Reports whether this user can administer the league.
   bool get isAdmin => hasRole('admin') || hasRole('admin_liga');
 
+  /// ES: Expone los campos usados para comparar usuarios del dominio.
+  /// EN: Exposes the fields used to compare two domain users.
   @override
   List<Object?> get props => [uid, email, displayName, photoUrl, roles];
 }

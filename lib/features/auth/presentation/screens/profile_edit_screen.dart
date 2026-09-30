@@ -2,12 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+/// ES: Edita datos comunes y campos específicos de cada rol.
+/// EN: Edits shared profile information and fields specific to each role.
 class ProfileEditScreen extends StatefulWidget {
+  /// ES: Crea el editor con los datos actuales del perfil.
+  /// EN: Creates the editor with the profile's current Firestore data.
   const ProfileEditScreen({super.key, required this.userId, required this.initialData});
 
   final String userId;
   final Map<String, dynamic> initialData;
 
+  /// ES: Crea el estado e inicializa los campos desde el perfil.
+  /// EN: Creates the state and initializes controllers from the profile.
   @override
   State<ProfileEditScreen> createState() => _ProfileEditScreenState();
 }
@@ -28,9 +34,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   bool get _isCoach => _roles.contains('entrenador') || _roles.contains('coach');
   bool get _isReferee => _roles.contains('arbitro') || _roles.contains('referee') || _roles.contains('árbitro');
 
+  /// ES: Restaura los datos y determina qué secciones de rol mostrar.
+  /// EN: Restores profile values and determines which role sections to show.
   @override
   void initState() {
     super.initState();
+    /// ES: Lee un campo como texto y usa vacío si no existe.
+    /// EN: Reads a profile field as text, using an empty value when absent.
     String value(String key) => widget.initialData[key]?.toString() ?? '';
     final storedRoles = (widget.initialData['roles'] as List?)?.map((role) => role.toString().trim().toLowerCase()) ?? const <String>[];
     final primaryRole = value('rol').trim().toLowerCase();
@@ -46,6 +56,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _specialty = TextEditingController(text: value('specialty'));
   }
 
+  /// ES: Libera los controladores de los campos editables.
+  /// EN: Releases all controllers created for editable profile fields.
   @override
   void dispose() {
     for (final controller in [_name, _phone, _document, _shirtNumber, _position, _teamName, _experience, _specialty]) {
@@ -54,6 +66,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     super.dispose();
   }
 
+  /// ES: Guarda en Firestore los campos comunes y los propios del rol.
+  /// EN: Saves common and role-specific fields to Firestore.
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
@@ -88,16 +102,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
+  /// ES: Construye un título compartido por las secciones de rol.
+  /// EN: Builds a heading shared by the role-specific sections.
   Widget _sectionTitle(BuildContext context, String title) => Padding(
     padding: const EdgeInsets.only(top: 8, bottom: 12),
     child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
   );
 
+  /// ES: Construye un campo editable con estilo uniforme.
+  /// EN: Builds one consistently styled editable profile field.
   Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType}) => Padding(
     padding: const EdgeInsets.only(bottom: 14),
     child: TextField(controller: controller, keyboardType: keyboardType, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder())),
   );
 
+  /// ES: Muestra solo las secciones que corresponden a los roles del usuario.
+  /// EN: Builds the editor with sections matching the user's roles.
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Editar perfil')),
@@ -127,8 +147,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   );
 }
 
+/// ES: Vuelve a autenticar al usuario antes de cambiar la contraseña.
+/// EN: Reauthenticates the current user before changing their password.
 class ChangePasswordScreen extends StatefulWidget {
+  /// ES: Crea la pantalla para cambiar la contraseña.
+  /// EN: Creates the password change screen.
   const ChangePasswordScreen({super.key});
+  /// ES: Crea el estado que administra las contraseñas y su visibilidad.
+  /// EN: Creates the state that owns the password inputs and visibility toggles.
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
@@ -142,6 +168,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _showNext = false;
   bool _showConfirmation = false;
 
+  /// ES: Libera los controladores de contraseña.
+  /// EN: Releases all password input controllers.
   @override
   void dispose() {
     _current.dispose();
@@ -150,6 +178,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
+  /// ES: Valida, reautentica y actualiza la contraseña del usuario.
+  /// EN: Validates, reauthenticates, and updates the current user's password.
   Future<void> _change() async {
     final user = FirebaseAuth.instance.currentUser;
     final email = user?.email;
@@ -168,6 +198,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } finally { if (mounted) setState(() => _saving = false); }
   }
 
+  /// ES: Construye los campos de contraseña actual, nueva y confirmación.
+  /// EN: Builds the current, new, and confirmation password fields.
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Cambiar contraseña')),

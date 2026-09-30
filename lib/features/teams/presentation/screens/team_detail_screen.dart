@@ -9,7 +9,10 @@ import 'player_profile_screen.dart';
 
 /// Ficha de un equipo inscrito: posición y puntos reales en la tabla,
 /// rendimiento, cuerpo técnico, plantilla con goles y últimos partidos.
+/// EN: Shows a team's real standings, performance, staff, roster, and recent matches.
 class TeamDetailScreen extends StatelessWidget {
+  /// ES: Crea la ficha del equipo con sus datos y color.
+  /// EN: Creates a team profile with its data and display color.
   const TeamDetailScreen({
     required this.tournament,
     required this.registrationId,
@@ -23,11 +26,15 @@ class TeamDetailScreen extends StatelessWidget {
   final Map<String, dynamic> registration;
   final Color teamColor;
 
+  /// ES: Devuelve el nombre del equipo o un texto alternativo.
+  /// EN: Returns the team name or a fallback label.
   String get teamName {
     final name = registration['teamName']?.toString().trim() ?? '';
     return name.isEmpty ? 'Equipo sin nombre' : name;
   }
 
+  /// ES: Combina inscripciones y partidos para mostrar el rendimiento actual.
+  /// EN: Combines registrations and matches to show current team performance.
   @override
   Widget build(BuildContext context) {
     final tournamentRef = FirebaseFirestore.instance.collection('tournaments').doc(tournament.id);
@@ -59,7 +66,11 @@ class TeamDetailScreen extends StatelessWidget {
   }
 }
 
+/// ES: Presenta estadísticas, cuerpo técnico, plantilla e historial.
+/// EN: Presents statistics, staff, roster, and match history.
 class _TeamDetailBody extends StatelessWidget {
+  /// ES: Crea el cuerpo con las métricas calculadas del equipo.
+  /// EN: Creates the body with the team's calculated metrics.
   const _TeamDetailBody({
     required this.screen,
     required this.position,
@@ -76,6 +87,8 @@ class _TeamDetailBody extends StatelessWidget {
   final List<TeamMatchSummary> matches;
   final bool loading;
 
+  /// ES: Construye todas las secciones de la ficha del equipo.
+  /// EN: Builds all sections of the team profile.
   @override
   Widget build(BuildContext context) {
     final registration = screen.registration;
@@ -162,15 +175,23 @@ class _TeamDetailBody extends StatelessWidget {
     );
   }
 
+  /// ES: Agrega un signo positivo a las diferencias de gol favorables.
+  /// EN: Adds a plus sign to positive goal differences.
   String _signed(int value) => value > 0 ? '+$value' : '$value';
 }
 
+/// ES: Muestra una etiqueta y su valor con un icono.
+/// EN: Displays a label and value alongside an icon.
 class _InfoRow extends StatelessWidget {
+  /// ES: Crea una fila de información del equipo.
+  /// EN: Creates a team information row.
   const _InfoRow({required this.icon, required this.label, required this.value});
   final IconData icon;
   final String label;
   final String value;
 
+  /// ES: Construye una fila de datos alineada para lectura rápida.
+  /// EN: Builds an aligned data row for quick scanning.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -187,12 +208,18 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
+/// ES: Muestra la información resumida y las estadísticas de un jugador.
+/// EN: Displays a player's summary and statistics.
 class _PlayerTile extends StatelessWidget {
+  /// ES: Crea una fila de jugador que puede abrir su perfil.
+  /// EN: Creates a player row that can open the player's profile.
   const _PlayerTile({required this.player, required this.goals, required this.onTap});
   final Map player;
   final int goals;
   final VoidCallback onTap;
 
+  /// ES: Construye la fila con dorsal, nombre, posición y goles.
+  /// EN: Builds the row with shirt number, name, position, and goals.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -231,10 +258,16 @@ class _PlayerTile extends StatelessWidget {
   }
 }
 
+/// ES: Representa el resultado de un partido con una etiqueta de una letra.
+/// EN: Represents a match outcome with a one-letter badge.
 class _OutcomeBadge extends StatelessWidget {
+  /// ES: Crea la insignia para el resultado indicado.
+  /// EN: Creates a badge for the supplied outcome.
   const _OutcomeBadge(this.outcome);
   final MatchOutcome outcome;
 
+  /// ES: Construye la insignia con color según el resultado.
+  /// EN: Builds the badge using the outcome's semantic color.
   @override
   Widget build(BuildContext context) {
     final (label, color) = outcomeStyle(context, outcome);
@@ -248,6 +281,8 @@ class _OutcomeBadge extends StatelessWidget {
   }
 }
 
+/// ES: Obtiene la abreviatura y el color correspondientes al resultado.
+/// EN: Returns the abbreviation and color for a match outcome.
 (String, Color) outcomeStyle(BuildContext context, MatchOutcome outcome) => switch (outcome) {
       MatchOutcome.win => ('G', Theme.of(context).colorScheme.primary),
       MatchOutcome.draw => ('E', Colors.amber),
@@ -255,6 +290,8 @@ class _OutcomeBadge extends StatelessWidget {
       MatchOutcome.pending => ('-', Theme.of(context).colorScheme.onSurfaceVariant),
     };
 
+/// ES: Formatea fecha y hora para las tarjetas de resultados.
+/// EN: Formats the date and time for match result tiles.
 String formatShortDate(DateTime? date) {
   if (date == null) return 'Fecha por definir';
   const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -263,11 +300,16 @@ String formatShortDate(DateTime? date) {
 }
 
 /// Fila de un partido del equipo: rival, fecha, local/visitante y marcador.
+/// EN: Shows an opponent, date, home/away status, and match score.
 class MatchResultTile extends StatelessWidget {
+  /// ES: Crea la fila de resultado para un partido.
+  /// EN: Creates a result tile for one match.
   const MatchResultTile({required this.match, this.trailingDetail, super.key});
   final TeamMatchSummary match;
   final String? trailingDetail;
 
+  /// ES: Construye la tarjeta compacta con el resultado del partido.
+  /// EN: Builds a compact card showing the match result.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

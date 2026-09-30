@@ -1,13 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// ES: Encapsula las operaciones de Firebase Auth y Google Sign-In.
+/// EN: Wraps Firebase Authentication and Google Sign-In operations.
 class AuthService {
+  /// ES: Crea el servicio con el cliente Firebase Auth recibido o predeterminado.
+  /// EN: Creates the service with a supplied or default Firebase Auth client.
   AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _googleInitialized = false;
 
+  /// ES: Inicia sesión con correo electrónico y contraseña.
+  /// EN: Signs in an existing account using email and password.
   Future<UserCredential> signIn({required String email, required String password}) {
     return _auth.signInWithEmailAndPassword(
       email: email.trim(),
@@ -15,6 +21,8 @@ class AuthService {
     );
   }
 
+  /// ES: Crea una cuenta por correo y establece su nombre visible.
+  /// EN: Creates an email account and sets its display name.
   Future<UserCredential> register({required String email, required String password, required String displayName}) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -24,6 +32,8 @@ class AuthService {
     return credential;
   }
 
+  /// ES: Inicializa Google Sign-In una vez y autentica con Firebase.
+  /// EN: Initializes Google Sign-In once and authenticates with Firebase.
   Future<UserCredential> signInWithGoogle() async {
     if (!_googleInitialized) {
       await _googleSignIn.initialize();
@@ -35,11 +45,15 @@ class AuthService {
     return _auth.signInWithCredential(credential);
   }
 
+  /// ES: Solicita a Firebase el correo de restablecimiento de contraseña.
+  /// EN: Sends Firebase's password-reset email.
   Future<void> sendPasswordResetEmail(String email) {
     return _auth.sendPasswordResetEmail(email: email.trim());
   }
 }
 
+/// ES: Convierte excepciones de autenticación en mensajes para la interfaz.
+/// EN: Converts authentication exceptions into user-facing messages.
 String authErrorMessage(Object error) {
   if (error is FirebaseAuthException) {
     switch (error.code) {

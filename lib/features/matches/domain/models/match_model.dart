@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Partido programado; los eventos y alineaciones viven como subcolecciones.
+/// ES: Partido programado; eventos y alineaciones viven en subcolecciones.
+/// EN: Scheduled match; its events and lineups live in subcollections.
 class MatchModel {
+  /// ES: Crea un modelo de partido con sus equipos y estado.
+  /// EN: Creates a match model with its teams and status.
   const MatchModel({required this.id, required this.tournamentId, required this.categoryId, required this.venueId, required this.venue, required this.homeTeamId, required this.awayTeamId, required this.homeTeamName, required this.awayTeamName, required this.homeTeamColor, required this.awayTeamColor, required this.round, required this.phase, required this.scheduledAt, required this.homeScore, required this.awayScore, required this.status, required this.period, required this.elapsedSeconds});
   final String id;
   final String tournamentId;
@@ -23,6 +26,8 @@ class MatchModel {
   final String period;
   final int elapsedSeconds;
 
+  /// ES: Convierte un documento Firestore a un modelo de partido.
+  /// EN: Converts a Firestore document into a match model.
   factory MatchModel.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? const <String, dynamic>{};
     final scheduled = data['scheduledAt'];

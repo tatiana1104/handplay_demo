@@ -2,20 +2,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Un árbitro único, aunque exista en varios documentos de `users`
 /// (p. ej. la cuenta de login y el registro creado desde el panel de árbitros).
+/// EN: One logical referee even when multiple `users` documents describe them.
 class RefereeOption {
   final String id;
   final String name;
   final String? email;
   final Set<String> aliasIds;
 
+  /// ES: Crea una opción de árbitro con sus IDs alias.
+  /// EN: Creates a referee option with its alias IDs.
   const RefereeOption({required this.id, required this.name, required this.email, required this.aliasIds});
 }
 
+/// ES: Agrupa documentos duplicados y ofrece árbitros únicos para formularios.
+/// EN: Groups duplicate documents and exposes unique referees to forms.
 class RefereeDirectory {
   final List<RefereeOption> options;
 
   RefereeDirectory._(this.options);
 
+  /// ES: Construye el directorio agrupando documentos que comparten identidad.
+  /// EN: Builds the directory by grouping documents that share an identity.
   factory RefereeDirectory.fromDocs(Iterable<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
     final groups = <List<QueryDocumentSnapshot<Map<String, dynamic>>>>[];
     final groupKeys = <Set<String>>[];
@@ -62,6 +69,8 @@ class RefereeDirectory {
     return RefereeDirectory._(options);
   }
 
+  /// ES: Busca un árbitro por su ID canónico o cualquiera de sus alias.
+  /// EN: Finds a referee by canonical ID or any of its aliases.
   RefereeOption? find(String? id) {
     if (id == null || id.isEmpty) return null;
     for (final option in options) {
@@ -71,8 +80,11 @@ class RefereeDirectory {
   }
 
   /// Devuelve el id canónico que se muestra en el desplegable.
+  /// EN: Returns the canonical ID displayed in the dropdown.
   String? canonicalId(String? id) => find(id)?.id;
 
+  /// ES: Genera claves de identidad para relacionar documentos de usuario.
+  /// EN: Builds identity keys for linking user documents.
   static Set<String> _identityKeys(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
     final document = (data['document'] ?? data['documentNumber'] ?? '').toString().trim();
@@ -88,6 +100,7 @@ class RefereeDirectory {
 
   /// La cuenta de login la crea el flujo de autenticación con `createdAt`;
   /// el registro manual de árbitros no lo escribe.
+  /// EN: Prefers the login account, which has `createdAt`, over manual entries.
   static int _preferAuthAccount(
     QueryDocumentSnapshot<Map<String, dynamic>> a,
     QueryDocumentSnapshot<Map<String, dynamic>> b,
@@ -100,11 +113,15 @@ class RefereeDirectory {
     return a.id.compareTo(b.id);
   }
 
+  /// ES: Cuenta cuántos campos útiles contiene el perfil.
+  /// EN: Counts how many useful fields the profile contains.
   static int _completeness(Map<String, dynamic> data) => [
         data['displayName'], data['document'], data['documentNumber'], data['email'],
         data['phone'], data['accreditation'], data['category'],
       ].where((value) => value != null && value.toString().trim().isNotEmpty).length;
 
+  /// ES: Devuelve el primer valor de texto que no esté vacío.
+  /// EN: Returns the first non-empty text value.
   static String? _firstNonEmpty(Iterable<dynamic> values) {
     for (final value in values) {
       final text = value?.toString().trim() ?? '';

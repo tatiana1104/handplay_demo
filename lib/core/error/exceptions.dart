@@ -4,5 +4,7 @@
 /// que usan el dominio y el BLoC.
 class ServerException implements Exception {
   final String message;
+  /// ES: Crea una excepción de infraestructura con un mensaje legible.
+  /// EN: Creates an infrastructure exception with a display-ready message.
   const ServerException(this.message);
 }

@@ -8,14 +8,20 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/app_user_model.dart';
 
+/// ES: Convierte resultados y excepciones del datasource en valores Either del dominio.
+/// EN: Converts datasource results and exceptions into domain-level Either values.
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
 
+  /// ES: Crea el repositorio alrededor del datasource conectado a Firebase.
+  /// EN: Creates the repository around its Firebase-backed datasource.
   const AuthRepositoryImpl(this.remoteDataSource);
 
   static const _unexpectedErrorMessage =
       'Ocurrió un error inesperado. Intenta de nuevo.';
 
+  /// ES: Emite la sesión Firebase actual como usuario del dominio.
+  /// EN: Streams the current Firebase session as a domain user.
   @override
   Stream<AppUser?> watchAuthState() {
     return remoteDataSource.authStateChanges.asyncMap((user) async {
@@ -24,6 +30,8 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
+  /// ES: Combina los roles del token Firebase con los guardados en el perfil.
+  /// EN: Combines Firebase token claims and stored profile roles for a user.
   Future<AppUserModel> _appUserFromFirebaseUser(fb.User firebaseUser) async {
     final token = await firebaseUser.getIdTokenResult();
     final claimRoles = _rolesFromClaims(token.claims);
@@ -32,6 +40,8 @@ class AuthRepositoryImpl implements AuthRepository {
     return AppUserModel.fromFirebaseUser(firebaseUser, roles: roles.isEmpty ? const ['jugador'] : roles.toList());
   }
 
+  /// ES: Lee roles actuales y heredados y los normaliza en una lista.
+  /// EN: Reads current and legacy role claims into a normalized role list.
   static List<String> _rolesFromClaims(Map<String, dynamic>? claims) {
     final rawRoles = claims?['roles'];
     if (rawRoles is List) {
@@ -42,6 +52,8 @@ class AuthRepositoryImpl implements AuthRepository {
     return legacyRole is String ? [legacyRole] : const ['jugador'];
   }
 
+  /// ES: Inicia sesión y convierte errores técnicos en fallos de autenticación.
+  /// EN: Signs in and converts infrastructure errors into authentication failures.
   @override
   Future<Either<Failure, AppUser>> signInWithEmailPassword({
     required String email,
@@ -60,6 +72,8 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// ES: Registra una cuenta y convierte errores técnicos en fallos.
+  /// EN: Registers an account and converts infrastructure errors into failures.
   @override
   Future<Either<Failure, AppUser>> registerWithEmailPassword({
     required String name,
@@ -80,6 +94,8 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// ES: Inicia sesión con Google y devuelve un resultado del dominio.
+  /// EN: Signs in with Google and returns a domain-level result.
   @override
   Future<Either<Failure, AppUser>> signInWithGoogle() async {
     try {
@@ -92,6 +108,8 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// ES: Solicita un correo de recuperación y traduce errores del datasource.
+  /// EN: Requests a reset email and maps datasource errors to failures.
   @override
   Future<Either<Failure, Unit>> sendPasswordResetEmail(String email) async {
     try {
@@ -104,6 +122,8 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// ES: Cierra la sesión e informa si la operación tuvo éxito.
+  /// EN: Signs out and reports whether the operation succeeded.
   @override
   Future<Either<Failure, Unit>> signOut() async {
     try {

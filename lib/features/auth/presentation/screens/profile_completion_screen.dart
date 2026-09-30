@@ -5,10 +5,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/route_names.dart';
 
+/// ES: Recopila los campos de perfil requeridos para el rol seleccionado.
+/// EN: Collects profile fields required for the selected account role.
 class ProfileCompletionScreen extends StatefulWidget {
+  /// ES: Crea la pantalla para completar el perfil de [role].
+  /// EN: Creates the profile completion screen for [role].
   const ProfileCompletionScreen({super.key, required this.role});
   final String role;
 
+  /// ES: Crea el estado que administra los datos y su guardado.
+  /// EN: Creates the state that owns profile inputs and save status.
   @override
   State<ProfileCompletionScreen> createState() => _ProfileCompletionScreenState();
 }
@@ -23,6 +29,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
   static const int _maxShirtNumber = 99;
   bool _saving = false;
 
+  /// ES: Libera los controladores del perfil.
+  /// EN: Releases the profile input controllers.
   @override
   void dispose() {
     _documentController.dispose();
@@ -31,6 +39,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     super.dispose();
   }
 
+  /// ES: Valida y guarda en Firestore los datos propios del rol.
+  /// EN: Validates and saves role-specific profile data to Firestore.
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -112,6 +122,8 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
     }
   }
 
+  /// ES: Construye los campos del rol seleccionado y la acción de guardado.
+  /// EN: Builds the selected role's fields and save action.
   @override
   Widget build(BuildContext context) {
     final isPlayer = switch (widget.role.trim().toLowerCase()) {

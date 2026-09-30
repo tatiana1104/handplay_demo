@@ -17,6 +17,8 @@ import 'app_colors.dart';
 /// descarga/empaqueta la fuente automáticamente (no hace falta agregar
 /// archivos .ttf a mano en `pubspec.yaml`).
 class AppTheme {
+  /// ES: Impide crear instancias de este catálogo estático de temas.
+  /// EN: Prevents creating instances of the static theme catalog.
   AppTheme._();
 
   /// Tema para cuando el celular está en modo claro.

@@ -9,9 +9,15 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+/// ES: Solicita un correo de recuperación y muestra el resultado.
+/// EN: Requests a password-reset email and shows the resulting status.
 class RecoverPasswordScreen extends StatefulWidget {
+  /// ES: Crea la pantalla de recuperación de contraseña.
+  /// EN: Creates the password recovery screen.
   const RecoverPasswordScreen({super.key});
 
+  /// ES: Crea el estado que administra el campo de correo.
+  /// EN: Creates the state that owns the email input controller.
   @override
   State<RecoverPasswordScreen> createState() => _RecoverPasswordScreenState();
 }
@@ -19,12 +25,16 @@ class RecoverPasswordScreen extends StatefulWidget {
 class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
   final _email = TextEditingController();
 
+  /// ES: Libera el campo de correo al salir de la pantalla.
+  /// EN: Releases the email controller when leaving the screen.
   @override
   void dispose() {
     _email.dispose();
     super.dispose();
   }
 
+  /// ES: Construye el formulario y escucha estados de éxito o error.
+  /// EN: Builds the recovery form and listens for success and failure states.
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -9,9 +9,15 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+/// ES: Recopila credenciales y solicita acceso al BLoC de autenticación.
+/// EN: Collects credentials and requests sign-in through the auth BLoC.
 class LoginScreen extends StatefulWidget {
+  /// ES: Crea la pantalla de inicio de sesión.
+  /// EN: Creates the login screen.
   const LoginScreen({super.key});
 
+  /// ES: Crea el estado que administra los campos de acceso.
+  /// EN: Creates the state that owns the login input controllers.
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -21,6 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _showPassword = false;
 
+  /// ES: Libera los campos de credenciales al salir de la pantalla.
+  /// EN: Releases the credential controllers when leaving the screen.
   @override
   void dispose() {
     _email.dispose();
@@ -28,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// ES: Construye el formulario y responde a estados de carga o error.
+  /// EN: Builds the login form and reacts to BLoC loading and failure states.
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;

@@ -18,14 +18,20 @@ class AuthRemoteDataSource {
 
   bool _googleInitialized = false;
 
+  /// ES: Crea el datasource con clientes Firebase y Google inyectables.
+  /// EN: Creates the datasource with injectable Firebase and Google clients.
   AuthRemoteDataSource({
     fb.FirebaseAuth? firebaseAuth,
     GoogleSignIn? googleSignIn,
   })  : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
+  /// ES: Expone al repositorio los cambios de sesión de Firebase.
+  /// EN: Exposes Firebase session changes to the repository.
   Stream<fb.User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
+  /// ES: Lee los roles del usuario guardados en Firestore.
+  /// EN: Reads the user's stored Firestore roles.
   Future<List<String>> rolesForUser(String uid) async {
     final data = (await FirebaseFirestore.instance.collection('users').doc(uid).get()).data();
     final roles = (data?['roles'] as List?)
@@ -36,6 +42,8 @@ class AuthRemoteDataSource {
     return roles.toList();
   }
 
+  /// ES: Inicia sesión con Firebase y traduce errores del SDK a excepciones del dominio.
+  /// EN: Signs in through Firebase and maps SDK errors to domain exceptions.
   Future<fb.User> signInWithEmailPassword({
     required String email,
     required String password,
@@ -55,6 +63,8 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// ES: Crea la cuenta Firebase, asigna el nombre y asegura su perfil.
+  /// EN: Creates a Firebase account, sets its name, and ensures its profile exists.
   Future<fb.User> registerWithEmailPassword({
     required String name,
     required String email,
@@ -142,6 +152,8 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// ES: Crea o repara perfiles Firestore después de entrar con Google.
+  /// EN: Creates or repairs Firestore profiles after a Google sign-in.
   Future<void> _ensureUserProfile(fb.User user, {String? name}) async {
     final users = FirebaseFirestore.instance.collection('users');
     final ref = users.doc(user.uid);
@@ -237,6 +249,8 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// ES: Combina la lista de roles actual con el campo de rol heredado.
+  /// EN: Collects modern role arrays and legacy single-role profile fields.
   Set<String> _rolesFromProfile(Map<String, dynamic>? profile) {
     if (profile == null) return <String>{};
     final roles = (profile['roles'] as List?)
@@ -249,6 +263,8 @@ class AuthRemoteDataSource {
     return roles;
   }
 
+  /// ES: Envía el correo de recuperación y traduce errores de Firebase Auth.
+  /// EN: Sends a password-reset email and translates Firebase Auth errors.
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
@@ -257,6 +273,8 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// ES: Cierra Firebase y limpia cualquier sesión de Google Sign-In.
+  /// EN: Signs out of Firebase and clears any Google Sign-In session.
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
     try {

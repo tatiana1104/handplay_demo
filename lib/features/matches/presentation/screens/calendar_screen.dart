@@ -11,15 +11,23 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 
+/// ES: Calendario global de partidos agrupados por fecha.
+/// EN: Global match calendar grouped by date.
 class CalendarScreen extends StatelessWidget {
+  /// ES: Crea el calendario de partidos.
+  /// EN: Creates the match calendar.
   const CalendarScreen({super.key});
 
+  /// ES: Comprueba si la sesión pertenece a un usuario no público.
+  /// EN: Checks whether the session belongs to a non-public user.
   bool _isRealAuthenticated(BuildContext context) {
     final state = context.watch<AuthBloc>().state;
     if (state is! AuthAuthenticated) return false;
     return !state.user.roles.any((role) => role == 'publico' || role == 'public');
   }
 
+  /// ES: Combina partidos e inscripciones para mostrar el calendario.
+  /// EN: Combines matches and registrations to display the calendar.
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
@@ -81,11 +89,17 @@ class CalendarScreen extends StatelessWidget {
   }
 }
 
+/// ES: Agrupa en una sección los partidos de una fecha.
+/// EN: Groups the matches for one date into a section.
 class _CalendarDay extends StatelessWidget {
+  /// ES: Crea una sección diaria con sus partidos.
+  /// EN: Creates a daily section with its matches.
   const _CalendarDay({required this.title, required this.matches});
   final String title;
   final List<Map<String, dynamic>> matches;
 
+  /// ES: Construye tarjetas navegables para los partidos del día.
+  /// EN: Builds navigable cards for the day's matches.
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,14 +166,20 @@ class _CalendarDay extends StatelessWidget {
         ],
       );
 
+  /// ES: Resuelve el nombre del equipo local o visitante.
+  /// EN: Resolves the home or away team's display name.
   String _name(Map<String, dynamic> match, bool home) => match[home ? 'homeTeamName' : 'awayTeamName']?.toString() ?? match[home ? 'homeTeam' : 'awayTeam']?.toString() ?? (home ? 'Equipo local' : 'Equipo visitante');
 
+  /// ES: Traduce el estado del partido a una etiqueta resumida.
+  /// EN: Converts match status into a short display label.
   String _statusLabel(String? status) => switch (status?.trim().toLowerCase()) {
         'live' || 'en vivo' || 'playing' || 'jugando' => 'Jugando',
         'finished' || 'finalizado' || 'completed' => 'Finalizado',
         _ => 'Programado',
       };
 
+  /// ES: Convierte un color almacenado o nombre de uniforme a Color.
+  /// EN: Converts a stored color or uniform name into a Color.
   Color _color(dynamic value, Color fallback) {
     if (value is int) return Color(value);
     if (value is String) {
@@ -172,7 +192,9 @@ class _CalendarDay extends StatelessWidget {
   }
 }
 
-  Map<String, dynamic>? _findRegistration(Map<String, Map<String, dynamic>> registrations, String? teamId, Map<String, dynamic> match, bool home) {
+/// ES: Relaciona un equipo del partido con su inscripción usando IDs y nombres.
+/// EN: Matches a team in a fixture to its registration using IDs and names.
+Map<String, dynamic>? _findRegistration(Map<String, Map<String, dynamic>> registrations, String? teamId, Map<String, dynamic> match, bool home) {
     if (teamId != null && registrations[teamId] != null) return registrations[teamId];
     final storedName = match[home ? 'homeTeamName' : 'awayTeamName'] ?? match[home ? 'localName' : 'visitorName'];
     for (final registration in registrations.values) {
@@ -187,14 +209,20 @@ class _CalendarDay extends StatelessWidget {
     return null;
   }
 
-  String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
+/// ES: Obtiene el nombre de equipo de una inscripción o usa el alternativo.
+/// EN: Gets the team name from a registration or uses a fallback.
+String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
     if (registration == null) return fallback.toString();
     final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
     return name?.toString().trim().isNotEmpty == true ? name.toString().trim() : fallback.toString();
   }
 
+/// ES: Convierte un valor guardado en fecha para ordenar los partidos.
+/// EN: Converts a stored value into a date for sorting matches.
 DateTime _dateValue(dynamic value) => value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '') ?? DateTime(9999);
 
+/// ES: Formatea una fecha como nombre del día y fecha legible.
+/// EN: Formats a date as a weekday and readable calendar date.
 String _dateLabel(dynamic value) {
   final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
   if (date == null) return 'Fecha por definir';
@@ -203,19 +231,27 @@ String _dateLabel(dynamic value) {
   return '${weekdays[date.weekday]} ${date.day} de ${months[date.month]}';
 }
 
+/// ES: Extrae la hora de una fecha programada o devuelve una alternativa.
+/// EN: Extracts the scheduled time or returns a fallback label.
 String _time(dynamic value) {
   final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
   return date == null ? 'Hora por definir' : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
 }
 
 
+/// ES: Muestra el nombre y color del equipo en un lado del marcador.
+/// EN: Shows a team's name and color on one side of the fixture.
 class _TeamSide extends StatelessWidget {
+  /// ES: Crea la etiqueta de local o visitante.
+  /// EN: Creates a home or away team label.
   const _TeamSide({required this.label, required this.name, required this.color, this.alignEnd = false});
   final String label;
   final String name;
   final Color color;
   final bool alignEnd;
 
+  /// ES: Construye la etiqueta alineada según el lado del equipo.
+  /// EN: Builds the label aligned for the team's side.
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,

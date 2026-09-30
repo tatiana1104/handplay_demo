@@ -1,12 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+/// ES: Permite revisar y decidir sobre las inscripciones de un torneo.
+/// EN: Lets administrators review and decide tournament registrations.
 class PendingRegistrationsScreen extends StatefulWidget {
+  /// ES: Crea la pantalla para las solicitudes del torneo indicado.
+  /// EN: Creates the registration review screen for the specified tournament.
   const PendingRegistrationsScreen({super.key, required this.tournamentId, required this.tournamentName});
 
   final String tournamentId;
   final String tournamentName;
 
+  /// ES: Crea el estado que administra filtro y decisiones de revisión.
+  /// EN: Creates the state that manages review filters and decisions.
   @override
   State<PendingRegistrationsScreen> createState() => _PendingRegistrationsScreenState();
 }
@@ -14,8 +20,12 @@ class PendingRegistrationsScreen extends StatefulWidget {
 class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen> {
   String _selectedStatus = 'pending';
 
+  /// ES: Devuelve la subcolección de inscripciones del torneo actual.
+  /// EN: Returns the current tournament's registrations subcollection.
   CollectionReference<Map<String, dynamic>> get _registrations => FirebaseFirestore.instance.collection('tournaments').doc(widget.tournamentId).collection('registrations');
 
+  /// ES: Aprueba o rechaza una solicitud y sincroniza sus perfiles relacionados.
+  /// EN: Approves or rejects a request and syncs its related profiles.
   Future<void> _setStatus(BuildContext context, String id, String status) async {
     String? rejectionReason;
     final currentSnapshot = await _registrations.doc(id).get();
@@ -102,11 +112,15 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(status == 'approved' ? 'Solicitud aprobada.' : 'Solicitud rechazada.')));
   }
 
+  /// ES: Lee la fecha de creación y usa el inicio de época si falta.
+  /// EN: Reads the creation date, defaulting to the Unix epoch when absent.
   DateTime _createdAt(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final value = doc.data()['createdAt'];
     return value is Timestamp ? value.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
   }
 
+  /// ES: Compara una solicitud con las anteriores y resume posibles similitudes.
+  /// EN: Compares a request with earlier ones and reports possible similarities.
   List<String> _similarityWarnings(
     Map<String, dynamic> current,
     List<QueryDocumentSnapshot<Map<String, dynamic>>> olderRegistrations,
@@ -139,10 +153,16 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
     return warnings.toList();
   }
 
+  /// ES: Normaliza un valor para comparar nombres y documentos.
+  /// EN: Normalizes a value for comparing names and identity documents.
   String _normalize(Object? value) => value?.toString().trim().toLowerCase() ?? '';
 
+  /// ES: Obtiene claves estables para identificar los jugadores de una solicitud.
+  /// EN: Gets stable keys for identifying a request's players.
   Set<String> _playerKeys(Object? value) => _playerDetails(value).keys.toSet();
 
+  /// ES: Organiza nombres y documentos de jugadores por su clave normalizada.
+  /// EN: Indexes player names and documents by their normalized key.
   Map<String, Map<String, String>> _playerDetails(Object? value) {
     final players = value is List ? value : const <dynamic>[];
     final details = <String, Map<String, String>>{};
@@ -161,6 +181,8 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
     return details;
   }
 
+  /// ES: Muestra solicitudes en tiempo real y permite filtrarlas por estado.
+  /// EN: Displays live registration requests and filters them by status.
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Solicitudes pendientes')),
@@ -237,12 +259,16 @@ class _PendingRegistrationsScreenState extends State<PendingRegistrationsScreen>
 }
 
 class _RegistrationFilterBar extends StatelessWidget {
+  /// ES: Crea la barra de filtros con conteos por estado.
+  /// EN: Creates the filter bar with counts for each status.
   const _RegistrationFilterBar({required this.selected, required this.counts, required this.onChanged});
 
   final String selected;
   final Map<String, int> counts;
   final ValueChanged<String> onChanged;
 
+  /// ES: Construye los filtros horizontales de estado.
+  /// EN: Builds the horizontal status filters.
   @override
   Widget build(BuildContext context) {
     const filters = [('pending', 'Pendientes'), ('approved', 'Aprobadas'), ('rejected', 'Rechazadas')];
@@ -262,12 +288,16 @@ class _RegistrationFilterBar extends StatelessWidget {
 }
 
 class _RegistrationFilterChip extends StatelessWidget {
+  /// ES: Crea una opción seleccionable de estado.
+  /// EN: Creates a selectable registration status option.
   const _RegistrationFilterChip({required this.label, required this.selected, required this.onTap});
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
+  /// ES: Dibuja la opción y refleja si está seleccionada.
+  /// EN: Renders the option and indicates whether it is selected.
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;

@@ -15,8 +15,12 @@ import 'profile_completion_screen.dart';
 /// Vista de la cuenta actualmente autenticada.
 /// Firebase Auth es la fuente de verdad para el correo y el nombre visible.
 class ProfileScreen extends StatelessWidget {
+  /// ES: Crea la vista del perfil autenticado.
+  /// EN: Creates the authenticated user's profile view.
   const ProfileScreen({super.key});
 
+  /// ES: Convierte el identificador de rol en una etiqueta visible.
+  /// EN: Converts a stored role identifier into a user-facing label.
   static String _roleLabel(String role) {
     switch (role) {
       case 'admin':
@@ -33,6 +37,8 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  /// ES: Construye el perfil con el estado de auth y datos Firestore en vivo.
+  /// EN: Builds profile details from auth state and live Firestore data.
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
@@ -174,6 +180,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  /// ES: Crea un botón para abrir la ficha de un rol específico.
+  /// EN: Builds a button that opens a role-specific profile sheet.
   Widget _roleButton(BuildContext context, String label, IconData icon, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
@@ -181,6 +189,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  /// ES: Muestra los detalles del rol en una hoja inferior modal.
+  /// EN: Shows the selected role's details in a modal bottom sheet.
   void _showRoleSheet(BuildContext context, String title, Map<String, dynamic> profile, List<String> fields) {
     showModalBottomSheet<void>(
       context: context,
@@ -204,11 +214,15 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  /// ES: Traduce nombres de campos Firestore a etiquetas legibles.
+  /// EN: Maps Firestore field names to readable profile labels.
   String _fieldLabel(String field) {
     const labels = {'teamName': 'Equipo', 'specialty': 'Especialidad', 'experience': 'Experiencia', 'category': 'Categoría', 'phone': 'Teléfono', 'shirtNumber': 'Número de camiseta', 'position': 'Posición'};
     return labels[field] ?? field;
   }
 
+  /// ES: Elige un nombre visible o usa el prefijo del correo como alternativa.
+  /// EN: Selects a display name, falling back to the email prefix or app default.
   String _displayName(AppUser? user) {
     final name = user?.displayName?.trim();
     if (name != null && name.isNotEmpty) return name;

@@ -21,10 +21,14 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart';
 /// patrón, en vez de mezclar todo en una sola función gigante.
 final GetIt sl = GetIt.instance;
 
+/// ES: Registra las dependencias antes de construir la interfaz.
+/// EN: Registers feature dependencies before the widget tree starts.
 Future<void> initDependencies() async {
   _initAuthDependencies();
 }
 
+/// ES: Registra clientes Firebase/Google, repositorio, casos de uso y BLoC.
+/// EN: Registers Firebase/Google clients, repository, use cases, and BLoC.
 void _initAuthDependencies() {
   // --- SDKs externos ---
   sl.registerLazySingleton<fb.FirebaseAuth>(() => fb.FirebaseAuth.instance);
