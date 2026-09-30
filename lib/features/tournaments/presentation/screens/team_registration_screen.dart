@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -410,6 +412,31 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
 
   void _removeClub(String club) => setState(() => _clubs.remove(club));
 
+  Future<String?> _sendCoachSetupLink(String email) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty || FirebaseAuth.instance.currentUser != null) return null;
+
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#';
+    final random = Random.secure();
+    final temporaryPassword = List.generate(28, (_) => alphabet[random.nextInt(alphabet.length)]).join();
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: normalizedEmail,
+        password: temporaryPassword,
+      );
+      final uid = credential.user?.uid;
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: normalizedEmail);
+      await FirebaseAuth.instance.signOut();
+      return uid;
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'email-already-in-use') {
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: normalizedEmail);
+        return null;
+      }
+      rethrow;
+    }
+  }
+
   Future<void> _submit() async {
     _addClub();
     final deadline = widget.tournament.registrationDeadline;
@@ -614,12 +641,32 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           message: 'La conexión con Firebase tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.',
         ),
       );
+      String? coachAuthUid;
+      var coachLinkSent = false;
+      if (!isCoachAccount && widget.registrationId == null) {
+        try {
+          coachAuthUid = await _sendCoachSetupLink(coachEmail);
+          coachLinkSent = coachEmail.trim().isNotEmpty;
+          if (coachAuthUid != null) {
+            await firestore.collection('users').doc('document_$coachDocumentValue').set({
+              'authUid': coachAuthUid,
+              'email': coachEmail.trim().toLowerCase(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+          }
+        } on FirebaseAuthException catch (_) {
+          coachLinkSent = false;
+        }
+      }
       if (mounted) {
         _show(widget.registrationId != null
+
             ? 'Solicitud actualizada y enviada nuevamente para revisión.'
             : isCoachAccount
             ? 'Solicitud enviada y equipo vinculado a tu cuenta. Espera la verificación del administrador.'
-            : 'Solicitud enviada. Inicia sesión con la cuenta de este correo para vincular el equipo y recibir el rol de entrenador.');
+            : coachLinkSent
+            ? 'Solicitud enviada. Enviamos al entrenador un enlace para establecer su contraseña e iniciar sesión.'
+            : 'Solicitud enviada. El entrenador deberá usar la recuperación de contraseña para iniciar sesión.');
         Navigator.of(context).pop();
       }
     } on FirebaseException catch (error) {
