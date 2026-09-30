@@ -14,6 +14,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - Se normalizaron los números de documento y se impidieron duplicados entre jugadores de una misma planilla.
 - El entrenador puede participar o no como jugador: cuando participa conserva los roles `entrenador` y `jugador`, sin obligar a que todos los entrenadores sean jugadores.
 - Se agregaron validaciones y reglas de Firestore para perfiles creados mediante inscripción pública.
+- Se implementó el enlace de primer acceso para entrenadores nuevos: se crea la cuenta de Firebase Auth con una contraseña temporal aleatoria y se envía un enlace para establecer una contraseña propia; si la cuenta ya existe, se envía recuperación.
 
 ### Torneos
 
@@ -58,6 +59,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - Se extrajo el cálculo reutilizable de estadísticas por equipo y tabla de posiciones.
 - Se agregaron tablas completas de posiciones y destacados de goleadores y valla menos vencida.
 - Se agregaron filtros de goleadores por rama masculina y femenina.
+- El género de cada jugador es obligatorio durante la inscripción para clasificar correctamente las tablas de goleadores y goleadoras.
 
 ### Navegación, interfaz y arquitectura
 
@@ -79,6 +81,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Commits de referencia recientes
 
+- `2e17049` — Enviar al entrenador un enlace para establecer su contraseña inicial.
+- `0a17626` — Exigir género para cada jugador inscrito.
 - `210b31d` — Permitir que el entrenador también se registre como jugador.
 - `2de05fd` — Permitir la creación de perfiles durante la inscripción pública.
 - `379dfc9` — Mostrar tablas de goleadores según la rama del torneo.
