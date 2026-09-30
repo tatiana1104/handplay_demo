@@ -115,7 +115,7 @@ class ProfileScreen extends StatelessWidget {
       // La barra inferior se mantiene también en el perfil para que todos
       // los roles puedan regresar al home o consultar las demás secciones.
       bottomNavigationBar: AppBottomNavigationBar(
-        selectedIndex: user?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true ? 3 : 2,
+        selectedIndex: user?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true ? 4 : 2,
         isAdmin: user?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true,
       ),
       body: ListView(

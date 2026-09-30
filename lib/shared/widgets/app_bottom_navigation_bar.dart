@@ -8,14 +8,17 @@ import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../core/routing/route_names.dart'; // Importamos los nombres de ruta de la app, como `RouteNames.home`, para poder navegar a la pantalla de inicio desde la barra de navegación inferior
 
 class AppBottomNavigationBar extends StatelessWidget {
-  final int? selectedIndex; // null indica que la pantalla no pertenece a ninguna pestaña del banner
-  final bool isAuthenticated; // Cambia las acciones disponibles para visitantes.
+  final int?
+  selectedIndex; // null indica que la pantalla no pertenece a ninguna pestaña del banner
+  final bool
+  isAuthenticated; // Cambia las acciones disponibles para visitantes.
   final bool isAdmin;
-  final ValueChanged<int>? onTap; // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
+  final ValueChanged<int>?
+  onTap; // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior. Si es nulo, se usa la navegación por defecto a las rutas definidas en `RouteNames`.
 
   /// Constructor de la barra de navegación inferior, con parámetros opcionales `selectedIndex` y `onTap`.
   const AppBottomNavigationBar({
-    super.key, 
+    super.key,
     this.selectedIndex = 0,
     this.isAuthenticated = true,
     this.isAdmin = false,
@@ -23,7 +26,7 @@ class AppBottomNavigationBar extends StatelessWidget {
   });
 
   int _safeSelectedIndex(int index, bool authenticated, bool admin) {
-    final itemCount = authenticated ? (admin ? 4 : 3) : 3;
+    final itemCount = authenticated ? (admin ? 5 : 3) : 3;
     return index >= 0 && index < itemCount ? index : 0;
   }
 
@@ -32,33 +35,53 @@ class AppBottomNavigationBar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final authUser = authState is AuthAuthenticated ? authState.user : null;
-    final normalizedRoles = authUser?.roles.map((role) => role.trim().toLowerCase()).toSet() ?? const <String>{};
-    final isPublicRole = normalizedRoles.contains('publico') || normalizedRoles.contains('public') || normalizedRoles.contains('público');
+    final normalizedRoles =
+        authUser?.roles.map((role) => role.trim().toLowerCase()).toSet() ??
+        const <String>{};
+    final isPublicRole =
+        normalizedRoles.contains('publico') ||
+        normalizedRoles.contains('public') ||
+        normalizedRoles.contains('público');
     final hasAuthenticatedSession = authUser != null && !isPublicRole;
-    final effectiveAdmin = hasAuthenticatedSession && (isAdmin || normalizedRoles.contains('admin') || normalizedRoles.contains('admin_liga'));
-// El contexto de la pestaña se expresa mediante selectedIndex para mantener el banner estable.
+    final effectiveAdmin =
+        hasAuthenticatedSession &&
+        (isAdmin ||
+            normalizedRoles.contains('admin') ||
+            normalizedRoles.contains('admin_liga'));
+    // El contexto de la pestaña se expresa mediante selectedIndex para mantener el banner estable.
     final routeSelectedIndex = selectedIndex;
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface, // Color de fondo de la barra de navegación inferior según el tema actual
+        color: colorScheme
+            .surface, // Color de fondo de la barra de navegación inferior según el tema actual
         border: Border(
           top: BorderSide(
-            color: colorScheme.outlineVariant, // Color de la línea superior de la barra de navegación inferior según el tema actual
-            width: 1, // Ancho de la línea superior de la barra de navegación inferior
+            color: colorScheme
+                .outlineVariant, // Color de la línea superior de la barra de navegación inferior según el tema actual
+            width:
+                1, // Ancho de la línea superior de la barra de navegación inferior
           ),
         ),
       ),
       child: SafeArea(
         child: BottomNavigationBar(
-          currentIndex: _safeSelectedIndex(routeSelectedIndex ?? 0, hasAuthenticatedSession, effectiveAdmin), // Índice válido para los elementos visibles
-          onTap: (index) { // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior
-            if (onTap != null) { 
-              onTap!(index);  // Si se proporcionó un callback `onTap`, lo llamamos con el índice del elemento tocado y salimos de la función para no ejecutar la navegación por defecto.
-              return; 
+          currentIndex: _safeSelectedIndex(
+            routeSelectedIndex ?? 0,
+            hasAuthenticatedSession,
+            effectiveAdmin,
+          ), // Índice válido para los elementos visibles
+          onTap: (index) {
+            // Callback que se ejecuta cuando se toca un elemento de la barra de navegación inferior
+            if (onTap != null) {
+              onTap!(
+                index,
+              ); // Si se proporcionó un callback `onTap`, lo llamamos con el índice del elemento tocado y salimos de la función para no ejecutar la navegación por defecto.
+              return;
             }
 
-            switch (index) { // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
+            switch (index) {
+              // Navegación por defecto a las rutas definidas en `RouteNames` según el índice del elemento tocado en la barra de navegación inferior
               case 0:
                 GoRouter.of(context).go(RouteNames.home);
                 break;
@@ -69,31 +92,69 @@ class AppBottomNavigationBar extends StatelessWidget {
                 if (effectiveAdmin) {
                   GoRouter.of(context).go(RouteNames.referees);
                 } else {
-                  context.go(hasAuthenticatedSession ? RouteNames.profile : RouteNames.login);
+                  context.go(
+                    hasAuthenticatedSession
+                        ? RouteNames.profile
+                        : RouteNames.login,
+                  );
                 }
                 break;
               case 3:
+                if (effectiveAdmin) GoRouter.of(context).go(RouteNames.clubs);
+                break;
+              case 4:
                 if (effectiveAdmin) context.go(RouteNames.profile);
                 break;
             }
           },
-          type: BottomNavigationBarType.fixed, // Tipo de barra de navegación inferior fija, que muestra todos los elementos sin desplazamiento
-          showSelectedLabels: true, // Muestra las etiquetas de los elementos seleccionados en la barra de navegación inferior
-          showUnselectedLabels: true, // Muestra las etiquetas de los elementos no seleccionados en la barra de navegación inferior
-          selectedItemColor: selectedIndex == null ? colorScheme.onSurfaceVariant : colorScheme.primary,
+          type: BottomNavigationBarType
+              .fixed, // Tipo de barra de navegación inferior fija, que muestra todos los elementos sin desplazamiento
+          showSelectedLabels:
+              true, // Muestra las etiquetas de los elementos seleccionados en la barra de navegación inferior
+          showUnselectedLabels:
+              true, // Muestra las etiquetas de los elementos no seleccionados en la barra de navegación inferior
+          selectedItemColor: selectedIndex == null
+              ? colorScheme.onSurfaceVariant
+              : colorScheme.primary,
           unselectedItemColor: colorScheme.onSurfaceVariant,
-          backgroundColor: colorScheme.surface, // Color de fondo de la barra de navegación inferior según el tema actual
-          elevation: 0, // Elevación de la barra de navegación inferior (0 = sin sombra)
-          selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          backgroundColor: colorScheme
+              .surface, // Color de fondo de la barra de navegación inferior según el tema actual
+          elevation:
+              0, // Elevación de la barra de navegación inferior (0 = sin sombra)
+          selectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
           // La navegación pública no expone Perfil; después del login se
           // reemplaza el acceso de sesión por Perfil.
           items: hasAuthenticatedSession
               ? [
-                  const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-                  const BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Calendario'),
-                  if (effectiveAdmin) const BottomNavigationBarItem(icon: Icon(Icons.sports_outlined), label: 'Árbitros'),
-                  const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Perfil'),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.home_rounded),
+                    label: 'Home',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_month_rounded),
+                    label: 'Calendario',
+                  ),
+                  if (effectiveAdmin)
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.sports_outlined),
+                      label: 'Árbitros',
+                    ),
+                  if (effectiveAdmin)
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.groups_2_outlined),
+                      label: 'Clubes',
+                    ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.person_rounded),
+                    label: 'Perfil',
+                  ),
                 ]
               : [
                   const BottomNavigationBarItem(

@@ -95,11 +95,6 @@ class _CreateTournamentAction extends StatelessWidget {
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Nuevo torneo'),
               ),
-              IconButton(
-                tooltip: 'Gestionar clubes',
-                onPressed: () => context.push(RouteNames.clubs),
-                icon: const Icon(Icons.groups_2_outlined),
-              ),
             ],
           ),
         );

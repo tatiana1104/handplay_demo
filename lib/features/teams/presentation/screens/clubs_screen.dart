@@ -27,7 +27,7 @@ class _ClubsScreenState extends State<ClubsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Clubes de la liga')),
       bottomNavigationBar: const AppBottomNavigationBar(
-        selectedIndex: null,
+        selectedIndex: 3,
         isAuthenticated: true,
         isAdmin: true,
       ),
