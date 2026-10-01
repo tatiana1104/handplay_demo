@@ -19,6 +19,7 @@ class ClubsScreen extends StatefulWidget {
 
 class _ClubsScreenState extends State<ClubsScreen> {
   final _repository = ClubRepository();
+  bool _savingClub = false;
 
   /// ES: Muestra el catálogo reactivo de clubes y las acciones administrativas.
   /// EN: Displays the live club catalog and administrative actions.
@@ -144,9 +145,12 @@ class _ClubsScreenState extends State<ClubsScreen> {
         ],
       ),
     );
+    // showDialog completes after the dialog route is removed. Dispose the
+    // controller only then, never from the dialog's save callback.
     controller.dispose();
-    if (name == null || !mounted) return;
+    if (name == null || !mounted || _savingClub) return;
 
+    setState(() => _savingClub = true);
     try {
       final clubs = await _repository.watchClubs().first;
       if (!mounted) return;
@@ -173,6 +177,8 @@ class _ClubsScreenState extends State<ClubsScreen> {
         _showMessage(club == null ? 'Club registrado.' : 'Club actualizado.');
     } on FirebaseException catch (error) {
       if (mounted) _showMessage('No se pudo guardar el club (${error.code}).');
+    } finally {
+      if (mounted) setState(() => _savingClub = false);
     }
   }
 
@@ -208,8 +214,12 @@ class _ClubsScreenState extends State<ClubsScreen> {
   /// ES: Muestra el resultado de una acción mediante un SnackBar.
   /// EN: Shows an action result using a SnackBar.
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    });
   }
 }

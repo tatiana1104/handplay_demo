@@ -79,6 +79,10 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - **Sprint 5:** perfiles multirol, estadísticas reutilizables, deduplicación y mejoras de navegación/documentación.
 - **Sprint 6 en preparación:** automatización de calendario, notificaciones y asistente con IA.
 
+## Correcciones recientes
+
+- Se corrigió el error de Flutter `_dependents.isEmpty` al guardar clubes: el controlador del formulario se libera después de cerrar el diálogo, se evita el doble guardado y los mensajes se muestran en el siguiente frame.
+
 ## Commits de referencia recientes
 
 - `2e17049` — Enviar al entrenador un enlace para establecer su contraseña inicial.

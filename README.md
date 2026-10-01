@@ -9,6 +9,7 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 > casos de uso UC-01–UC-11): `Cancha-Documento-Consolidado.docx`.
 > Planificación técnica y backlog: `Seguimiento_de_item.docx`.
 > Registro histórico de cambios: `CHANGELOG.md`.
+> El formulario de clubes protege el ciclo de vida del diálogo y muestra mensajes después del frame para evitar assertions de Flutter al guardar.
 
 ---
 
