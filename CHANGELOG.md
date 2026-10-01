@@ -81,6 +81,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Correcciones recientes
 
+- Se eliminó el campo `Otro club asociado` de la inscripción para centralizar los clubes en el catálogo oficial y se hizo expansible el selector para evitar overflow horizontal en pantallas pequeñas.
+
 - Se agregó el detalle interactivo de cada club, con sus equipos inscritos, jugadores y entrenadores, además de fichas resumidas para cada persona.
 
 - Se corrigió definitivamente el error de Flutter `_dependents.isEmpty` al guardar clubes: el diálogo ahora es un widget Stateful autónomo que crea y libera su controlador dentro de su propio ciclo de vida, evitando dependencias activas al desmontar la ruta.

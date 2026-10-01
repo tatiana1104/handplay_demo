@@ -141,6 +141,7 @@ class TeamRegistrationForm extends StatelessWidget {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   key: ValueKey('official-club-picker-${clubs.length}'),
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Agregar club oficial',
                     prefixIcon: Icon(Icons.verified_outlined),
@@ -158,21 +159,7 @@ class TeamRegistrationForm extends StatelessWidget {
                   },
                 ),
               ],
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: clubController,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => onAddClub(),
-                decoration: InputDecoration(
-                  labelText: 'Otro club asociado',
-                  hintText: 'Escribe un club no incluido en el catálogo',
-                  suffixIcon: IconButton(
-                    onPressed: onAddClub,
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'Agregar club',
-                  ),
-                ),
-              ),
+
             ],
           ),
           _sectionCard(

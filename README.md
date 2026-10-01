@@ -11,6 +11,7 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 > Registro histórico de cambios: `CHANGELOG.md`.
 > El formulario de clubes usa un diálogo Stateful autónomo que administra su propio controlador y formulario; esto evita el assertion `_dependents.isEmpty` al guardar o cerrar un club.
 > Cada club del catálogo es interactivo y abre su detalle con equipos, jugadores y entrenadores; las personas tienen acceso a una ficha resumida.
+> La inscripción de equipos solo permite seleccionar clubes oficiales del catálogo; se eliminó el campo de club libre y el selector se adapta al ancho disponible en móvil.
 
 ---
 
