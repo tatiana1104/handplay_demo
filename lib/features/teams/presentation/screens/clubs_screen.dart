@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
 import '../../data/club_repository.dart';
 import '../../domain/models/club_model.dart';
+import 'club_detail_screen.dart';
 
 /// ES: Permite al administrador mantener el catálogo de clubes oficiales.
 /// EN: Lets administrators manage the league's official club catalog.
@@ -70,6 +71,10 @@ class _ClubsScreenState extends State<ClubsScreen> {
                     child: Icon(Icons.groups_outlined),
                   ),
                   title: Text(club.name),
+                  subtitle: const Text('Ver equipos, jugadores y entrenadores'),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ClubDetailScreen(club: club)),
+                  ),
                   trailing: PopupMenuButton<String>(
                     tooltip: 'Acciones del club',
                     onSelected: (action) {

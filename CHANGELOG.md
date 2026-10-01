@@ -81,6 +81,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Correcciones recientes
 
+- Se agregó el detalle interactivo de cada club, con sus equipos inscritos, jugadores y entrenadores, además de fichas resumidas para cada persona.
+
 - Se corrigió el error de Flutter `_dependents.isEmpty` al guardar clubes: el controlador del formulario se libera después de cerrar el diálogo, se evita el doble guardado y los mensajes se muestran en el siguiente frame.
 
 ## Commits de referencia recientes
