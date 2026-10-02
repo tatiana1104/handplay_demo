@@ -45,6 +45,7 @@ class _PendingRegistrationsScreenState
     final currentSnapshot = await _registrations.doc(id).get();
     final current = currentSnapshot.data() ?? <String, dynamic>{};
     if (status == 'rejected') {
+      if (!mounted) return;
       final allRegistrations = await _registrations.get();
       final currentCreatedAt = current['createdAt'];
       final currentDate = currentCreatedAt is Timestamp
@@ -86,8 +87,11 @@ class _PendingRegistrationsScreenState
         ),
       );
       controller.dispose();
-      if (rejectionReason == null || rejectionReason!.isEmpty) return;
+      if (rejectionReason == null || rejectionReason.isEmpty) {
+        return;
+      }
     }
+    if (!mounted) return;
     final registrationRef = _registrations.doc(id);
     final batch = FirebaseFirestore.instance.batch();
     batch.update(registrationRef, {
@@ -118,8 +122,6 @@ class _PendingRegistrationsScreenState
       );
       final users = FirebaseFirestore.instance.collection('users');
       final coachDocument = current['coachDocument']?.toString().trim() ?? '';
-      final clubEmail =
-          current['clubEmail']?.toString().trim().toLowerCase() ?? '';
       final coachMatches = await profiles
           .where('document', isEqualTo: coachDocument)
           .limit(1)
@@ -205,10 +207,12 @@ class _PendingRegistrationsScreenState
       final previousColor = _normalize(previous['uniformColor']);
       final previousPlayers = _playerKeys(previous['players']);
       final label = previous['teamName'] as String? ?? 'otro equipo';
-      if (currentName.isNotEmpty && currentName == previousName)
+      if (currentName.isNotEmpty && currentName == previousName) {
         warnings.add('Mismo nombre de equipo que "$label".');
-      if (currentColor.isNotEmpty && currentColor == previousColor)
+      }
+      if (currentColor.isNotEmpty && currentColor == previousColor) {
         warnings.add('Mismo color de uniforme que "$label".');
+      }
       final repeatedPlayers = currentPlayers.intersection(previousPlayers);
       if (repeatedPlayers.isNotEmpty) {
         final currentPlayerDetails = _playerDetails(current['players']);
@@ -271,12 +275,14 @@ class _PendingRegistrationsScreenState
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(
               child: Text('No se pudieron cargar las solicitudes.'),
             );
-          if (!snapshot.hasData)
+          }
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final docs = snapshot.data!.docs;
           final pending = docs
               .where((doc) => doc.data()['status'] == 'pending')
