@@ -459,15 +459,15 @@ class _TournamentCard extends StatelessWidget {
   /// EN: Builds the card and its user actions.
   @override
   Widget build(BuildContext context) {
-    final registrationStream = coachEmail == null
-        ? null
-        : FirebaseFirestore.instance
-              .collection('tournaments')
-              .doc(tournament.id)
-              .collection('registrations')
-              .where('coachEmail', isEqualTo: coachEmail!.trim().toLowerCase())
-              .limit(20)
-              .snapshots();
+  final registrationStream = coachUid == null
+      ? null
+      : FirebaseFirestore.instance
+          .collection('tournaments')
+          .doc(tournament.id)
+          .collection('registrations')
+          .where('coachUid', isEqualTo: coachUid)
+          .limit(20)
+          .snapshots();
     final status = _statusOf(tournament);
     final isPlaying = status == _TournamentStatus.playing;
     final isFinished = status == _TournamentStatus.finished;

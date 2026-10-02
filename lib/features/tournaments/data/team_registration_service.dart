@@ -40,17 +40,17 @@ class TeamRegistrationService {
     required String coachName,
     required String coachDocument,
     required String coachPhone,
-    required String coachEmail,
+    required String clubEmail,
     required String? category,
     required String uniformColor,
     required List<Map<String, String>> players,
   }) async {
-    final normalizedCoachEmail = coachEmail.trim().toLowerCase();
+    final normalizedClubEmail = clubEmail.trim().toLowerCase();
     final normalizedCoachDocument = _normalizeDocument(coachDocument);
     final enrichedPlayers = await _enrichPlayers(players);
     final currentUser = _auth.currentUser;
-    final isCoachAccount =
-        currentUser?.email?.trim().toLowerCase() == normalizedCoachEmail;
+    // The requested email belongs to the club, never to the coach.
+    final isCoachAccount = false;
     final registrations = _firestore
         .collection('tournaments')
         .doc(tournamentId)
@@ -68,7 +68,7 @@ class TeamRegistrationService {
       'coachName': coachName.trim(),
       'coachDocument': coachDocument.trim(),
       'coachPhone': coachPhone.trim(),
-      'coachEmail': normalizedCoachEmail,
+      'clubEmail': normalizedClubEmail,
       'category': category,
       'uniformColor': uniformColor,
       'logoUrl': null,
@@ -99,7 +99,7 @@ class TeamRegistrationService {
         name: coachName,
         document: normalizedCoachDocument,
         roles: const ['entrenador'],
-        email: normalizedCoachEmail,
+        email: null,
         phone: coachPhone,
         extra: {'teamName': teamName.trim()},
       );
@@ -139,7 +139,7 @@ class TeamRegistrationService {
       registrationBatch.set(profileDirectory.doc(currentUser!.uid), {
         'name': coachName.trim(),
         'document': coachDocument.trim(),
-        'email': normalizedCoachEmail,
+        'email': null,
         'phone': coachPhone.trim(),
         'roles': FieldValue.arrayUnion(
           coachIsAlsoPlayer ? ['entrenador', 'jugador'] : ['entrenador'],
@@ -184,23 +184,7 @@ class TeamRegistrationService {
       );
     }
 
-    var coachLinkSent = false;
-    if (!isCoachAccount && registrationId == null) {
-      try {
-        final coachAuthUid = await _sendCoachSetupLink(normalizedCoachEmail);
-        coachLinkSent = normalizedCoachEmail.isNotEmpty;
-        if (coachAuthUid != null) {
-          try {
-            await users.doc('document_$normalizedCoachDocument').set({
-              'authUid': coachAuthUid,
-              'email': normalizedCoachEmail,
-              'updatedAt': FieldValue.serverTimestamp(),
-            }, SetOptions(merge: true));
-          } on FirebaseException catch (error) {
-            debugPrint(
-              '[handplay] No se pudo vincular la cuenta del entrenador: ${error.code}',
-            );
-          }
+    const coachLinkSent = false;
         }
       } on FirebaseAuthException {
         coachLinkSent = false;

@@ -59,7 +59,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     _coach.text = data['coachName']?.toString() ?? '';
     _coachDocument.text = data['coachDocument']?.toString() ?? '';
     _phone.text = data['coachPhone']?.toString() ?? '';
-    _email.text = data['coachEmail']?.toString() ?? '';
+    _email.text = data['clubEmail']?.toString() ?? '';
     _category = data['category']?.toString();
     _color = data['uniformColor']?.toString() ?? _color;
     final players = data['players'];
@@ -277,7 +277,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     }
     setState(() => _saving = true);
     try {
-      final coachEmail = _email.text.trim().toLowerCase();
+      final clubEmail = _email.text.trim().toLowerCase();
       final result = await TeamRegistrationService().submit(
         tournamentId: widget.tournament.id,
         registrationId: widget.registrationId,
@@ -286,7 +286,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         coachName: _coach.text,
         coachDocument: _coachDocument.text,
         coachPhone: _phone.text,
-        coachEmail: coachEmail,
+        clubEmail: clubEmail,
         category: _category,
         uniformColor: _color,
         players: _players,
@@ -394,7 +394,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         coachController: _coach,
         coachDocumentController: _coachDocument,
         phoneController: _phone,
-        emailController: _email,
+        clubEmailController: _email,
         clubs: _clubs,
         officialClubs:
             snapshot.data?.map((club) => club.name).toList() ??

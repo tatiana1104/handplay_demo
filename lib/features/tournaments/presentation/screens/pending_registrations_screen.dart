@@ -118,8 +118,8 @@ class _PendingRegistrationsScreenState
       );
       final users = FirebaseFirestore.instance.collection('users');
       final coachDocument = current['coachDocument']?.toString().trim() ?? '';
-      final coachEmail =
-          current['coachEmail']?.toString().trim().toLowerCase() ?? '';
+      final clubEmail =
+          current['clubEmail']?.toString().trim().toLowerCase() ?? '';
       final coachMatches = await profiles
           .where('document', isEqualTo: coachDocument)
           .limit(1)
@@ -131,17 +131,7 @@ class _PendingRegistrationsScreenState
         'roles': FieldValue.arrayUnion(['entrenador']),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      if (coachEmail.isNotEmpty) {
-        final userMatches = await users
-            .where('email', isEqualTo: coachEmail)
-            .limit(1)
-            .get();
-        if (userMatches.docs.isNotEmpty)
-          batch.set(userMatches.docs.first.reference, {
-            'roles': FieldValue.arrayUnion(['entrenador']),
-            'updatedAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-      }
+
       for (final player in currentPlayers) {
         final document = player['document']?.toString().trim() ?? '';
         if (document.isEmpty) continue;
@@ -383,7 +373,7 @@ class _PendingRegistrationsScreenState
                           'Color: ${data['uniformColor'] ?? 'Sin definir'} · Entrenador: ${data['coachName'] ?? 'Sin definir'}',
                         ),
                         Text(
-                          '$players jugadores registrados · ${data['coachEmail'] ?? ''}',
+                          '$players jugadores registrados · ${data['clubEmail'] ?? ''}',
                         ),
                         if (warnings.isNotEmpty) ...[
                           const SizedBox(height: 8),
@@ -655,7 +645,7 @@ class _RegistrationDetailScreen extends StatelessWidget {
           _detailSection(context, 'Datos del entrenador', [
             _detailRow('Nombre', _value('coachName')),
             _detailRow('Documento', _value('coachDocument')),
-            _detailRow('Correo', _value('coachEmail')),
+            _detailRow('Correo', _value('clubEmail')),
             _detailRow('Teléfono', _value('coachPhone')),
           ]),
           _detailSection(context, 'Plantilla (${players.length})', [

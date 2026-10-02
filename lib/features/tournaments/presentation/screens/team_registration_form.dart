@@ -16,7 +16,7 @@ class TeamRegistrationForm extends StatelessWidget {
     required this.coachController,
     required this.coachDocumentController,
     required this.phoneController,
-    required this.emailController,
+    required this.clubEmailController,
     required this.clubs,
     required this.officialClubs,
     required this.players,
@@ -44,7 +44,7 @@ class TeamRegistrationForm extends StatelessWidget {
   final TextEditingController coachController;
   final TextEditingController coachDocumentController;
   final TextEditingController phoneController;
-  final TextEditingController emailController;
+  final TextEditingController clubEmailController;
   final List<String> clubs;
   final List<String> officialClubs;
   final List<Map<String, String>> players;
@@ -265,9 +265,9 @@ class TeamRegistrationForm extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _field(
-                      emailController,
-                      'Correo *',
-                      'equipo@correo.com',
+                      clubEmailController,
+                      'Correo del club *',
+                      'club@correo.com',
                       email: true,
                     ),
                   ),
