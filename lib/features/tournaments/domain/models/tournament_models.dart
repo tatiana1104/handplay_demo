@@ -19,6 +19,9 @@ class Tournament {
     required this.publicRegistration,
     required this.registrationDeadline,
     required this.phaseDurations,
+    this.groupCount = 0,
+    this.advancingPositions = const [],
+    this.phaseOneRounds = 0,
   });
 
   final String id;
@@ -36,6 +39,9 @@ class Tournament {
   final bool publicRegistration;
   final DateTime? registrationDeadline;
   final Map<String, int> phaseDurations;
+  final int groupCount;
+  final List<int> advancingPositions;
+  final int phaseOneRounds;
 
   /// ES: Une y normaliza categorías para comprobar las ramas.
   /// EN: Joins and normalizes categories for branch checks.
@@ -100,6 +106,12 @@ class Tournament {
       publicRegistration: data['publicRegistration'] as bool? ?? false,
       registrationDeadline: _date(data['registrationDeadline']),
       phaseDurations: _intMap(data['phaseDurations']),
+      groupCount: (data['groupCount'] as num?)?.toInt() ?? 0,
+      advancingPositions: (data['advancingPositions'] as List<dynamic>? ?? const [])
+          .whereType<num>()
+          .map((value) => value.toInt())
+          .toList(),
+      phaseOneRounds: (data['phaseOneRounds'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -119,6 +131,9 @@ class Tournament {
         'publicRegistration': publicRegistration,
         'registrationDeadline': _timestamp(registrationDeadline),
         'phaseDurations': phaseDurations,
+        'groupCount': groupCount,
+        'advancingPositions': advancingPositions,
+        'phaseOneRounds': phaseOneRounds,
         'updatedAt': FieldValue.serverTimestamp(),
       };
 }

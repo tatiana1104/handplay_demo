@@ -12,6 +12,7 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../core/routing/route_names.dart';
 
 import '../../domain/models/tournament_models.dart';
+import '../../data/tournament_phase_service.dart';
 import '../../../teams/data/team_repository.dart';
 import '../../../teams/domain/team_stats_calculator.dart' show formatCategory;
 import '../../../teams/presentation/screens/team_detail_screen.dart';
@@ -63,6 +64,7 @@ class TournamentDetailScreen extends StatelessWidget {
       (role) => role == 'admin' || role == 'admin_liga' || role == 'administrador' || role == 'arbitro',
     );
     final canRegisterTeam = hasPlayerOrCoachRole || !hasBlockedRole;
+    final isTournamentAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
 
     return Scaffold(
       appBar: AppBar(title: Text(tournament.name.isEmpty ? 'Detalle del torneo' : tournament.name)),
@@ -101,6 +103,21 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
+          if (isTournamentAdmin && tournament.registrationDeadline != null && registrationClosed)
+            OutlinedButton.icon(
+              onPressed: () async {
+                await TournamentPhaseService().assignPhaseOne(tournament);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fase 1 asignada y jornadas generadas.')),
+                  );
+                }
+              },
+              icon: const Icon(Icons.auto_awesome),
+              label: Text(tournament.format == 'por_grupos'
+                  ? 'Asignar grupos y generar fase 1'
+                  : 'Generar jornadas fase 1'),
+            ),
           if (tournament.publicRegistration && canRegisterTeam)
             FilledButton.icon(
               onPressed: registrationClosed

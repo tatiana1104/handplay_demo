@@ -79,6 +79,10 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - **Sprint 5:** perfiles multirol, estadísticas reutilizables, deduplicación y mejoras de navegación/documentación.
 - **Sprint 6 en preparación:** automatización de calendario, notificaciones y asistente con IA.
 
+## Nuevas funciones
+
+- Los torneos permiten configurar grupos de fase 1, posiciones clasificadas a fase 2 y jornadas de todos-contra-todos; tras cerrar inscripciones, el administrador puede asignar equipos aleatoriamente y generar los partidos. Los cruces de fase 2 se crean manualmente.
+
 ## Correcciones recientes
 
 - Se corrigió la inscripción para identificar explícitamente el correo como correo del club (`clubEmail`) y mostrarlo dentro de `Datos del equipo`; ya no se usa ese correo para vincular o invitar la cuenta del entrenador.

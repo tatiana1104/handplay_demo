@@ -40,6 +40,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   DateTime? _endDate;
   DateTime? _registrationDeadline;
   bool _publicRegistration = true;
+  final _groupCountController = TextEditingController(text: '2');
+  final _advancingPositionsController = TextEditingController(text: '1,2');
   bool _saving = false;
 
   /// ES: Carga los datos iniciales cuando se abre en modo edición.
@@ -61,6 +63,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _endDate = tournament.endDate;
       _registrationDeadline = tournament.registrationDeadline;
       _publicRegistration = tournament.publicRegistration;
+      _groupCountController.text = tournament.groupCount.toString();
+      _advancingPositionsController.text = tournament.advancingPositions.join(',');
     }
   }
 
@@ -72,6 +76,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     _teamLimitController.dispose();
     _minPlayersController.dispose();
     _maxPlayersController.dispose();
+    _groupCountController.dispose();
+    _advancingPositionsController.dispose();
     super.dispose();
   }
 
@@ -101,6 +107,21 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _showMessage('Agrega al menos una categoría y rama.');
       return;
     }
+    final groupCount = _format == 'por_grupos' ? int.tryParse(_groupCountController.text) ?? 0 : 0;
+    final advancingPositions = _format == 'por_grupos'
+        ? _advancingPositionsController.text
+            .split(',')
+            .map((value) => int.tryParse(value.trim()))
+            .whereType<int>()
+            .where((value) => value > 0)
+            .toSet()
+            .toList()
+          ..sort()
+        : <int>[];
+    if (_format == 'por_grupos' && (groupCount < 2 || advancingPositions.isEmpty)) {
+      _showMessage('Define al menos 2 grupos y las posiciones que avanzan.');
+      return;
+    }
     final today = _dateOnly(DateTime.now());
     if (_startDate == null) {
       _showMessage('Selecciona la fecha de inicio.');
@@ -120,6 +141,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       _showMessage('La fecha fin debe ser posterior a la fecha de inicio.');
       return;
     }
+
+    final phaseOneRounds = _format == 'todos_contra_todos'
+        ? ((int.tryParse(_teamLimitController.text) ?? 0) - 1).clamp(0, 999)
+        : ((int.tryParse(_teamLimitController.text) ?? 0) ~/ groupCount).clamp(0, 999);
 
     setState(() => _saving = true);
     try {
@@ -146,6 +171,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         publicRegistration: _publicRegistration,
         registrationDeadline: _registrationDeadline,
         phaseDurations: widget.tournament?.phaseDurations ?? const {},
+        groupCount: groupCount,
+        advancingPositions: advancingPositions,
+        phaseOneRounds: phaseOneRounds,
       );
       if (widget.isEditing) {
         await TournamentRepository().updateTournament(tournament);
@@ -269,6 +297,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             _DateButton(label: 'Límite de inscripción (opcional)', value: _registrationDeadline, onPressed: () => _pickDate(start: false, registration: true)),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(value: TournamentConstants.formats.contains(_format) ? _format : null, decoration: const InputDecoration(labelText: 'Formato *'), items: TournamentConstants.formats.map((value) => DropdownMenuItem(value: value, child: Text(titleCase(value)))).toList(), onChanged: (value) => setState(() => _format = value!)),
+            if (_format == 'por_grupos') ...[
+              const SizedBox(height: 10),
+              TextFormField(controller: _groupCountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Grupos fase 1 *', hintText: 'Ejemplo: 4')),
+              const SizedBox(height: 8),
+              TextFormField(controller: _advancingPositionsController, keyboardType: TextInputType.text, decoration: const InputDecoration(labelText: 'Posiciones que avanzan a fase 2 *', hintText: 'Ejemplo: 1,2'), helperText: 'Escribe las posiciones separadas por coma. Los cruces de fase 2 los crea el administrador.'),
+            ],
             const SizedBox(height: 10),
             TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos (opcional)', hintText: 'Déjalo en 0 si no hay límite'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 0 ? 'Indica 0 o un número positivo' : null),
             const SizedBox(height: 8),

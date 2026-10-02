@@ -14,6 +14,7 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 > La inscripción de equipos solo permite seleccionar clubes oficiales del catálogo; se eliminó el campo de club libre y el selector se adapta al ancho disponible en móvil.
 > El registro de cuenta solicita el número de documento y, cuando encuentra un jugador existente en `profile_directory` o `users`, conserva y vincula sus datos al nuevo UID aunque la inscripción original no haya solicitado correo.
 > En la inscripción, el correo solicitado pertenece al club (`clubEmail`) y aparece dentro de `Datos del equipo`; los datos del entrenador se registran por nombre, documento y teléfono, sin usar el correo del club para crear o invitar su cuenta. El filtrado del entrenador usa su `coachUid`, no el correo del club.
+> Los torneos por grupos permiten configurar grupos y posiciones clasificadas (`groupCount`, `advancingPositions`). Al cerrar inscripciones, el administrador puede asignar aleatoriamente los equipos y generar jornadas de fase 1; los cruces de fase 2 siguen siendo manuales.
 
 ---
 
