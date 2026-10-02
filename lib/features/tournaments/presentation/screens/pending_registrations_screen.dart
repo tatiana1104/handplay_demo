@@ -59,6 +59,10 @@ class _PendingRegistrationsScreenState
           ? 'Revisa los datos de la inscripción antes de volver a enviarla.'
           : 'Advertencia de similitud:\n${warnings.join('\n')}';
       final controller = TextEditingController(text: suggestedReason);
+      if (!context.mounted) {
+        controller.dispose();
+        return;
+      }
       rejectionReason = await showDialog<String>(
         context: context,
         builder: (dialogContext) => AlertDialog(
@@ -167,7 +171,7 @@ class _PendingRegistrationsScreenState
       }
     }
     await batch.commit();
-    if (context.mounted)
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -177,6 +181,7 @@ class _PendingRegistrationsScreenState
           ),
         ),
       );
+    }
   }
 
   /// ES: Lee la fecha de creación y usa el inicio de época si falta.
@@ -201,8 +206,9 @@ class _PendingRegistrationsScreenState
 
     for (final older in olderRegistrations) {
       final previous = older.data();
-      if (_normalize(previous['category']) != _normalize(current['category']))
+      if (_normalize(previous['category']) != _normalize(current['category'])) {
         continue;
+      }
       final previousName = _normalize(previous['teamName']);
       final previousColor = _normalize(previous['uniformColor']);
       final previousPlayers = _playerKeys(previous['players']);
