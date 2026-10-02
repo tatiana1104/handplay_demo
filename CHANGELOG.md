@@ -9,6 +9,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - Se habilitó la inscripción pública y para entrenadores.
 - Se agregaron datos de equipos, escudos, jugadores, posiciones, género, clubes y números de camiseta.
 - Se configuraron límites de jugadores y validación de números de camiseta entre 1 y 99.
+- Al agregar jugadores a la inscripción de un equipo, el club del jugador ahora se toma de la misma lista de clubes asociados del equipo para mantener consistencia entre la inscripción y la plantilla.
 - Se agregó la consulta y reutilización de perfiles existentes durante la inscripción.
 - Se permitió registrar jugadores sin perfil previo y crear perfiles buscables para entrenadores y jugadores.
 - Se normalizaron los números de documento y se impidieron duplicados entre jugadores de una misma planilla.

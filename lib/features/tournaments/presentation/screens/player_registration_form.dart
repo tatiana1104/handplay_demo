@@ -21,6 +21,7 @@ class PlayerRegistrationForm extends StatelessWidget {
     required this.usedNumbers,
     required this.tournamentBranch,
     required this.gender,
+    required this.associatedClubs,
     required this.onGenderChanged,
     required this.onSearchExisting,
   });
@@ -35,6 +36,7 @@ class PlayerRegistrationForm extends StatelessWidget {
   final Set<int> usedNumbers;
   final String tournamentBranch;
   final String? gender;
+  final List<String> associatedClubs;
   final ValueChanged<String?> onGenderChanged;
   final VoidCallback onSearchExisting;
 
@@ -165,13 +167,38 @@ class PlayerRegistrationForm extends StatelessWidget {
             onChanged: onGenderChanged,
           ),
           const SizedBox(height: 8),
-          TextFormField(
-            controller: clubController,
-            decoration: const InputDecoration(
-              labelText: 'Club al que pertenece',
-              prefixIcon: Icon(Icons.shield_outlined),
+          if (associatedClubs.isNotEmpty)
+            DropdownButtonFormField<String>(
+              value: associatedClubs.contains(clubController.text)
+                  ? clubController.text
+                  : null,
+              decoration: const InputDecoration(
+                labelText: 'Club al que pertenece *',
+                prefixIcon: Icon(Icons.shield_outlined),
+              ),
+              items: associatedClubs
+                  .map(
+                    (club) => DropdownMenuItem(
+                      value: club,
+                      child: Text(club, overflow: TextOverflow.ellipsis),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) clubController.text = value;
+              },
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? 'Selecciona el club del jugador'
+                  : null,
+            )
+          else
+            TextFormField(
+              controller: clubController,
+              decoration: const InputDecoration(
+                labelText: 'Club al que pertenece',
+                prefixIcon: Icon(Icons.shield_outlined),
+              ),
             ),
-          ),
         ],
       ),
     ),

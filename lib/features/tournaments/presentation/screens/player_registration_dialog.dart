@@ -11,10 +11,12 @@ class PlayerRegistrationDialog extends StatefulWidget {
   const PlayerRegistrationDialog({
     required this.usedNumbers,
     required this.tournamentBranch,
+    this.associatedClubs = const <String>[],
   });
 
   final Set<int> usedNumbers;
   final String tournamentBranch;
+  final List<String> associatedClubs;
 
   /// ES: Crea el estado que gestiona datos y validación del jugador.
   /// EN: Creates the state that manages player data and validation.
@@ -320,6 +322,7 @@ class _PlayerRegistrationDialogState extends State<PlayerRegistrationDialog> {
       usedNumbers: widget.usedNumbers,
       tournamentBranch: widget.tournamentBranch,
       gender: _gender,
+      associatedClubs: widget.associatedClubs,
       onGenderChanged: (value) => setState(() => _gender = value),
       onSearchExisting: _loadExistingPlayer,
     ),

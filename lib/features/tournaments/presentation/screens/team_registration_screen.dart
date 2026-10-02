@@ -175,6 +175,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
               .whereType<int>()
               .toSet(),
           tournamentBranch: (_category ?? 'libre|mixto').split('|').last,
+          associatedClubs: _clubs,
         ),
       ),
     );
