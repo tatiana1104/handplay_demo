@@ -922,6 +922,12 @@ class _StandingsData extends StatelessWidget {
 
   /// ES: Combina streams de Firestore y entrega filas al builder.
   /// EN: Combines Firestore streams and passes standings rows to the builder.
+  bool _isApprovedLineup(Map<String, dynamic> data) {
+    final value = data['lineupStatus'] ?? data['rosterStatus'] ?? data['planillaStatus'] ?? data['lineup_status'];
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == 'approved' || normalized == 'aprobada' || normalized == 'aprobado';
+  }
+
   @override
   Widget build(BuildContext context) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('tournaments').doc(tournament.id).collection('registrations').snapshots(),
@@ -930,7 +936,12 @@ class _StandingsData extends StatelessWidget {
           builder: (context, matches) {
             if (registrations.hasError || matches.hasError) return const Text('No se pudo cargar la tabla.');
             if (!registrations.hasData || !matches.hasData) return const Center(child: CircularProgressIndicator());
-            return builder(calculateStandings(registrations: registrations.data!.docs, matches: matches.data!.docs));
+            final approvedRegistrations = registrations.data!.docs.where((doc) {
+              final status = doc.data()['status']?.toString().trim().toLowerCase();
+              return status == 'approved' || status == 'aprobada' || status == 'aprobado';
+            }).toList();
+            final approvedMatches = matches.data!.docs.where((doc) => _isApprovedLineup(doc.data())).toList();
+            return builder(calculateStandings(registrations: approvedRegistrations, matches: approvedMatches));
           },
         ),
       );
@@ -954,15 +965,33 @@ class _FullStandingsScreen extends StatelessWidget {
           builder: (rows) {
             if (rows.isEmpty) return const Center(child: Text('Aún no hay equipos clasificados.'));
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
               itemCount: rows.length + 1,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 6),
               itemBuilder: (_, index) {
                 if (index == 0) {
-                  return Card(child: Padding(padding: const EdgeInsets.all(14), child: Text('PJ: jugados · PG/PE/PP: ganados/empatados/perdidos · GF/GC: goles a favor/en contra · DG: diferencia de goles', style: Theme.of(context).textTheme.bodySmall)));
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        'PJ · PG · PE · PP · GF · GC · DG',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  );
                 }
                 final row = rows[index - 1];
-                return _StandingRow(position: '${index}', team: row.team, points: '${row.points} pts', played: row.played, wins: row.wins, draws: row.draws, losses: row.losses, goalsFor: row.goalsFor, goalsAgainst: row.goalsAgainst);
+                return _StandingRow(
+                  position: '${index}',
+                  team: row.team,
+                  points: '${row.points} pts',
+                  played: row.played,
+                  wins: row.wins,
+                  draws: row.draws,
+                  losses: row.losses,
+                  goalsFor: row.goalsFor,
+                  goalsAgainst: row.goalsAgainst,
+                );
               },
             );
           },
@@ -993,16 +1022,43 @@ class _StandingRow extends StatelessWidget {
     final goalDifference = goalsFor - goalsAgainst;
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: Row(
           children: [
-            SizedBox(width: 24, child: Text(position, style: const TextStyle(fontWeight: FontWeight.bold))),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(team, overflow: TextOverflow.ellipsis), Text('PJ $played · PG $wins · PE $draws · PP $losses · GF $goalsFor · GC $goalsAgainst · DG $goalDifference', style: Theme.of(context).textTheme.labelSmall, maxLines: 2, overflow: TextOverflow.ellipsis)])),
-            const SizedBox(width: 8),
-            Text(points, style: const TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(
+              width: 22,
+              child: Text(
+                position,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    team,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Text(
+                    'PJ $played · PG $wins · PE $draws · PP $losses · GF $goalsFor · GC $goalsAgainst · DG $goalDifference',
+                    style: Theme.of(context).textTheme.labelSmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              points,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
           ],
         ),
       ),
@@ -1028,9 +1084,17 @@ class _Highlights extends StatelessWidget {
           builder: (context, registrationSnapshot) {
             final registrations = registrationSnapshot.data?.docs ?? const [];
             final matches = matchSnapshot.data?.docs ?? const [];
+            bool isApprovedLineup(Map<String, dynamic> data) {
+              final value = data['lineupStatus'] ?? data['rosterStatus'] ?? data['planillaStatus'] ?? data['lineup_status'];
+              final normalized = value?.toString().trim().toLowerCase();
+              return normalized == 'approved' || normalized == 'aprobada' || normalized == 'aprobado';
+            }
             final playerInfo = <String, Map<String, dynamic>>{};
             for (final registration in registrations) {
-              final players = registration.data()['players'];
+              final data = registration.data();
+              final status = data['status']?.toString().trim().toLowerCase();
+              if (status != 'approved' && status != 'aprobada' && status != 'aprobado') continue;
+              final players = data['players'];
               if (players is! List) continue;
               for (final rawPlayer in players) {
                 if (rawPlayer is! Map) continue;
@@ -1045,6 +1109,7 @@ class _Highlights extends StatelessWidget {
               final data = match.data();
               final status = data['status']?.toString().toLowerCase();
               if (!['finished', 'finished_match', 'completed', 'complete', 'finalizado', 'finalizada'].contains(status)) continue;
+              if (!isApprovedLineup(data)) continue;
               final events = data['finalEvents'] ?? data['events'];
               if (events is List) {
                 for (final rawEvent in events) {
@@ -1165,6 +1230,12 @@ class _FullHighlightScreen extends StatelessWidget {
   /// EN: Resolves the team name or uses the supplied fallback.
   String _teamName(Map<String, dynamic> team, String fallback) => _text(team['teamName'] ?? team['name'] ?? team['displayName']) .isEmpty ? fallback : _text(team['teamName'] ?? team['name'] ?? team['displayName']);
 
+  bool _isApprovedLineup(Map<String, dynamic> data) {
+    final value = data['lineupStatus'] ?? data['rosterStatus'] ?? data['planillaStatus'] ?? data['lineup_status'];
+    final normalized = value?.toString().trim().toLowerCase();
+    return normalized == 'approved' || normalized == 'aprobada' || normalized == 'aprobado';
+  }
+
   /// ES: Lee inscripciones y partidos y calcula las filas del ranking.
   /// EN: Loads registrations and matches and calculates ranking entries.
   Future<List<_HighlightEntry>> _loadEntries() async {
@@ -1190,6 +1261,8 @@ class _FullHighlightScreen extends StatelessWidget {
 
     for (final registration in registrationSnapshot.docs) {
       final data = registration.data();
+      final status = data['status']?.toString().trim().toLowerCase();
+      if (status != 'approved' && status != 'aprobada' && status != 'aprobado') continue;
       final name = _teamName(data, registration.id);
       final identifiers = {...teamIdentifiers(registration.id), ...teamIdentifiers(data['teamId']), ...teamIdentifiers(data['id']), ...teamIdentifiers(data['teamName']), ...teamIdentifiers(data['team'])};
       for (final identifier in identifiers) teamNames[normalize(identifier)] = name;
@@ -1210,6 +1283,7 @@ class _FullHighlightScreen extends StatelessWidget {
       final data = match.data();
       final status = normalize(data['status']);
       if (!{'finished', 'finalizado', 'finalizada', 'completed'}.contains(status)) continue;
+      if (!_isApprovedLineup(data)) continue;
       final homeIds = teamIdentifiers(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName']);
       final awayIds = teamIdentifiers(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName']);
       final homeKey = homeIds.map(normalize).firstWhere((id) => teamNames.containsKey(id), orElse: () => homeIds.isEmpty ? '' : normalize(homeIds.first));
@@ -1302,35 +1376,35 @@ class _HighlightCard extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(color: colors.primary.withValues(alpha: .15), borderRadius: BorderRadius.circular(12)),
-                child: Icon(icon, color: colors.primary),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(color: colors.primary.withValues(alpha: .15), borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, size: 18, color: colors.primary),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 2),
-                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
-                    const SizedBox(height: 6),
+                    Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant, fontSize: 11)),
+                    const SizedBox(height: 4),
                     Text(
                       value,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, color: hasData ? colors.onSurface : colors.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 12, color: hasData ? colors.onSurface : colors.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: colors.onSurfaceVariant, semanticLabel: 'Ver tabla completa'),
+              const SizedBox(width: 6),
+              Icon(Icons.chevron_right, size: 18, color: colors.onSurfaceVariant, semanticLabel: 'Ver tabla completa'),
             ],
           ),
         ),

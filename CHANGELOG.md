@@ -70,6 +70,21 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - Se agregaron navegación inferior persistente, banners por rol y pantallas responsive.
 - Se unificaron tema, colores, estados, filtros, botones y tarjetas de la aplicación.
 - Se corrigieron problemas de splash, overflow, formularios, navegación y persistencia de perfiles.
+- Se ajustó la vista de detalle de clubes del administrador de liga para mostrar equipos y jugadores sin desaparecer durante la carga, usando comparación más tolerante entre nombres de clubes.
+- Se compactó la interfaz de posiciones y destacados para pantallas pequeñas con `SafeArea`, truncado y reducción de márgenes.
+
+### Reglas de Firebase y validaciones
+
+- Se desplegaron las reglas de Firestore del proyecto `handplaydemo` con la validación actualizada de `clubEmail`.
+- Se exigió que el torneo tenga `publicRegistration: true` antes de permitir la inscripción pública.
+- Se eliminó la dependencia de `coachEmail` en la validación de creación de registros.
+- Se documentó el flujo de publicación de reglas tras cualquier cambio en `firestore.rules`.
+
+### Estadísticas aprobadas
+
+- Se restringió la tabla de posiciones, goleadores, goleadoras y valla menos vencida a registros y planillas aprobadas.
+- Se eliminó la generación de estadísticas a partir de datos pendientes o no validados.
+- Se mantiene la fuente de verdad en `registrations` y `matches` con `lineupStatus`/`status` aprobados.
 
 ## Historial por etapas
 

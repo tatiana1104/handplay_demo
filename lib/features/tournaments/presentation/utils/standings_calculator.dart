@@ -40,7 +40,7 @@ List<StandingEntry> calculateStandings({
 
   for (final match in matches) {
     final data = match.data();
-    if (!_isFinished(data['status'])) continue;
+    if (!_isFinished(data['status']) || !_isApprovedLineup(data)) continue;
     final home = _findTeam(data['homeTeamId'] ?? data['homeTeam'] ?? data['homeTeamName'], aliases);
     final away = _findTeam(data['awayTeamId'] ?? data['awayTeam'] ?? data['awayTeamName'], aliases);
     if (home == null || away == null || home == away) continue;
@@ -159,3 +159,11 @@ int _number(Object? value) => value is num ? value.toInt() : int.tryParse(value?
 /// ES: Reconoce los estados guardados que indican un partido terminado.
 /// EN: Recognizes stored status values that indicate a completed match.
 bool _isFinished(Object? value) => {'finished', 'finished_match', 'completed', 'complete', 'finalizado', 'finalizada'}.contains(_normalize(value));
+
+/// ES: Verifica si la planilla del partido fue aprobada para tomar la estadística.
+/// EN: Checks whether the match lineup was approved before counting the statistics.
+bool _isApprovedLineup(Map<String, dynamic> data) {
+  final value = data['lineupStatus'] ?? data['rosterStatus'] ?? data['planillaStatus'] ?? data['lineup_status'];
+  final normalized = _normalize(value);
+  return normalized == 'approved' || normalized == 'aprobada' || normalized == 'aprobado';
+}
