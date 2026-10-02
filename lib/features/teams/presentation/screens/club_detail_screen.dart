@@ -9,11 +9,34 @@ class ClubDetailScreen extends StatelessWidget {
 
   final ClubModel club;
 
+  static String _normalizeName(String? value) => value == null
+      ? ''
+      : value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+  static bool _matchesClub(Map<String, dynamic> registration, String clubName) {
+    final normalizedClubName = _normalizeName(clubName);
+    final candidateNames = <String>{
+      _normalizeName(registration['clubName']?.toString()),
+      ...((registration['clubs'] as List?)
+              ?.whereType<String>()
+              .map(_normalizeName)
+              .where((value) => value.isNotEmpty)
+              .toList() ??
+          const <String>[]),
+    }.where((value) => value.isNotEmpty).toList();
+
+    if (candidateNames.isEmpty) return false;
+    return candidateNames.any(
+      (candidate) =>
+          candidate == normalizedClubName ||
+          candidate.contains(normalizedClubName) ||
+          normalizedClubName.contains(candidate),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final query = FirebaseFirestore.instance
-        .collectionGroup('registrations')
-        .where('clubs', arrayContains: club.name);
+    final query = FirebaseFirestore.instance.collectionGroup('registrations');
 
     return Scaffold(
       appBar: AppBar(title: Text(club.name)),
@@ -21,20 +44,96 @@ class ClubDetailScreen extends StatelessWidget {
         stream: query.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('No se pudo cargar la información del club.'));
+            return const Center(
+              child: Text('No se pudo cargar la información del club.'),
+            );
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final teams = snapshot.data!.docs;
-          if (teams.isEmpty) {
-            return const Center(child: Text('Este club todavía no tiene equipos inscritos.'));
+
+          final teams = snapshot.data!.docs
+              .map((doc) => doc.data())
+              .where((registration) => _matchesClub(registration, club.name))
+              .toList();
+
+          final players = <Map<String, dynamic>>[];
+          for (final team in teams) {
+            final teamPlayers = (team['players'] as List?)
+                    ?.whereType<Map>()
+                    .map((player) => Map<String, dynamic>.from(player))
+                    .toList() ??
+                const <Map<String, dynamic>>[];
+            players.addAll(teamPlayers);
           }
-          return ListView.separated(
+
+          if (teams.isEmpty) {
+            return const Center(
+              child: Text('Este club todavía no tiene equipos inscritos.'),
+            );
+          }
+
+          return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            itemCount: teams.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _TeamCard(registration: teams[index].data()),
+            children: [
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        club.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${teams.length} equipos · ${players.length} jugadores',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Listado de jugadores',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              if (players.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text('Este club todavía no tiene jugadores registrados.'),
+                )
+              else
+                ...players.map(
+                  (player) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _PlayerListTile(
+                      teamName: (player['teamName'] ?? '').toString(),
+                      name: player['name']?.toString() ?? 'Jugador sin nombre',
+                      number: player['number']?.toString(),
+                      position: player['position']?.toString(),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Text(
+                'Equipos',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              ...teams.map(
+                (registration) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _TeamCard(registration: registration),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -58,11 +157,24 @@ class _TeamCard extends StatelessWidget {
         const <Map<String, dynamic>>[];
 
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
-        leading: const CircleAvatar(child: Icon(Icons.shield_outlined)),
-        title: Text(teamName?.isNotEmpty == true ? teamName! : 'Equipo sin nombre'),
-        subtitle: Text('${players.length} jugadores'),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: const CircleAvatar(
+          radius: 16,
+          child: Icon(Icons.shield_outlined, size: 18),
+        ),
+        title: Text(
+          teamName?.isNotEmpty == true ? teamName! : 'Equipo sin nombre',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          '${players.length} jugadores',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
         children: [
           if (coach?.isNotEmpty == true)
             _PersonTile(
@@ -79,6 +191,54 @@ class _TeamCard extends StatelessWidget {
               detail: player['position']?.toString(),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _PlayerListTile extends StatelessWidget {
+  const _PlayerListTile({
+    required this.teamName,
+    required this.name,
+    this.number,
+    this.position,
+  });
+
+  final String teamName;
+  final String name;
+  final String? number;
+  final String? position;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = <String>[];
+    if (position?.trim().isNotEmpty == true) subtitle.add(position!);
+    if (number?.trim().isNotEmpty == true) subtitle.add('Camiseta #$number');
+    if (teamName.trim().isNotEmpty) subtitle.add(teamName);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        dense: true,
+        leading: const CircleAvatar(
+          radius: 16,
+          child: Icon(Icons.person_outline, size: 18),
+        ),
+        title: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: subtitle.isEmpty
+            ? null
+            : Text(
+                subtitle.join(' · '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
       ),
     );
   }
