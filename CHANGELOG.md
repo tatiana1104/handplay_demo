@@ -81,7 +81,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Correcciones recientes
 
-- Se corrigió la inscripción para identificar explícitamente el correo como correo del club (`clubEmail`); ya no se usa ese correo para vincular o invitar la cuenta del entrenador.
+- Se corrigió la inscripción para identificar explícitamente el correo como correo del club (`clubEmail`) y mostrarlo dentro de `Datos del equipo`; ya no se usa ese correo para vincular o invitar la cuenta del entrenador.
 
 - El registro de cuenta ahora solicita el número de documento y busca perfiles existentes en `profile_directory` y `users` para vincular sus datos al nuevo UID; esto permite asociar jugadores inscritos sin correo electrónico.
 

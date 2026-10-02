@@ -13,7 +13,7 @@ equipos, calendario y arbitraje, partido en vivo, y estadísticas.
 > Cada club del catálogo es interactivo y abre su detalle con equipos, jugadores y entrenadores; las personas tienen acceso a una ficha resumida.
 > La inscripción de equipos solo permite seleccionar clubes oficiales del catálogo; se eliminó el campo de club libre y el selector se adapta al ancho disponible en móvil.
 > El registro de cuenta solicita el número de documento y, cuando encuentra un jugador existente en `profile_directory` o `users`, conserva y vincula sus datos al nuevo UID aunque la inscripción original no haya solicitado correo.
-> En la inscripción, el correo solicitado pertenece al club (`clubEmail`); los datos del entrenador se registran por nombre, documento y teléfono, sin usar el correo del club para crear o invitar su cuenta. El filtrado del entrenador usa su `coachUid`, no el correo del club.
+> En la inscripción, el correo solicitado pertenece al club (`clubEmail`) y aparece dentro de `Datos del equipo`; los datos del entrenador se registran por nombre, documento y teléfono, sin usar el correo del club para crear o invitar su cuenta. El filtrado del entrenador usa su `coachUid`, no el correo del club.
 
 ---
 

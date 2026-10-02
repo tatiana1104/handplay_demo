@@ -159,7 +159,13 @@ class TeamRegistrationForm extends StatelessWidget {
                   },
                 ),
               ],
-
+              const SizedBox(height: 14),
+              _field(
+                clubEmailController,
+                'Correo del club *',
+                'club@correo.com',
+                email: true,
+              ),
             ],
           ),
           _sectionCard(
@@ -252,27 +258,7 @@ class TeamRegistrationForm extends StatelessWidget {
                     : null,
               ),
               const SizedBox(height: 14),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _field(
-                      phoneController,
-                      'Teléfono *',
-                      '300 123 4567',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _field(
-                      clubEmailController,
-                      'Correo del club *',
-                      'club@correo.com',
-                      email: true,
-                    ),
-                  ),
-                ],
-              ),
+              _field(phoneController, 'Teléfono *', '300 123 4567'),
             ],
           ),
           const SizedBox(height: 10),
