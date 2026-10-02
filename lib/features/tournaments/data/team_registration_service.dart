@@ -185,11 +185,6 @@ class TeamRegistrationService {
     }
 
     const coachLinkSent = false;
-        }
-      } on FirebaseAuthException {
-        coachLinkSent = false;
-      }
-    }
 
     return TeamRegistrationResult(
       isCoachAccount: isCoachAccount,
