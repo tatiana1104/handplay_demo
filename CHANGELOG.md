@@ -86,6 +86,10 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Correcciones recientes
 
+- Se alineó la regla de creación de inscripciones con el campo `clubEmail` que escribe la app; ya no exige `coachEmail`, porque ese correo pertenece al club.
+
+- Se restauró el splash como ruta inicial de GoRouter, con una duración mínima de 2 segundos y espera de la sesión antes de continuar a Home o Perfil.
+
 - Se corrigió la inscripción para identificar explícitamente el correo como correo del club (`clubEmail`) y mostrarlo dentro de `Datos del equipo`; ya no se usa ese correo para vincular o invitar la cuenta del entrenador.
 
 - El registro de cuenta ahora solicita el número de documento y busca perfiles existentes en `profile_directory` y `users` para vincular sus datos al nuevo UID; esto permite asociar jugadores inscritos sin correo electrónico.

@@ -85,14 +85,14 @@ class _HandPlayAppState extends State<HandPlayApp> {
   void initState() {
     super.initState();
     _authBloc = sl<AuthBloc>();
+    final splashVisibleUntil = DateTime.now().add(const Duration(seconds: 2));
     _router = GoRouter(
-      // Home es público y permite mostrar contenido inmediatamente mientras
-      // Firebase resuelve la sesión en segundo plano.
-      initialLocation: RouteNames.home,
+      // El splash es la entrada; el redirect abre Home o Perfil al resolver auth.
+      initialLocation: RouteNames.splash,
       refreshListenable: GoRouterRefreshStream(_authBloc.stream),
       // ES: Mantiene públicas las rutas informativas y protege las privadas.
       // EN: Keeps informational routes public while protecting private ones.
-      redirect: (context, state) {
+      redirect: (context, state) async {
         final authState = _authBloc.state;
         final isAuthenticated = authState is AuthAuthenticated;
         final normalizedRoles = authState is AuthAuthenticated
@@ -140,13 +140,26 @@ class _HandPlayAppState extends State<HandPlayApp> {
             !isPublicRole &&
             (state.matchedLocation == RouteNames.login ||
                 state.matchedLocation == RouteNames.register ||
-                state.matchedLocation == RouteNames.recoverPassword ||
-                state.matchedLocation == RouteNames.splash)) {
+                state.matchedLocation == RouteNames.recoverPassword)) {
           return RouteNames.profile;
         }
 
         if (state.matchedLocation == RouteNames.splash) {
-          return isAuthenticated && !isPublicRole
+          final remaining = splashVisibleUntil.difference(DateTime.now());
+          if (remaining > Duration.zero) {
+            await Future<void>.delayed(remaining);
+          }
+          final resolvedAuthState = _authBloc.state;
+          final resolvedRoles = resolvedAuthState is AuthAuthenticated
+              ? resolvedAuthState.user.roles
+                    .map((role) => role.trim().toLowerCase())
+                    .toSet()
+              : const <String>{};
+          final resolvedPublicRole =
+              resolvedRoles.contains('publico') ||
+              resolvedRoles.contains('public') ||
+              resolvedRoles.contains('público');
+          return resolvedAuthState is AuthAuthenticated && !resolvedPublicRole
               ? RouteNames.profile
               : RouteNames.home;
         }

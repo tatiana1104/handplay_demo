@@ -133,9 +133,9 @@ service cloud.firestore {
           && request.resource.data.coachName.size() > 0
           && request.resource.data.coachDocument is string
           && request.resource.data.coachDocument.size() > 0
-          && request.resource.data.coachEmail is string
-          && request.resource.data.coachEmail.size() > 3
-          && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+          && request.resource.data.clubEmail is string
+          && request.resource.data.clubEmail.size() > 3
+          && request.resource.data.clubEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
           && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('minPlayersPerTeam', 1)
           && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('maxPlayersPerTeam', 99);
         allow read: if canManageTournament(tournamentId)
