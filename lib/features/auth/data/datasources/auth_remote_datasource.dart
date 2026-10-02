@@ -67,6 +67,7 @@ class AuthRemoteDataSource {
   /// EN: Creates a Firebase account, sets its name, and ensures its profile exists.
   Future<fb.User> registerWithEmailPassword({
     required String name,
+    required String documentNumber,
     required String email,
     required String password,
   }) async {
@@ -85,7 +86,11 @@ class AuthRemoteDataSource {
       await user.updateDisplayName(name.trim());
       await user.reload();
       user = _firebaseAuth.currentUser ?? user;
-      unawaited(_ensureUserProfile(user, name: name.trim()));
+      unawaited(_ensureUserProfile(
+        user,
+        name: name.trim(),
+        documentNumber: documentNumber.trim(),
+      ));
       return user;
     } on fb.FirebaseAuthException catch (e) {
       throw ServerException(mapFirebaseAuthError(e.code));
@@ -154,7 +159,11 @@ class AuthRemoteDataSource {
 
   /// ES: Crea o repara perfiles Firestore después de entrar con Google.
   /// EN: Creates or repairs Firestore profiles after a Google sign-in.
-  Future<void> _ensureUserProfile(fb.User user, {String? name}) async {
+  Future<void> _ensureUserProfile(
+    fb.User user, {
+    String? name,
+    String? documentNumber,
+  }) async {
     final users = FirebaseFirestore.instance.collection('users');
     final ref = users.doc(user.uid);
     final existing = await ref.get().timeout(const Duration(seconds: 5));
@@ -162,9 +171,11 @@ class AuthRemoteDataSource {
     final email = user.email?.trim().toLowerCase();
     Map<String, dynamic>? pendingData;
     DocumentReference<Map<String, dynamic>>? pendingRef;
-    final document = data?['document']?.toString().trim().isNotEmpty == true
-        ? data!['document'].toString().trim()
-        : data?['documentNumber']?.toString().trim();
+    final document = documentNumber?.trim().isNotEmpty == true
+        ? documentNumber!.trim()
+        : (data?['document']?.toString().trim().isNotEmpty == true
+            ? data!['document'].toString().trim()
+            : data?['documentNumber']?.toString().trim());
     final queries = <Query<Map<String, dynamic>>>[];
     if (email != null && email.isNotEmpty) {
       queries.add(users.where('email', isEqualTo: email).limit(5));
@@ -174,7 +185,29 @@ class AuthRemoteDataSource {
       queries.add(users.where('document', isEqualTo: document).limit(5));
       queries.add(users.where('documentNumber', isEqualTo: document).limit(5));
     }
-    if (queries.isNotEmpty) {
+    if (document != null && document.isNotEmpty) {
+      final directory = FirebaseFirestore.instance.collection('profile_directory');
+      final directorySnapshots = await Future.wait([
+        directory.where('document', isEqualTo: document).limit(5).get(),
+        directory.where('documentNumber', isEqualTo: document).limit(5).get(),
+      ]);
+      for (final snapshot in directorySnapshots) {
+        if (snapshot.docs.isEmpty) continue;
+        final profile = snapshot.docs.first;
+        final profileData = profile.data();
+        final profileUid = profileData['uid']?.toString().trim().isNotEmpty == true
+            ? profileData['uid'].toString().trim()
+            : profile.id;
+        final profileUser = await users.doc(profileUid).get();
+        pendingRef = profileUser.reference;
+        pendingData = {
+          ...profileData,
+          ...?profileUser.data(),
+        };
+        break;
+      }
+    }
+    if (queries.isNotEmpty && pendingData == null) {
       final snapshots = await Future.wait(queries.map((query) => query.get()));
       final candidates = {
         for (final snapshot in snapshots)
@@ -212,6 +245,8 @@ class AuthRemoteDataSource {
       'nivel': FieldValue.delete(),
       'rol': FieldValue.delete(),
       if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
+      if (document != null && document.isNotEmpty) 'document': document,
+      if (document != null && document.isNotEmpty) 'documentNumber': document,
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
       if (mergedData['category'] != null) 'category': mergedData['category'],

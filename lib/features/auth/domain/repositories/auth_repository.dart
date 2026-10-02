@@ -24,6 +24,7 @@ abstract class AuthRepository {
   /// EN: Creates an account and returns its domain user.
   Future<Either<Failure, AppUser>> registerWithEmailPassword({
     required String name,
+    required String documentNumber,
     required String email,
     required String password,
   });

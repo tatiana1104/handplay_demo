@@ -44,12 +44,14 @@ class AuthLoginRequested extends AuthEvent {
 /// EN: Requests creation of a new email/password account.
 class AuthRegisterRequested extends AuthEvent {
   final String name;
+  final String documentNumber;
   final String email;
   final String password;
   /// ES: Crea la solicitud de cuenta con los datos del perfil.
   /// EN: Creates an account request with the submitted profile details.
   const AuthRegisterRequested({
     required this.name,
+    required this.documentNumber,
     required this.email,
     required this.password,
   });
@@ -57,7 +59,7 @@ class AuthRegisterRequested extends AuthEvent {
   /// ES: Usa los campos de registro para comparar eventos por valor.
   /// EN: Uses the registration fields as the event's equality data.
   @override
-  List<Object?> get props => [name, email, password];
+  List<Object?> get props => [name, documentNumber, email, password];
 }
 
 /// ES: Solicita autenticación mediante Google Sign-In.

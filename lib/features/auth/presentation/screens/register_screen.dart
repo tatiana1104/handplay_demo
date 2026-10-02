@@ -23,6 +23,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
+  final _document = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
@@ -34,6 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _document.dispose();
     _email.dispose();
     _password.dispose();
     _confirmation.dispose();
@@ -51,6 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     context.read<AuthBloc>().add(
           AuthRegisterRequested(
             name: _name.text,
+            documentNumber: _document.text,
             email: _email.text,
             password: _password.text,
           ),
@@ -88,6 +91,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text('Crea tu cuenta para acceder a torneos y estadísticas. Usa el mismo correo que registrarás como entrenador para vincular tu equipo.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant)),
               const SizedBox(height: 28),
               TextField(controller: _name, enabled: !loading, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nombre completo')),
+              const SizedBox(height: 18),
+              TextField(controller: _document, enabled: !loading, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Número de documento')),
               const SizedBox(height: 18),
               TextField(controller: _email, enabled: !loading, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo electrónico')),
               const SizedBox(height: 18),

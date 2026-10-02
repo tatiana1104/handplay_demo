@@ -77,12 +77,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AppUser>> registerWithEmailPassword({
     required String name,
+    required String documentNumber,
     required String email,
     required String password,
   }) async {
     try {
       final user = await remoteDataSource.registerWithEmailPassword(
         name: name,
+        documentNumber: documentNumber,
         email: email,
         password: password,
       );

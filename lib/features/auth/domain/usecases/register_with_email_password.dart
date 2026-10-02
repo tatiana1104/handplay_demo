@@ -16,11 +16,13 @@ class RegisterWithEmailPassword {
   /// EN: Registers the account and returns a failure or its user.
   Future<Either<Failure, AppUser>> call({
     required String name,
+    required String documentNumber,
     required String email,
     required String password,
   }) {
     return repository.registerWithEmailPassword(
       name: name,
+      documentNumber: documentNumber,
       email: email,
       password: password,
     );

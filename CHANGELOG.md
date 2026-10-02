@@ -81,6 +81,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Correcciones recientes
 
+- El registro de cuenta ahora solicita el número de documento y busca perfiles existentes en `profile_directory` y `users` para vincular sus datos al nuevo UID; esto permite asociar jugadores inscritos sin correo electrónico.
+
 - Se eliminó el campo `Otro club asociado` de la inscripción para centralizar los clubes en el catálogo oficial y se hizo expansible el selector para evitar overflow horizontal en pantallas pequeñas.
 
 - Se agregó el detalle interactivo de cada club, con sus equipos inscritos, jugadores y entrenadores, además de fichas resumidas para cada persona.

@@ -90,8 +90,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     final result = await _register(
-      name: event.name,
-      email: event.email,
+    name: event.name,
+    documentNumber: event.documentNumber,
+    email: event.email,
       password: event.password,
     );
     result.fold(
