@@ -40,4 +40,41 @@ void main() {
     expect(find.text('Real Caquetá'), findsOneWidget);
     expect(find.text('Unión'), findsOneWidget);
   });
+
+  testWidgets('El formulario del jugador no desborda el ancho en pantallas estrechas', (
+    WidgetTester tester,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(size: Size(320, 800)),
+          child: Scaffold(
+            body: PlayerRegistrationForm(
+              formKey: formKey,
+              nameController: TextEditingController(text: 'Juan Pérez'),
+              documentController: TextEditingController(text: '123456'),
+              numberController: TextEditingController(text: '10'),
+              positionController: TextEditingController(text: 'Pivote'),
+              clubController: TextEditingController(text: 'Club Deportivo Real Caquetá'),
+              selectedPositions: const ['Pivote'],
+              usedNumbers: const <int>{},
+              tournamentBranch: 'mixto',
+              gender: 'masculino',
+              associatedClubs: const [
+                'Club Deportivo Real Caquetá',
+                'Atlético Nacional',
+                'Club Unión de la Sierra',
+              ],
+              onGenderChanged: (_) {},
+              onSearchExisting: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
 }

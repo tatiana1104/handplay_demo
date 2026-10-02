@@ -142,6 +142,7 @@ class PlayerRegistrationForm extends StatelessWidget {
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: gender,
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Género *',
               prefixIcon: Icon(Icons.wc_outlined),
@@ -160,6 +161,7 @@ class PlayerRegistrationForm extends StatelessWidget {
                         value: value,
                         child: Text(
                           value == 'masculino' ? 'Masculino' : 'Femenino',
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     )
@@ -172,6 +174,7 @@ class PlayerRegistrationForm extends StatelessWidget {
               value: associatedClubs.contains(clubController.text)
                   ? clubController.text
                   : null,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Club al que pertenece *',
                 prefixIcon: Icon(Icons.shield_outlined),
@@ -180,7 +183,11 @@ class PlayerRegistrationForm extends StatelessWidget {
                   .map(
                     (club) => DropdownMenuItem(
                       value: club,
-                      child: Text(club, overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        club,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                   )
                   .toList(),
