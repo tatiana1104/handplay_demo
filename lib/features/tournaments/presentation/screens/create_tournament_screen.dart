@@ -109,14 +109,17 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
     final groupCount = _format == 'por_grupos' ? int.tryParse(_groupCountController.text) ?? 0 : 0;
     final advancingPositions = _format == 'por_grupos'
-        ? _advancingPositionsController.text
-            .split(',')
-            .map((value) => int.tryParse(value.trim()))
-            .whereType<int>()
-            .where((value) => value > 0)
-            .toSet()
-            .toList()
-          ..sort()
+        ? (() {
+            final positions = _advancingPositionsController.text
+                .split(',')
+                .map((value) => int.tryParse(value.trim()))
+                .whereType<int>()
+                .where((value) => value > 0)
+                .toSet()
+                .toList();
+            positions.sort();
+            return positions;
+          })()
         : <int>[];
     if (_format == 'por_grupos' && (groupCount < 2 || advancingPositions.isEmpty)) {
       _showMessage('Define al menos 2 grupos y las posiciones que avanzan.');
@@ -301,7 +304,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
               const SizedBox(height: 10),
               TextFormField(controller: _groupCountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Grupos fase 1 *', hintText: 'Ejemplo: 4')),
               const SizedBox(height: 8),
-              TextFormField(controller: _advancingPositionsController, keyboardType: TextInputType.text, decoration: const InputDecoration(labelText: 'Posiciones que avanzan a fase 2 *', hintText: 'Ejemplo: 1,2'), helperText: 'Escribe las posiciones separadas por coma. Los cruces de fase 2 los crea el administrador.'),
+              TextFormField(controller: _advancingPositionsController, keyboardType: TextInputType.text, decoration: const InputDecoration(labelText: 'Posiciones que avanzan a fase 2 *', hintText: 'Ejemplo: 1,2', helperText: 'Escribe las posiciones separadas por coma. Los cruces de fase 2 los crea el administrador.')),
             ],
             const SizedBox(height: 10),
             TextFormField(controller: _teamLimitController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Cupo de equipos (opcional)', hintText: 'Déjalo en 0 si no hay límite'), validator: (v) => int.tryParse(v ?? '') == null || int.parse(v!) < 0 ? 'Indica 0 o un número positivo' : null),
