@@ -143,8 +143,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     }
 
     final phaseOneRounds = _format == 'todos_contra_todos'
-        ? ((int.tryParse(_teamLimitController.text) ?? 0) - 1).clamp(0, 999)
-        : ((int.tryParse(_teamLimitController.text) ?? 0) ~/ groupCount).clamp(0, 999);
+        ? (((int.tryParse(_teamLimitController.text) ?? 0) - 1).clamp(0, 999)).toInt()
+        : (((int.tryParse(_teamLimitController.text) ?? 0) ~/ groupCount).clamp(0, 999)).toInt();
 
     setState(() => _saving = true);
     try {
