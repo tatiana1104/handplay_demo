@@ -102,6 +102,15 @@ La documentación de los sprints está organizada en archivos independientes:
 
 Cada archivo explica qué se hizo, cómo se implementó, el resultado, la evidencia técnica y la forma de validación.
 
+### Diagramas técnicos
+
+- [`docs/diagrama-arquitectura.md`](docs/diagrama-arquitectura.md) — arquitectura por capas, features y flujo de datos.
+- [`docs/diagrama-base-datos.md`](docs/diagrama-base-datos.md) — modelo lógico de Firestore y relaciones principales.
+- [`docs/diagramas-flujos.md`](docs/diagramas-flujos.md) — autenticación, inscripción, fases y partido en vivo.
+- [`docs/diagrama-roles-permisos.md`](docs/diagrama-roles-permisos.md) — roles, capacidades y matriz de autorización.
+
+Los diagramas están escritos en Mermaid dentro de Markdown para que se rendericen en GitHub y otros visores compatibles.
+
 ## Puesta en marcha local
 
 ```bash

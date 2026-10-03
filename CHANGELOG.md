@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Documentación
 
+- Se agregaron diagramas Mermaid de arquitectura, base de datos Firestore, flujos operativos y roles/permisos dentro de `docs/`. El README incluye enlaces a cada diagrama.
+
 - Se documentaron los Sprints 2 a 6 en archivos independientes dentro de `docs/`, explicando actividades, implementación, resultados, evidencia técnica y validación. El README incluye el índice completo de documentación.
 
 ## Nuevas funciones
