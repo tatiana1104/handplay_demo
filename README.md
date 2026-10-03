@@ -66,9 +66,10 @@ lib/
 │   └── di/                 # Service locator (get_it)
 ├── features/
 │   ├── auth/              # Login, registro, recuperar contraseña (RF-24, RF-25)
-│   ├── tournaments/       # Torneos (RF-01–RF-03)
-│   ├── teams/              # Inscripción y planilla de equipos (RF-05–RF-08)
 │   ├── matches/            # Calendario, oficiales, partido en vivo (RF-09–RF-17)
+│   ├── referees/           # Arbitros
+│   ├── teams/              # Inscripción y planilla de equipos (RF-05–RF-08)
+│   ├── tournaments/       # Torneos (RF-01–RF-03)
 │   ├── statistics/         # Posiciones, goleadores, valla menos vencida (RF-18–RF-20)
 │   ├── notifications/      # Push (RF-27)
 │   └── ai_assistant/       # Resumen de partido con Gemini (RF-26)
@@ -164,37 +165,3 @@ Los documentos explican el objetivo, las actividades, la implementación, el res
   El objetivo es que cualquiera pueda entender el "por qué" de una
   decisión sin tener que preguntar, no solo el "qué" del código.
 
-## Decisiones pendientes de la Liga
-
-Ver sección 13 del PRD consolidado �� entre ellas, el número exacto de la
-cuota mínima de género en cancha (RN-06) y el mínimo de partidos jugados
-para clasificar en valla menos vencida (RF-20).
-
-## Pendientes técnicos conocidos
-
-- **Google Sign-In en Android** requiere el SHA-1 (y SHA-256) del
-  certificado de firma registrado en Firebase Console → Configuración
-  del proyecto → tu app Android → "Agregar huella digital" (ya hecho
-  para la máquina de desarrollo actual). **Si otra persona clona este
-  repo en una máquina nueva**, va a necesitar generar y registrar SU
-  PROPIO SHA-1 de debug (cada `debug.keystore` es distinto por
-  máquina):
-  ```powershell
-  cd android
-  .\gradlew signingReport
-  ```
-  y agregar el SHA-1 que aparezca ahí en Firebase Console, luego
-  volver a descargar `google-services.json` y reemplazar el de
-  `android/app/`.
-- **Build de Android lento (`org.gradle.daemon=false`)**: en la
-  máquina de desarrollo actual, el daemon de Gradle y de Kotlin se
-  colgaban indefinidamente en `assembleDebug` (`Failed connecting to
-  the daemon in 4 retries`), aparentemente por firewall/antivirus
-  bloqueando el socket de loopback. Se desactivaron ambos daemons en
-  `android/gradle.properties` como solución. Esto hace los builds más
-  lentos para TODOS los que clonen el repo (no solo la máquina
-  afectada). Si en tu máquina los builds nunca tuvieron ese problema,
-  puedes probar a quitar esas dos líneas y ver si te compila más
-  rápido con el daemon activado — si es así, considera mover esa
-  configuración a tu `~/.gradle/gradle.properties` personal en vez de
-  dejarla en el repo compartido.
