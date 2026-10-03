@@ -106,7 +106,7 @@ Las dependencias apuntan hacia el dominio: `presentation` consume casos de uso, 
 
 ## Documentación
 
-La documentación de los sprints está organizada en archivos independientes:
+El detalle de cada sprint se mantiene en su documento correspondiente para evitar duplicación y conservar una documentación completa:
 
 - [`docs/sprint-1-configuracion.md`](docs/sprint-1-configuracion.md) — configuración inicial, Firebase, autenticación y arquitectura.
 - [`docs/sprint-2-torneos-inscripciones.md`](docs/sprint-2-torneos-inscripciones.md) — torneos, inscripciones, perfiles y aprobaciones.
@@ -115,7 +115,7 @@ La documentación de los sprints está organizada en archivos independientes:
 - [`docs/sprint-5-perfiles-navegacion.md`](docs/sprint-5-perfiles-navegacion.md) — perfiles multirol, clubes y navegación.
 - [`docs/sprint-6-fases-torneo.md`](docs/sprint-6-fases-torneo.md) — grupos, clasificados y jornadas de fase 1.
 
-Cada archivo explica qué se hizo, cómo se implementó, el resultado, la evidencia técnica y la forma de validación.
+Los documentos explican el objetivo, las actividades, la implementación, el resultado y la validación de cada sprint. El README conserva únicamente este índice y la información general del proyecto.
 
 ### Diagramas técnicos
 
@@ -139,18 +139,6 @@ flutter run
 
 `main.dart` inicializa Firebase con `DefaultFirebaseOptions`; después de ejecutar `flutterfire configure`, verifica que `lib/firebase_options.dart` esté generado para la plataforma objetivo. No es necesario descomentar código adicional en `main.dart`.
 
-## Estado de avance
-
-El detalle de cada sprint se mantiene en su documento correspondiente para evitar duplicación y conservar una documentación completa:
-
-- [Sprint 1 — Configuración](docs/sprint-1-configuracion.md)
-- [Sprint 2 — Torneos e inscripciones](docs/sprint-2-torneos-inscripciones.md)
-- [Sprint 3 — Árbitros y calendario](docs/sprint-3-arbitros-calendario.md)
-- [Sprint 4 — Partido en vivo y estadísticas](docs/sprint-4-partido-estadisticas.md)
-- [Sprint 5 — Perfiles y navegación](docs/sprint-5-perfiles-navegacion.md)
-- [Sprint 6 — Fases y automatizaciones](docs/sprint-6-fases-torneo.md)
-
-Los documentos explican el objetivo, las actividades, la implementación, el resultado y la validación de cada sprint. El README conserva únicamente este índice y la información general del proyecto.
 
 ### Regla de actualización documental
 
