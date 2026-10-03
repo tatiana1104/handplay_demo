@@ -38,6 +38,30 @@ Configurar torneos por grupos, definir clasificados y preparar automáticamente 
 ## Resultado
 El administrador puede preparar la fase 1 de un torneo por grupos y conservar la información necesaria para mostrarla en la tabla de posiciones. La fase 2 queda lista para cruces manuales.
 
+## Flujo funcional
+
+```text
+Crear torneo por grupos → definir grupos y posiciones clasificadas
+→ cerrar inscripciones → administrador ejecuta asignación
+→ grupos y jornadas de fase 1 → resultados alimentan tabla
+→ administrador crea cruces de fase 2
+```
+
+## Reglas de distribución
+
+- Solo se consideran inscripciones aprobadas.
+- La mezcla aleatoria se ejecuta al solicitar la asignación, no al registrar cada equipo.
+- Los equipos se reparten de forma balanceada y reciben identificadores como Grupo A, Grupo B, etc.
+- En grupos, los emparejamientos se limitan a equipos del mismo grupo.
+- En todos-contra-todos, cada pareja se genera una sola vez.
+
+## Criterios de aceptación
+
+- El formulario exige al menos dos grupos cuando el formato es por grupos.
+- Las posiciones clasificadas se guardan ordenadas y sin duplicados.
+- La acción de fase 1 solo está disponible al administrador y con inscripción cerrada.
+- La fase 2 no genera cruces automáticamente: quedan bajo decisión administrativa.
+
 ## Evidencia técnica
 - `lib/features/tournaments/domain/models/tournament_models.dart`
 - `lib/features/tournaments/data/tournament_phase_service.dart`

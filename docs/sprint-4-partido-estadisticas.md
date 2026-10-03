@@ -33,6 +33,30 @@ Registrar el desarrollo del partido en tiempo real y convertir sus eventos aprob
 ## Resultado
 El partido queda registrado de forma auditable y las estadísticas se generan únicamente con información aprobada.
 
+## Flujo funcional
+
+```text
+Partido programado → árbitro abre planilla → registra eventos
+→ finaliza partido → revisa y aprueba planilla → estadísticas y tabla
+```
+
+## Modelo de eventos
+
+Cada evento conserva tipo, período, jugador, equipo, minuto o marca de tiempo y usuario que lo registró. Esto permite reconstruir goles, sanciones, exclusiones y estadísticas sin depender de contadores editados manualmente.
+
+## Seguridad y consistencia
+
+- Solo los roles autorizados pueden editar eventos.
+- Una planilla aprobada queda bloqueada para evitar cambios posteriores.
+- Las estadísticas ignoran partidos no finalizados o solicitudes no aprobadas.
+- La tabla se recalcula desde la fuente deportiva para evitar duplicados.
+
+## Criterios de aceptación
+
+- El marcador refleja los eventos registrados.
+- La planilla muestra únicamente jugadores inscritos y aprobados.
+- La tabla y los líderes cambian al aprobar un partido finalizado.
+
 ## Evidencia técnica
 - `lib/features/matches/`
 - `lib/features/statistics/`

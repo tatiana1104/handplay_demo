@@ -28,6 +28,27 @@ Administrar árbitros y oficiales, y construir el calendario de partidos de cada
 ## Resultado
 El administrador puede consultar la agenda y preparar un partido con los oficiales correspondientes, manteniendo controles de rol y conflicto de interés.
 
+## Flujo funcional
+
+```text
+Árbitro registrado → validación de rol/acreditación → administrador crea jornada
+→ selecciona equipos, sede y horario → asigna oficiales → partido publicado
+```
+
+## Datos y reglas relevantes
+
+- Los partidos mantienen referencias a torneo, jornada, equipos, sede, fecha, hora y oficiales.
+- La interfaz resuelve nombres, escudos y colores desde los equipos aprobados.
+- La agenda ordena los partidos cronológicamente y permite filtrar por torneo.
+- Se evita asignar un jugador del partido como árbitro u oficial del mismo encuentro.
+- La deduplicación usa documento, correo y nombre normalizados para no repetir personas.
+
+## Criterios de aceptación
+
+- El administrador puede construir una jornada completa.
+- Un partido no se guarda con equipos u oficiales incompatibles.
+- Los usuarios pueden consultar el calendario sin modificarlo.
+
 ## Evidencia técnica
 - `lib/features/referees/`
 - `lib/features/matches/`

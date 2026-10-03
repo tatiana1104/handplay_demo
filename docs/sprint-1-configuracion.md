@@ -9,9 +9,34 @@
 - Se agregaron reglas iniciales de Firestore y perfiles multirol en `users/{uid}`.
 - Se creó el flujo de splash, home público, perfil y navegación inferior.
 
+## Alcance del sprint
+
+Este sprint estableció la base técnica y de seguridad sobre la que se construyeron las funcionalidades deportivas. Se priorizó que la aplicación pudiera iniciar, identificar al usuario, resolver su rol y dirigirlo a una ruta pública o protegida.
+
+## Actividades realizadas
+
+- Se definió la estructura **Clean Architecture + Feature-First** con `core`, `features` y `shared`.
+- Se configuraron Flutter, Firebase, FlutterFire, Firestore y las plataformas Android, iOS y Web.
+- Se implementó autenticación con Firebase Auth, `AuthBloc`, login, registro, recuperación de contraseña y Google Sign-In.
+- Se configuraron `go_router`, `get_it`, tema visual, rutas públicas y rutas protegidas por sesión y roles.
+- Se agregaron reglas iniciales de Firestore y perfiles multirol en `users/{uid}`.
+- Se creó el flujo de splash, home público, perfil y navegación inferior.
+
+## Decisiones técnicas
+
+- `AuthBloc` es la fuente de verdad de la sesión; la navegación no depende de temporizadores.
+- Firebase se inicializa antes de `runApp` usando `DefaultFirebaseOptions.currentPlatform`.
+- Las dependencias se registran en `lib/core/di/injection_container.dart`.
+- Las reglas sensibles se validan en Firestore y no únicamente en la interfaz.
+
 ## Resultado y validación
 
-La base del proyecto quedó preparada para incorporar las features de torneos, equipos, calendario y partidos. La validación se realizó con `flutter pub get`, configuración de FlutterFire, despliegue de reglas y pruebas del flujo de arranque y autenticación.
+La base del proyecto quedó preparada para incorporar las features de torneos, equipos, calendario y partidos. La validación se realizó con `flutter pub get`, configuración de FlutterFire, despliegue de reglas y pruebas del flujo de arranque, autenticación, cierre de sesión y redirección por rol.
+
+## Evidencia y pendientes
+
+- Evidencia: `lib/main.dart`, `lib/core/`, `lib/features/auth/`, `firebase.json` y `firestore.rules`.
+- Pendientes trasladados al siguiente sprint: gestión de torneos, clubes, equipos e inscripciones.
 
 
 ## 1. Requisitos

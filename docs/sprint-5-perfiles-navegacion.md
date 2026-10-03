@@ -33,6 +33,28 @@ Consolidar los perfiles multirol, mejorar la navegación administrativa y estabi
 ## Resultado
 La aplicación mantiene una identidad coherente por persona, soporta varios roles y ofrece navegación estable entre clubes, equipos y perfiles.
 
+## Flujo de identidad
+
+```text
+Cuenta Firebase Auth → búsqueda por UID/documento → perfil Firestore
+→ combinación de roles → rutas y capacidades disponibles
+```
+
+## Decisiones técnicas
+
+- `roles` se actualiza mediante unión para conservar permisos existentes.
+- El documento nacional funciona como clave de vinculación cuando el perfil nació desde una inscripción.
+- El catálogo de clubes es la fuente de selección para nuevas inscripciones.
+- Los diálogos con formularios administran sus propios controladores para evitar ciclos de vida inválidos.
+- La navegación se adapta a usuarios anónimos, autenticados y administradores.
+
+## Criterios de aceptación
+
+- Una persona no pierde roles al completar o editar su perfil.
+- Un jugador inscrito puede recuperar su información al crear cuenta.
+- El detalle de club navega a equipos, jugadores y entrenadores.
+- El formulario de clubes no produce el assertion `_dependents.isEmpty`.
+
 ## Evidencia técnica
 - `lib/features/auth/`
 - `lib/features/teams/presentation/screens/club_detail_screen.dart`

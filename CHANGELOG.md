@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Documentación
 
+- Se ampliaron los documentos de Sprint 1 a Sprint 6 con alcance, flujo funcional, decisiones técnicas, seguridad, criterios de aceptación, evidencia y pendientes específicos de cada sprint.
+
 - Se reorganizó `README.md`: la estructura de carpetas ahora documenta explícitamente Clean Architecture + Feature-First y el detalle de actividades de cada sprint quedó en su documento `docs/sprint-*.md` correspondiente.
 
 - Se agregaron diagramas Mermaid de arquitectura, base de datos Firestore, flujos operativos y roles/permisos dentro de `docs/`. El README incluye enlaces a cada diagrama.

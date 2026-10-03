@@ -42,6 +42,29 @@ Construir el flujo principal para crear torneos, permitir la inscripción públi
 ## Resultado
 El administrador puede publicar un torneo, recibir inscripciones, revisar solicitudes y convertir las aprobadas en equipos utilizables por el resto de la aplicación.
 
+## Flujo funcional
+
+```text
+Administrador crea torneo → publica inscripción → club registra equipo
+→ solicitud pendiente → revisión administrativa → aprobada/rechazada
+→ equipo disponible para calendario y estadísticas
+```
+
+## Datos y seguridad
+
+- El torneo controla `publicRegistration`, fechas, categorías, ramas y límites.
+- La solicitud conserva el correo del club como `clubEmail`; no se usa como correo del entrenador.
+- Las inscripciones se consultan dentro del torneo y se filtran por `status`.
+- Las operaciones administrativas comprueban el rol antes de modificar estados.
+- Las reglas validan campos obligatorios y evitan que una inscripción pública se cree en un torneo cerrado.
+
+## Criterios de aceptación
+
+- Un usuario puede consultar torneos públicos sin iniciar sesión.
+- Un club puede enviar una solicitud con jugadores válidos y datos de contacto.
+- El administrador puede aprobar o rechazar con trazabilidad.
+- Un equipo aprobado aparece en los módulos que consumen participantes.
+
 ## Evidencia técnica
 - `lib/features/tournaments/`
 - `lib/features/teams/`
