@@ -64,3 +64,21 @@ Cuenta Firebase Auth → búsqueda por UID/documento → perfil Firestore
 ---
 
 **Método de validación:** revisión de flujos de registro, reutilización por documento, navegación de fichas y pruebas visuales en pantalla móvil.
+
+## Detalle funcional implementado
+
+- Perfil muestra nombre, documento, correo, cambio de contraseña y cierre de sesión.
+- Usuarios con múltiples roles acceden a fichas independientes de jugador, entrenador y árbitro.
+- Se normalizan equivalencias `player/jugador`, `coach/entrenador`, `referee/arbitro` y `public/publico`.
+- El formulario de perfil persiste correo, documento y datos específicos de cada rol.
+- Se detectan perfiles ya completos mediante banderas de completitud o datos obligatorios guardados.
+- Se conserva el array de roles existente durante la actualización de perfil.
+- El banner se incorporó a listado, detalle y alta de árbitros, calendario, equipos y perfil.
+- Visitantes ven Home, Calendario e Iniciar sesión; usuarios autenticados ven Perfil según permisos.
+- Se resolvieron problemas de navegación con `go_router`, `Navigator.push` y limpieza de pila al volver a Home.
+
+## Incidencias y soluciones
+
+- Se corrigió la coma faltante de `AppBar` en `profile_screen.dart`.
+- Se eliminó el argumento `bottomNavigationBar` duplicado del detalle de árbitro.
+- Se corrigió el assertion `_dependents.isEmpty` convirtiendo el diálogo de clubes en un widget Stateful autónomo.

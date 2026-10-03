@@ -38,6 +38,25 @@ La base del proyecto quedó preparada para incorporar las features de torneos, e
 - Evidencia: `lib/main.dart`, `lib/core/`, `lib/features/auth/`, `firebase.json` y `firestore.rules`.
 - Pendientes trasladados al siguiente sprint: gestión de torneos, clubes, equipos e inscripciones.
 
+## Detalle funcional implementado
+
+- Splash → Home público sin exigir autenticación.
+- Login, registro, recuperación de contraseña y acceso con Google.
+- Creación o actualización automática de `users/{uid}` después del registro o login, conservando roles existentes.
+- Navegación protegida por sesión y custom claims mediante `AuthBloc` y `go_router`.
+- Roles soportados: `admin_liga`, `jugador`, `entrenador` y `arbitro`; se mantiene `rol` por compatibilidad.
+- Banner inferior persistente para perfiles autenticados y navegación pública para visitantes.
+- Formulario de completitud de perfil con documento, posición y dorsal para jugadores.
+- Script `scripts/create-test-users.cjs` para cuentas de prueba multirol, usando `firebase-admin` y sin subir credenciales.
+- Despliegue de `firestore.rules` con Firebase CLI y configuración del proyecto `handplaydemo`.
+
+## Incidencias y soluciones
+
+- Se evitó bloquear el splash mientras se completa o recupera el perfil en Firestore.
+- Se conservaron roles al completar perfil para no provocar rechazos de reglas.
+- Se renovó el token antes de comprobar permisos administrativos.
+- Se validaron fechas para que inicio, fin y límite de inscripción no queden antes del día actual.
+
 
 ## 1. Requisitos
 

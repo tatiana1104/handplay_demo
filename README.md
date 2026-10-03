@@ -152,6 +152,10 @@ El detalle de cada sprint se mantiene en su documento correspondiente para evita
 
 Los documentos explican el objetivo, las actividades, la implementación, el resultado y la validación de cada sprint. El README conserva únicamente este índice y la información general del proyecto.
 
+### Regla de actualización documental
+
+Después de cada commit funcional se deben revisar y actualizar, cuando aplique, `README.md`, `CHANGELOG.md`, el documento del sprint correspondiente y los diagramas afectados (`docs/diagrama-*.md` o `docs/diagramas-*.md`). Así la documentación, los flujos y el modelo de datos permanecen alineados con el código.
+
 ## Convenciones
 
 - **Ramas:** `feature/RF-XX-descripcion`, `fix/RN-XX-descripcion`.

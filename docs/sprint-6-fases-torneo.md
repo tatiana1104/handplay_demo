@@ -76,3 +76,22 @@ Crear torneo por grupos → definir grupos y posiciones clasificadas
 ---
 
 **Método de validación:** `git diff --check`, revisión de tipos Dart y verificación del flujo de cierre de inscripciones.
+
+## Detalle funcional implementado
+
+- El formulario de creación muestra grupos y posiciones clasificadas únicamente cuando el formato es `por_grupos`.
+- `advancingPositions` se normaliza, ordena y guarda sin duplicados.
+- La acción de asignar fase 1 se muestra solo al administrador cuando la inscripción está cerrada.
+- Se consideran únicamente solicitudes con `status: approved`.
+- Los equipos se mezclan aleatoriamente y se reparten de manera balanceada.
+- Se guarda `phaseOneGroup` en cada inscripción para mostrar Grupo A, Grupo B, etc. en la tabla.
+- Se calculan enfrentamientos sin repetir parejas y jornadas dentro del grupo correspondiente.
+- Todos-contra-todos usa un grupo general y genera una pareja única por combinación.
+- La fase 2 no crea cruces: el administrador conserva el control manual.
+
+## Incidencias y soluciones
+
+- Se corrigió el tipo de `clamp()` convirtiendo su resultado a `int`.
+- Se reemplazó una cascada inválida dentro de un ternario por una función local con ordenamiento explícito.
+- Se movió `helperText` dentro de `InputDecoration` para corregir la compilación.
+- Se dejó documentada la necesidad de probar con `flutter analyze` cuando Flutter esté disponible.

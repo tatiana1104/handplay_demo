@@ -61,3 +61,22 @@ Completar la operación del partido en vivo y la planilla digital.
 ---
 
 **Método de validación:** filtros por rol, deduplicación por identidad y validaciones antes de escribir el partido en Firestore.
+
+## Detalle funcional implementado
+
+- Acceso a Árbitros visible para `admin` y `admin_liga`, incluido Perfil.
+- Icono deportivo de árbitro mediante Material Icons disponible.
+- Niveles municipal, departamental y nacional con prerrequisitos secuenciales.
+- Alta, edición y consulta de árbitros por documento, nombre, correo, teléfono y acreditación.
+- Perfil de árbitro con accesos a sus fichas de jugador o entrenador cuando corresponda.
+- Jornadas navegables desde el detalle del torneo.
+- Calendario global con agrupación por día, hora, sede, equipos y estado.
+- Estados normalizados: `Por iniciar`, `Jugando` y `Finalizado`.
+- Presentación consistente de local a la izquierda y visitante a la derecha.
+- Resolución de nombres, identificadores, colores y uniformes sin mostrar UIDs durante la carga.
+- Asignación manual de dos árbitros de campo, cronometrista y anotador.
+- Validación de conflicto cuando un árbitro pertenece a la plantilla local o visitante.
+
+## Colecciones y operaciones
+
+Los partidos se almacenan en `tournaments/{id}/matches`. El administrador crea la jornada y el partido; los usuarios consultan el calendario sin permisos de escritura. La generación automática de jornadas fue trasladada al Sprint 6.

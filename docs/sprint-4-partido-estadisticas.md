@@ -66,3 +66,22 @@ Cada evento conserva tipo, período, jugador, equipo, minuto o marca de tiempo y
 ---
 
 **Método de validación:** pruebas de estados del partido, bloqueo de planillas y reconstrucción de estadísticas desde partidos finalizados.
+
+## Detalle funcional implementado
+
+- Permiso de inicio por asignación del partido.
+- Duración configurable de cada tiempo y estados del marcador.
+- Cuatro oficiales visibles: dos árbitros de campo, cronometrista y anotador.
+- Sección de oficiales plegable y resolución de IDs a nombres.
+- Cronómetro con período, estado resaltado y acciones de finalización.
+- Controles de gol, exclusión, tarjeta amarilla y tarjeta roja.
+- Planilla digital con equipos y jugadores inscritos.
+- La planilla solo se muestra a roles de árbitro normalizados (`arbitro`, `árbitro`, `referee`).
+- Eventos visibles en cronología y sincronizados con el partido.
+- Estadísticas por jugador, equipo, categoría y rama.
+- Tabla de posiciones calculada desde partidos finalizados sin escribir ceros transitorios en Firestore.
+- Distinción de goleadores, goleadoras y porteros según género y posición.
+
+## Trazabilidad
+
+Los commits funcionales del partido en vivo incluyen `7887698`, `3ccadbd`, `15bb4cc`, `735a00e`, `7f490f0`, `c766d8b`, `cbe502e`, `e85c4b0`, `3ff25c2` y `f8bd046`. Cada cambio se concentró en una capacidad concreta para facilitar revisión y rollback.

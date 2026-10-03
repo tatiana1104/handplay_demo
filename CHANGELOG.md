@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Documentación
 
+- Se amplió nuevamente la documentación de los Sprints 1, 2, 3, 4, 5 y 6 con el detalle funcional del historial, evidencias, incidencias y decisiones. Cada commit de implementación deberá actualizar README, CHANGELOG, sprint correspondiente y diagramas afectados.
+
 - Se ampliaron los documentos de Sprint 1 a Sprint 6 con alcance, flujo funcional, decisiones técnicas, seguridad, criterios de aceptación, evidencia y pendientes específicos de cada sprint.
 
 - Se reorganizó `README.md`: la estructura de carpetas ahora documenta explícitamente Clean Architecture + Feature-First y el detalle de actividades de cada sprint quedó en su documento `docs/sprint-*.md` correspondiente.

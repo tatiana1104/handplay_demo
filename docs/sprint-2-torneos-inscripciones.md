@@ -78,3 +78,42 @@ Continuar con árbitros, calendario, partidos y automatización de fases del tor
 ---
 
 **Método de validación:** revisión de reglas de negocio, persistencia en Firestore y flujo de aprobación administrativa.
+
+## Detalle funcional implementado
+
+- Categorías: `master`, `mayor`, `juvenil`, `cadete`, `infantil` y `libre`.
+- Ramas: femenino, masculino y mixto.
+- Selección de varias combinaciones categoría-rama sin botón adicional.
+- Formatos todos-contra-todos y por grupos.
+- Fecha final opcional y validación de fechas de inicio y cierre.
+- Inscripción pública sin cuenta y flujo alternativo con sesión de entrenador.
+- Correo solicitado como `clubEmail`, ubicado dentro de los datos del equipo.
+- Entrenador opcionalmente inscrito también como jugador sin perder sus roles.
+- Validación de documentos repetidos, género, posiciones y dorsales del 1 al 99.
+- Clubes y jugadores seleccionados desde catálogos para evitar discrepancias de escritura libre.
+- Advertencias de similitud por nombre, documento, uniforme y color.
+- Rechazo con motivo visible, edición de la misma solicitud y reenvío a `pending`.
+- Equipos aprobados consultables con entrenador, plantilla, métricas y perfil individual.
+
+## Modelo de persistencia
+
+```text
+tournaments/{tournamentId}
+├── registrations/{registrationId}
+├── teams/{teamId}
+└── matches/{matchId}
+
+users/{uid}
+profile_directory/{document}
+teams/{teamId}
+```
+
+Las solicitudes aprobadas alimentan el contador y la lista pública de equipos; la colección `teams` funciona como índice auxiliar. Las reglas permiten leer información pública aprobada, pero mantienen protegidas las solicitudes pendientes y rechazadas.
+
+## Incidencias y soluciones
+
+- Se deshabilitó temporalmente el logo del equipo hasta contar con almacenamiento configurado.
+- Se eliminó el campo de club libre y se usó el catálogo oficial.
+- Se corrigió el correo para que pertenezca al club y no se use para invitar o vincular al entrenador.
+- Se respetó el área segura inferior del dispositivo en el botón de envío.
+- Se mantuvo la colección de equipos existente como compatibilidad con datos previos.
