@@ -91,9 +91,16 @@ Cada feature sigue tres capas internas:
 
 ## Documentación
 
-La configuración completa de Sprint 1 está documentada paso a paso en [`docs/sprint-1-configuracion.md`](docs/sprint-1-configuracion.md).
+La documentación de los sprints está organizada en archivos independientes:
 
-Incluye Firebase, FlutterFire, autenticación, AuthBloc, Firestore, reglas de seguridad, usuarios administradores, usuarios de prueba, App Check y verificación en dispositivo.
+- [`docs/sprint-1-configuracion.md`](docs/sprint-1-configuracion.md) — configuración inicial, Firebase, autenticación y arquitectura.
+- [`docs/sprint-2-torneos-inscripciones.md`](docs/sprint-2-torneos-inscripciones.md) — torneos, inscripciones, perfiles y aprobaciones.
+- [`docs/sprint-3-arbitros-calendario.md`](docs/sprint-3-arbitros-calendario.md) — árbitros, oficiales, calendario y partidos.
+- [`docs/sprint-4-partido-estadisticas.md`](docs/sprint-4-partido-estadisticas.md) — partido en vivo, planilla y estadísticas.
+- [`docs/sprint-5-perfiles-navegacion.md`](docs/sprint-5-perfiles-navegacion.md) — perfiles multirol, clubes y navegación.
+- [`docs/sprint-6-fases-torneo.md`](docs/sprint-6-fases-torneo.md) — grupos, clasificados y jornadas de fase 1.
+
+Cada archivo explica qué se hizo, cómo se implementó, el resultado, la evidencia técnica y la forma de validación.
 
 ## Puesta en marcha local
 
@@ -238,7 +245,7 @@ Las pantallas deben coordinar datos y composición visual; los modelos, acceso a
 #### Historial de commits de implementación
 - `7887698`: detalle de partido en vivo y permiso de inicio por asignación.
 - `3ccadbd`: duración configurable de cada tiempo y estado del marcador.
-- `15bb4cc`: funciones de árbitro derivadas de la asignación del partido.
+- `15bb4cc`: funciones de árbitro derivadas de la asignaci��n del partido.
 - `735a00e`: estado resaltado en el marcador.
 - `7f490f0`: cuatro oficiales visibles: dos árbitros de campo, cronometrista y anotador.
 - `c766d8b`: eliminación del estado duplicado bajo los oficiales.
