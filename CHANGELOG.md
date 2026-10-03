@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Documentación
 
+- Se reorganizó `README.md`: la estructura de carpetas ahora documenta explícitamente Clean Architecture + Feature-First y el detalle de actividades de cada sprint quedó en su documento `docs/sprint-*.md` correspondiente.
+
 - Se agregaron diagramas Mermaid de arquitectura, base de datos Firestore, flujos operativos y roles/permisos dentro de `docs/`. El README incluye enlaces a cada diagrama.
 
 - Se documentaron los Sprints 2 a 6 en archivos independientes dentro de `docs/`, explicando actividades, implementación, resultados, evidencia técnica y validación. El README incluye el índice completo de documentación.

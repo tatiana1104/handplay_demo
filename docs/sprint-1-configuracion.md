@@ -1,5 +1,19 @@
 # Sprint 1 — Configuración paso a paso
 
+## Actividades realizadas
+
+- Se definió la estructura **Clean Architecture + Feature-First** con `core`, `features` y `shared`.
+- Se configuraron Flutter, Firebase, FlutterFire, Firestore y las plataformas Android, iOS y Web.
+- Se implementó autenticación con Firebase Auth, `AuthBloc`, login, registro, recuperación de contraseña y Google Sign-In.
+- Se configuraron `go_router`, `get_it`, tema visual, rutas públicas y rutas protegidas por sesión y roles.
+- Se agregaron reglas iniciales de Firestore y perfiles multirol en `users/{uid}`.
+- Se creó el flujo de splash, home público, perfil y navegación inferior.
+
+## Resultado y validación
+
+La base del proyecto quedó preparada para incorporar las features de torneos, equipos, calendario y partidos. La validación se realizó con `flutter pub get`, configuración de FlutterFire, despliegue de reglas y pruebas del flujo de arranque y autenticación.
+
+
 ## 1. Requisitos
 
 Instala y verifica:

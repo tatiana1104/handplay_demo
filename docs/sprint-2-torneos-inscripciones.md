@@ -1,5 +1,19 @@
 # Sprint 2 — Torneos e inscripciones
 
+## Actividades realizadas
+
+- Se crearon modelos, repositorios y consultas reactivas para torneos, categorías, sedes, equipos y jugadores.
+- Se implementó la creación y edición de torneos para `admin_liga`, con formatos todos-contra-todos y por grupos.
+- Se construyó la inscripción pública de equipos con club, entrenador, contacto, jugadores y consentimiento.
+- Se implementaron estados `pending`, `approved` y `rejected`, revisión administrativa, motivos de rechazo y reenvío.
+- Se agregaron validaciones de documentos, camisetas, uniformes, similitud y reglas de acceso Firestore.
+- Se implementaron vistas de equipos aprobados, detalle del equipo y perfil del jugador.
+
+## Resultado y validación
+
+El administrador puede gestionar torneos e inscripciones y el entrenador puede consultar el estado de sus solicitudes. La información se persiste en Firestore y las consultas se actualizan en tiempo real.
+
+
 ## Objetivo
 Construir el flujo principal para crear torneos, permitir la inscripción pública de equipos y administrar las solicitudes recibidas.
 
