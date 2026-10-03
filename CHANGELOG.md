@@ -70,6 +70,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - Se agregaron navegación inferior persistente, banners por rol y pantallas responsive.
 - Se unificaron tema, colores, estados, filtros, botones y tarjetas de la aplicación.
 - Se corrigieron problemas de splash, overflow, formularios, navegación y persistencia de perfiles.
+- Se refactorizaron widgets repetidos de cabeceras y tarjetas de acción hacia `lib/shared/widgets`, reduciendo la longitud de pantallas complejas y unificando el estilo visual.
+- Se continuó el refactor de fichas y secciones con tarjetas de resumen compartidas, reduciendo duplicación en el detalle de clubes y manteniendo una misma estructura visual en todo el flujo de equipos.
 - Se ajustó la vista de detalle de clubes del administrador de liga para mostrar equipos y jugadores sin desaparecer durante la carga, usando comparación más tolerante entre nombres de clubes.
 - Se compactó la interfaz de posiciones y destacados para pantallas pequeñas con `SafeArea`, truncado y reducción de márgenes.
 

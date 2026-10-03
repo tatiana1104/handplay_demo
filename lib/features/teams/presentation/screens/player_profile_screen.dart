@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/info_value_row.dart';
 import '../../../../shared/widgets/metric_tile.dart';
 import '../../../tournaments/domain/models/tournament_models.dart';
 import '../../domain/team_stats_calculator.dart';
@@ -75,11 +76,11 @@ class PlayerProfileScreen extends StatelessWidget {
               Card(
                 margin: EdgeInsets.zero,
                 child: Column(children: [
-                  _DataRow(label: 'Equipo', value: teamName),
-                  _DataRow(label: 'Posición', value: position?.isNotEmpty == true ? position! : 'Sin posición'),
-                  _DataRow(label: 'Dorsal', value: number?.isNotEmpty == true ? '#$number' : 'Sin número'),
-                  if (gender != null && gender.isNotEmpty) _DataRow(label: 'Rama', value: capitalize(gender)),
-                  if (document != null && document.isNotEmpty) _DataRow(label: 'Documento', value: _maskDocument(document)),
+                  InfoValueRow(label: 'Equipo', value: teamName),
+                  InfoValueRow(label: 'Posición', value: position?.isNotEmpty == true ? position! : 'Sin posición'),
+                  InfoValueRow(label: 'Dorsal', value: number?.isNotEmpty == true ? '#$number' : 'Sin número'),
+                  if (gender != null && gender.isNotEmpty) InfoValueRow(label: 'Rama', value: capitalize(gender)),
+                  if (document != null && document.isNotEmpty) InfoValueRow(label: 'Documento', value: _maskDocument(document)),
                 ]),
               ),
               if (isReferee) ...[
@@ -123,27 +124,3 @@ class PlayerProfileScreen extends StatelessWidget {
   String _maskDocument(String value) => value.length <= 4 ? value : '${'•' * (value.length - 4)}${value.substring(value.length - 4)}';
 }
 
-/// ES: Presenta una etiqueta y un valor personal del jugador.
-/// EN: Presents one of the player's personal details as a label-value row.
-class _DataRow extends StatelessWidget {
-  /// ES: Crea una fila de datos personales.
-  /// EN: Creates a personal data row.
-  const _DataRow({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  /// ES: Construye la fila con el valor alineado al extremo derecho.
-  /// EN: Builds the row with its value aligned to the trailing edge.
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(children: [
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        const SizedBox(width: 12),
-        Expanded(child: Text(value, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
-      ]),
-    );
-  }
-}

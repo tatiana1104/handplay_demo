@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/detail_summary_card.dart';
+import '../../../../shared/widgets/metric_tile.dart';
 import '../../domain/models/club_model.dart';
 
 /// Muestra los equipos y las personas relacionadas con un club oficial.
@@ -76,38 +78,21 @@ class ClubDetailScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
-              Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        club.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${teams.length} equipos · ${players.length} jugadores',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
+              DetailSummaryCard(
+                title: club.name,
+                subtitle: '${teams.length} equipos · ${players.length} jugadores',
+                leading: const CircleAvatar(
+                  radius: 20,
+                  child: Icon(Icons.groups_2_outlined, size: 20),
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Listado de jugadores',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              const SectionHeader('Listado de jugadores'),
               const SizedBox(height: 8),
               if (players.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('Este club todavía no tiene jugadores registrados.'),
+                const EmptySection(
+                  icon: Icons.person_off_outlined,
+                  message: 'Este club todavía no tiene jugadores registrados.',
                 )
               else
                 ...players.map(
@@ -122,10 +107,7 @@ class ClubDetailScreen extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 16),
-              Text(
-                'Equipos',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              const SectionHeader('Equipos'),
               const SizedBox(height: 8),
               ...teams.map(
                 (registration) => Padding(

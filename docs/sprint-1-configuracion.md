@@ -29,8 +29,6 @@ cd handplay_demo
 flutter pub get
 ```
 
-La rama de trabajo usada durante Sprint 1 fue `v0/firebase-initialization`.
-
 ## 3. Vincular Flutter con Firebase
 
 Inicia sesión en Firebase CLI:

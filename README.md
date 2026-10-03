@@ -321,6 +321,17 @@ Incluye la generación automática del calendario y de las jornadas a partir de 
 
 _(Ver el desglose completo de cada sprint en `Seguimiento_de_item.docx`.)_
 
+### Estado final de la última corrección
+
+- La regla de Firestore del proyecto `handplaydemo` ya quedó publicada con la validación correcta de `clubEmail` y la exigencia de `publicRegistration: true` para aceptar inscripciones públicas.
+- El rechazo de inscripción se debió a un desalineamiento de campos y a la falta de activación de la inscripción pública; ambas condiciones quedaron corregidas en la app y en la regla.
+- La vista de detalle de clubes del administrador de liga ya muestra equipos y jugadores de forma estable, sin que desaparezcan al cargar la información.
+- El error de overflow en el formulario de jugador quedó resuelto con mejor manejo del ancho y `SafeArea`/truncado para celulares con barra de navegación.
+- Las tablas de posiciones, goleadores, goleadoras y valla menos vencida calculan sus valores solo con registros y planillas aprobadas, evitando información no validada.
+- La interfaz de la pantalla de torneo quedó más compacta para celulares pequeños sin perder legibilidad ni la lógica de negocio del torneo.
+- Se refactorizaron widgets repetidos de tarjetas y títulos de sección hacia `lib/shared/widgets` para reducir la longitud de archivos y mantener un estilo consistente en toda la app.
+- Se continuó la limpieza de pantallas largas con widgets compartidos de resumen y contenido vacío, especialmente en detalle de clubes y torneos, reduciendo duplicación y mejorando mantenibilidad.
+
 ## Convenciones
 
 - **Ramas:** `feature/RF-XX-descripcion`, `fix/RN-XX-descripcion`.

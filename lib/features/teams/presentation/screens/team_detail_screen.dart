@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/info_value_row.dart';
 import '../../../../shared/widgets/metric_tile.dart';
 import '../../../tournaments/domain/models/tournament_models.dart';
 import '../../../tournaments/presentation/utils/standings_calculator.dart';
@@ -130,10 +131,10 @@ class _TeamDetailBody extends StatelessWidget {
         Card(
           margin: EdgeInsets.zero,
           child: Column(children: [
-            _InfoRow(icon: Icons.sports, label: 'Director técnico', value: coach?.isNotEmpty == true ? coach! : 'No registrado'),
-            if (assistant != null && assistant.isNotEmpty) _InfoRow(icon: Icons.person_outline, label: 'Asistente', value: assistant),
-            if (registration['coachPhone'] != null) _InfoRow(icon: Icons.phone_outlined, label: 'Teléfono', value: registration['coachPhone'].toString()),
-            if (registration['coachEmail'] != null) _InfoRow(icon: Icons.mail_outline, label: 'Correo', value: registration['coachEmail'].toString()),
+            InfoValueRow(icon: Icons.sports, label: 'Director técnico', value: coach?.isNotEmpty == true ? coach! : 'No registrado'),
+            if (assistant != null && assistant.isNotEmpty) InfoValueRow(icon: Icons.person_outline, label: 'Asistente', value: assistant),
+            if (registration['coachPhone'] != null) InfoValueRow(icon: Icons.phone_outlined, label: 'Teléfono', value: registration['coachPhone'].toString()),
+            if (registration['coachEmail'] != null) InfoValueRow(icon: Icons.mail_outline, label: 'Correo', value: registration['coachEmail'].toString()),
           ]),
         ),
         SectionHeader('Plantilla', trailing: '${players.length} jugadores'),
@@ -178,34 +179,6 @@ class _TeamDetailBody extends StatelessWidget {
   /// ES: Agrega un signo positivo a las diferencias de gol favorables.
   /// EN: Adds a plus sign to positive goal differences.
   String _signed(int value) => value > 0 ? '+$value' : '$value';
-}
-
-/// ES: Muestra una etiqueta y su valor con un icono.
-/// EN: Displays a label and value alongside an icon.
-class _InfoRow extends StatelessWidget {
-  /// ES: Crea una fila de información del equipo.
-  /// EN: Creates a team information row.
-  const _InfoRow({required this.icon, required this.label, required this.value});
-  final IconData icon;
-  final String label;
-  final String value;
-
-  /// ES: Construye una fila de datos alineada para lectura rápida.
-  /// EN: Builds an aligned data row for quick scanning.
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(children: [
-        Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(width: 12),
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        const SizedBox(width: 12),
-        Expanded(child: Text(value, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
-      ]),
-    );
-  }
 }
 
 /// ES: Muestra la información resumida y las estadísticas de un jugador.
