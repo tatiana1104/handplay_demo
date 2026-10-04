@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Documentación
 
+- Se agregó `docs/cancha-todas-las-vistas.html` como referencia visual con las vistas de cancha en temas claro y oscuro.
+
 - Se amplió nuevamente la documentación de los Sprints 1, 2, 3, 4, 5 y 6 con el detalle funcional del historial, evidencias, incidencias y decisiones. Cada commit de implementación deberá actualizar README, CHANGELOG, sprint correspondiente y diagramas afectados.
 
 - Se ampliaron los documentos de Sprint 1 a Sprint 6 con alcance, flujo funcional, decisiones técnicas, seguridad, criterios de aceptación, evidencia y pendientes específicos de cada sprint.

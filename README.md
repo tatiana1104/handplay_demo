@@ -126,6 +126,8 @@ Los documentos explican el objetivo, las actividades, la implementación, el res
 
 Los diagramas están escritos en Mermaid dentro de Markdown para que se rendericen en GitHub y otros visores compatibles.
 
+- [`docs/cancha-todas-las-vistas.html`](docs/cancha-todas-las-vistas.html) — referencia visual de las vistas de cancha en tema claro y oscuro.
+
 ## Puesta en marcha local
 
 ```bash
