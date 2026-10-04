@@ -160,9 +160,9 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           if (hasRole('entrenador'))
-            _roleButton(context, 'Entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['teamName', 'specialty', 'experience'])),
+            _roleButton(context, 'Entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['clubName', 'clubEmail', 'teamName'])),
           if (hasRole('arbitro') || hasRole('árbitro') || hasRole('referee'))
-            _roleButton(context, 'Árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'experience', 'phone'])),
+            _roleButton(context, 'Árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'phone'])),
           if (hasRole('jugador') || hasRole('player'))
             _roleButton(context, 'Jugador', Icons.person_outline, () => _showRoleSheet(context, 'Ficha de jugador', profile, ['shirtNumber', 'position', 'teamName'])),
           const SizedBox(height: 24),
@@ -217,7 +217,7 @@ class ProfileScreen extends StatelessWidget {
   /// ES: Traduce nombres de campos Firestore a etiquetas legibles.
   /// EN: Maps Firestore field names to readable profile labels.
   String _fieldLabel(String field) {
-    const labels = {'teamName': 'Equipo', 'specialty': 'Especialidad', 'experience': 'Experiencia', 'category': 'Categoría', 'phone': 'Teléfono', 'shirtNumber': 'Número de camiseta', 'position': 'Posición'};
+    const labels = {'clubName': 'Club asociado', 'clubEmail': 'Correo del club', 'teamName': 'Equipo', 'category': 'Categoría', 'phone': 'Teléfono', 'shirtNumber': 'Número de camiseta', 'position': 'Posición'};
     return labels[field] ?? field;
   }
 

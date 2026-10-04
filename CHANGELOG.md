@@ -97,6 +97,10 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 - **Sprint 5:** perfiles multirol, estadísticas reutilizables, deduplicación y mejoras de navegación/documentación.
 - **Sprint 6 en preparación:** automatización de calendario, notificaciones y asistente con IA.
 
+## Cambios recientes
+
+- La inscripción crea un perfil de club en Firestore, las ediciones sincronizan `users` y `profile_directory`, la ficha del entrenador muestra club asociado, los clubes admiten asistentes y se eliminaron experiencia y especialidad.
+
 ## Documentación
 
 - Se agregó `docs/cancha-todas-las-vistas.html` como referencia visual con las vistas de cancha en temas claro y oscuro.
@@ -129,7 +133,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 - Se agregó el detalle interactivo de cada club, con sus equipos inscritos, jugadores y entrenadores, además de fichas resumidas para cada persona.
 
-- Se corrigió definitivamente el error de Flutter `_dependents.isEmpty` al guardar clubes: el diálogo ahora es un widget Stateful autónomo que crea y libera su controlador dentro de su propio ciclo de vida, evitando dependencias activas al desmontar la ruta.
+- Se corrigió definitivamente el error de Flutter `_dependents.isEmpty` al guardar clubes: el diálogo ahora es un widget Stateful aut��nomo que crea y libera su controlador dentro de su propio ciclo de vida, evitando dependencias activas al desmontar la ruta.
 
 ## Commits de referencia recientes
 

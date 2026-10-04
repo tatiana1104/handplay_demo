@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -84,6 +82,13 @@ class TeamRegistrationService {
     final directoryBatch = _firestore.batch();
     final users = _firestore.collection('users');
     final profileDirectory = _firestore.collection('profile_directory');
+    _addClubUser(
+      directoryBatch: directoryBatch,
+      users: users,
+      profileDirectory: profileDirectory,
+      clubName: clubs.join(', '),
+      email: normalizedClubEmail,
+    );
 
     final coachIsAlsoPlayer = enrichedPlayers.any(
       (player) =>
@@ -101,7 +106,11 @@ class TeamRegistrationService {
         roles: const ['entrenador'],
         email: null,
         phone: coachPhone,
-        extra: {'teamName': teamName.trim()},
+        extra: {
+          'teamName': teamName.trim(),
+          'clubName': clubs.join(', '),
+          'clubEmail': normalizedClubEmail,
+        },
       );
     }
     for (final player in enrichedPlayers) {
@@ -267,35 +276,29 @@ class TeamRegistrationService {
     directoryBatch.set(directoryRef, data, SetOptions(merge: true));
   }
 
-  /// ES: Crea la cuenta de un entrenador nuevo y envía el enlace de contraseña.
-  /// EN: Creates a new coach account and emails a password setup link.
-  Future<String?> _sendCoachSetupLink(String email) async {
-    if (email.isEmpty || _auth.currentUser != null) return null;
-    const alphabet =
-        'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#';
-    final random = Random.secure();
-    final temporaryPassword = List.generate(
-      28,
-      (_) => alphabet[random.nextInt(alphabet.length)],
-    ).join();
-    try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: temporaryPassword,
-      );
-      final uid = credential.user?.uid;
-      await _auth.sendPasswordResetEmail(email: email);
-      await _auth.signOut();
-      return uid;
-    } on FirebaseAuthException catch (error) {
-      if (error.code == 'email-already-in-use') {
-        await _auth.sendPasswordResetEmail(email: email);
-        return null;
-      }
-      rethrow;
-    }
+  void _addClubUser({
+    required WriteBatch directoryBatch,
+    required CollectionReference<Map<String, dynamic>> users,
+    required CollectionReference<Map<String, dynamic>> profileDirectory,
+    required String clubName,
+    required String email,
+  }) {
+    if (email.isEmpty) return;
+    final key = email.replaceAll(RegExp(r'[^a-z0-9]'), '_');
+    final data = <String, dynamic>{
+      'uid': 'club_$key',
+      'displayName': clubName.trim(),
+      'clubName': clubName.trim(),
+      'email': email,
+      'roles': ['club'],
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    directoryBatch.set(users.doc('club_$key'), data, SetOptions(merge: true));
+    directoryBatch.set(profileDirectory.doc('club_$key'), data, SetOptions(merge: true));
   }
 
+  /// ES: Elimina puntuación y diferencias de mayúsculas en documentos.
+  /// EN: Removes punctuation and casing differences from identity documents.
   /// ES: Elimina puntuación y diferencias de mayúsculas en documentos.
   /// EN: Removes punctuation and casing differences from identity documents.
   String _normalizeDocument(String value) =>

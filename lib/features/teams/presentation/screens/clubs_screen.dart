@@ -66,7 +66,8 @@ class _ClubsScreenState extends State<ClubsScreen> {
   }
 
   Future<void> _editClub({ClubModel? club}) async {
-    final name = await showDialog<String>(context: context, builder: (_) => _ClubEditDialog(initialName: club?.name));
+    final result = await showDialog<({String name, String assistantName, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
+    final name = result?.name;
     if (name == null || !mounted || _savingClub) return;
     setState(() => _savingClub = true);
     try {
@@ -83,9 +84,9 @@ class _ClubsScreenState extends State<ClubsScreen> {
           _showMessage('Inicia sesión como administrador para crear un club.');
           return;
         }
-        await _repository.createClub(name: name, createdBy: userId);
+        await _repository.createClub(name: name, createdBy: userId, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? '');
       } else {
-        await _repository.updateClub(ClubModel(id: club.id, name: name));
+        await _repository.updateClub(ClubModel(id: club.id, name: name, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? ''));
       }
       if (mounted) _showMessage(club == null ? 'Club registrado.' : 'Club actualizado.');
     } on FirebaseException catch (error) {
@@ -126,8 +127,8 @@ class _ClubsScreenState extends State<ClubsScreen> {
 }
 
 class _ClubEditDialog extends StatefulWidget {
-  const _ClubEditDialog({this.initialName});
-  final String? initialName;
+  const _ClubEditDialog({this.club});
+  final ClubModel? club;
 
   @override
   State<_ClubEditDialog> createState() => _ClubEditDialogState();
@@ -135,17 +136,23 @@ class _ClubEditDialog extends StatefulWidget {
 
 class _ClubEditDialogState extends State<_ClubEditDialog> {
   late final TextEditingController _controller;
+  late final TextEditingController _assistantName;
+  late final TextEditingController _assistantEmail;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialName ?? '');
+    _controller = TextEditingController(text: widget.club?.name ?? '');
+    _assistantName = TextEditingController(text: widget.club?.assistantName ?? '');
+    _assistantEmail = TextEditingController(text: widget.club?.assistantEmail ?? '');
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _assistantName.dispose();
+    _assistantEmail.dispose();
     super.dispose();
   }
 
@@ -162,12 +169,17 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
           decoration: const InputDecoration(labelText: 'Nombre oficial del club', hintText: 'Club Deportivo Caquetá'),
           validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre del club' : null,
         ),
+        TextFormField(controller: _assistantName, decoration: const InputDecoration(labelText: 'Asistente del club (opcional)')),
+        TextFormField(controller: _assistantEmail, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo del asistente (opcional)')),
+
       ),
       actions: [
         TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
         FilledButton(
           onPressed: () {
-            if (_formKey.currentState!.validate()) Navigator.of(context).pop(_controller.text.trim());
+            if (_formKey.currentState!.validate()) {
+              Navigator.of(context).pop((name: _controller.text.trim(), assistantName: _assistantName.text.trim(), assistantEmail: _assistantEmail.text.trim()));
+            }
           },
           child: const Text('Guardar'),
         ),

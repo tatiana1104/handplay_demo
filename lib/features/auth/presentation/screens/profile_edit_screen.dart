@@ -25,8 +25,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   late final TextEditingController _shirtNumber;
   late final TextEditingController _position;
   late final TextEditingController _teamName;
-  late final TextEditingController _experience;
-  late final TextEditingController _specialty;
   bool _saving = false;
 
   late final Set<String> _roles;
@@ -52,15 +50,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _shirtNumber = TextEditingController(text: value('shirtNumber'));
     _position = TextEditingController(text: value('position'));
     _teamName = TextEditingController(text: value('teamName'));
-    _experience = TextEditingController(text: value('experience'));
-    _specialty = TextEditingController(text: value('specialty'));
   }
 
   /// ES: Libera los controladores de los campos editables.
   /// EN: Releases all controllers created for editable profile fields.
   @override
   void dispose() {
-    for (final controller in [_name, _phone, _document, _shirtNumber, _position, _teamName, _experience, _specialty]) {
+    for (final controller in [_name, _phone, _document, _shirtNumber, _position, _teamName]) {
       controller.dispose();
     }
     super.dispose();
@@ -75,6 +71,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         'displayName': _name.text.trim(),
         'phone': _phone.text.trim(),
         'document': _document.text.trim(),
+        'experience': FieldValue.delete(),
+        'specialty': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
       if (_isPlayer) {
@@ -86,14 +84,25 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
       if (_isCoach) {
         updates['teamName'] = _teamName.text.trim();
-        updates['experience'] = _experience.text.trim();
       }
       if (_isReferee) {
-        updates['experience'] = _experience.text.trim();
-        updates['specialty'] = _specialty.text.trim();
       }
-      await FirebaseFirestore.instance.collection('users').doc(widget.userId).set(updates, SetOptions(merge: true));
-      await FirebaseAuth.instance.currentUser?.updateDisplayName(_name.text.trim());
+      final firestore = FirebaseFirestore.instance;
+      final normalizedName = _name.text.trim();
+      await firestore.collection('users').doc(widget.userId).set(updates, SetOptions(merge: true));
+      await firestore.collection('profile_directory').doc(widget.userId).set({
+        'name': normalizedName,
+        'document': _document.text.trim(),
+        'phone': _phone.text.trim(),
+        if (_isPlayer) ...{
+          'shirtNumber': int.tryParse(_shirtNumber.text.trim()),
+          'position': _position.text.trim(),
+          'teamName': _teamName.text.trim(),
+        },
+        if (_isCoach) 'teamName': _teamName.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      await FirebaseAuth.instance.currentUser?.updateDisplayName(normalizedName);
       if (mounted) Navigator.of(context).pop(true);
     } on FirebaseException catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar (${error.code}).')));
@@ -134,12 +143,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (_isCoach) ...[
         _sectionTitle(context, 'Información de entrenador'),
         _field('Equipo', _teamName),
-        _field('Experiencia', _experience),
       ],
       if (_isReferee) ...[
         _sectionTitle(context, 'Información de árbitro'),
-        _field('Experiencia', _experience),
-        _field('Especialidad o certificación', _specialty),
       ],
       const SizedBox(height: 8),
       FilledButton.icon(onPressed: _saving ? null : _save, icon: const Icon(Icons.save_outlined), label: Text(_saving ? 'Guardando...' : 'Guardar cambios')),

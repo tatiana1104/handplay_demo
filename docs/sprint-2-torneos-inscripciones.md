@@ -117,3 +117,5 @@ Las solicitudes aprobadas alimentan el contador y la lista pública de equipos; 
 - Se corrigió el correo para que pertenezca al club y no se use para invitar o vincular al entrenador.
 - Se respetó el área segura inferior del dispositivo en el botón de envío.
 - Se mantuvo la colección de equipos existente como compatibilidad con datos previos.
+- Al registrar el club se crea o actualiza automáticamente un perfil de usuario de club en `users/club_<emailKey>` y `profile_directory/club_<emailKey>`.
+- El correo del club se conserva como identidad del club y no se asigna al entrenador.

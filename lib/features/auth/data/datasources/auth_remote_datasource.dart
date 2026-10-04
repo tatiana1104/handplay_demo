@@ -250,7 +250,6 @@ class AuthRemoteDataSource {
       if (mergedData['document'] != null) 'document': mergedData['document'],
       if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
       if (mergedData['category'] != null) 'category': mergedData['category'],
-      if (mergedData['experience'] != null) 'experience': mergedData['experience'],
       if (mergedData['phone'] != null) 'phone': mergedData['phone'],
       if (mergedData['documentNumber'] != null) 'documentNumber': mergedData['documentNumber'],
       if (mergedData['shirtNumber'] != null) 'shirtNumber': mergedData['shirtNumber'],

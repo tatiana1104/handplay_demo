@@ -24,10 +24,12 @@ class ClubRepository {
 
   /// ES: Crea un club oficial y registra quién lo creó.
   /// EN: Creates an official club and records who created it.
-  Future<void> createClub({required String name, required String createdBy}) {
+  Future<void> createClub({required String name, required String createdBy, String assistantName = '', String assistantEmail = ''}) {
     final document = _clubs.doc();
     return document.set({
       'name': name.trim(),
+      'assistantName': assistantName.trim(),
+      'assistantEmail': assistantEmail.trim().toLowerCase(),
       'createdBy': createdBy,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -38,6 +40,8 @@ class ClubRepository {
   /// EN: Updates a club name without changing its creation metadata.
   Future<void> updateClub(ClubModel club) => _clubs.doc(club.id).update({
     'name': club.name.trim(),
+    'assistantName': club.assistantName.trim(),
+    'assistantEmail': club.assistantEmail.trim().toLowerCase(),
     'updatedAt': FieldValue.serverTimestamp(),
   });
 

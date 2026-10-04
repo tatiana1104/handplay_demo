@@ -79,6 +79,8 @@ erDiagram
 
 ```text
 users/{uid}
+users/club_{emailKey}  (usuario de club creado al inscribir)
+clubs/{clubId}          (assistantName, assistantEmail)
 profile_directory/{profileId}
 clubs/{clubId}
 tournaments/{tournamentId}
