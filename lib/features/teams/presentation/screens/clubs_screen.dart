@@ -159,19 +159,23 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initialName == null ? 'Registrar club' : 'Editar club'),
+      title: Text(widget.club == null ? 'Registrar club' : 'Editar club'),
       content: Form(
         key: _formKey,
-        child: TextFormField(
-          controller: _controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Nombre oficial del club', hintText: 'Club Deportivo Caquetá'),
-          validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre del club' : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(labelText: 'Nombre oficial del club', hintText: 'Club Deportivo Caquetá'),
+              validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre del club' : null,
+            ),
+            TextFormField(controller: _assistantName, decoration: const InputDecoration(labelText: 'Asistente del club (opcional)')),
+            TextFormField(controller: _assistantEmail, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo del asistente (opcional)')),
+          ],
         ),
-        TextFormField(controller: _assistantName, decoration: const InputDecoration(labelText: 'Asistente del club (opcional)')),
-        TextFormField(controller: _assistantEmail, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo del asistente (opcional)')),
-
       ),
       actions: [
         TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
