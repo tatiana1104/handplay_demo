@@ -146,7 +146,7 @@ flutter run
 
 Después de cada commit funcional se deben revisar y actualizar, cuando aplique, `README.md`, `CHANGELOG.md`, el documento del sprint correspondiente y los diagramas afectados (`docs/diagrama-*.md` o `docs/diagramas-*.md`). Así la documentación, los flujos y el modelo de datos permanecen alineados con el código.
 
-La inscripción de un club crea o actualiza un perfil de usuario de club en `users/club_<correo>` y `profile_directory/club_<correo>`. Los perfiles editados se sincronizan en `users/{uid}` y `profile_directory/{uid}`. El entrenador puede consultar el club asociado, y el administrador puede guardar nombre y correo de un asistente en el club. Se eliminaron los campos de experiencia y especialidad.
+La inscripción de un club crea o actualiza un perfil de usuario de club en `users/club_<correo>` y `profile_directory/club_<correo>`. Los perfiles editados se sincronizan en `users/{uid}` y `profile_directory/{uid}`. El entrenador puede consultar el club asociado y su correo desde la ficha de perfil; al guardar el perfil se sincronizan esos campos desde `profile_directory/document_<documento>`, y el administrador puede guardar nombre y correo de un asistente en el club. Se eliminaron los campos de experiencia y especialidad.
 
 ## Convenciones
 

@@ -83,6 +83,6 @@ Cuenta Firebase Auth → búsqueda por UID/documento → perfil Firestore
 - Se eliminó el argumento `bottomNavigationBar` duplicado del detalle de árbitro.
 - Se corrigió el assertion `_dependents.isEmpty` convirtiendo el diálogo de clubes en un widget Stateful autónomo.
 - La edición sincroniza `users/{uid}` y `profile_directory/{uid}` para que los cambios sean visibles en la base de datos.
-- La ficha de entrenador incluye club asociado y correo del club.
+- La ficha de entrenador incluye club asociado y correo del club; al editar el perfil se recuperan desde el directorio por documento cuando el documento `users/{uid}` aún no los contiene.
 - El administrador puede asignar nombre y correo de asistente desde el catálogo de clubes.
 - Se retiraron de formularios, fichas y sincronización los campos de experiencia y especialidad.

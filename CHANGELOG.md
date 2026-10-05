@@ -99,7 +99,7 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Cambios recientes
 
-- La inscripción crea un perfil de club en Firestore, las ediciones sincronizan `users` y `profile_directory`, la ficha del entrenador muestra club asociado, los clubes admiten asistentes y se eliminaron experiencia y especialidad.
+- La inscripción crea un perfil de club en Firestore, las ediciones sincronizan `users` y `profile_directory`, la ficha del entrenador muestra club asociado recuperándolo por documento cuando es necesario, los clubes admiten asistentes y se eliminaron experiencia y especialidad.
 
 ## Documentación
 

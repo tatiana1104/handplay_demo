@@ -89,6 +89,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       }
       final firestore = FirebaseFirestore.instance;
       final normalizedName = _name.text.trim();
+      if (_isCoach) {
+        final normalizedDocument = _document.text.trim().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+        if (normalizedDocument.isNotEmpty) {
+          final directorySnapshot = await firestore.collection('profile_directory').doc('document_$normalizedDocument').get();
+          final directoryData = directorySnapshot.data();
+          if (directoryData != null) {
+            for (final field in ['clubName', 'clubEmail']) {
+              final value = directoryData[field]?.toString().trim() ?? '';
+              if (value.isNotEmpty) updates[field] = value;
+            }
+          }
+        }
+      }
       await firestore.collection('users').doc(widget.userId).set(updates, SetOptions(merge: true));
       await firestore.collection('profile_directory').doc(widget.userId).set({
         'name': normalizedName,
