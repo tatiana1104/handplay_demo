@@ -24,7 +24,7 @@ class ClubRepository {
 
   /// ES: Crea un club oficial y registra quién lo creó.
   /// EN: Creates an official club and records who created it.
-  Future<void> createClub({required String name, required String email, required String createdBy, String assistantName = '', String assistantEmail = ''}) {
+  Future<void> createClub({required String name, required String email, required String createdBy, String coachName = '', String coachDocument = '', String coachEmail = '', String assistantName = '', String assistantDocument = '', String assistantEmail = ''}) {
     final document = _clubs.doc();
     final normalizedEmail = email.trim().toLowerCase();
     final userId = 'club_${normalizedEmail.replaceAll(RegExp(r'[^a-z0-9]'), '_')}';
@@ -32,7 +32,11 @@ class ClubRepository {
     batch.set(document, {
       'name': name.trim(),
       'email': normalizedEmail,
+      'coachName': coachName.trim(),
+      'coachDocument': coachDocument.trim(),
+      'coachEmail': coachEmail.trim().toLowerCase(),
       'assistantName': assistantName.trim(),
+      'assistantDocument': assistantDocument.trim(),
       'assistantEmail': assistantEmail.trim().toLowerCase(),
       'createdBy': createdBy,
       'createdAt': FieldValue.serverTimestamp(),
@@ -63,7 +67,11 @@ class ClubRepository {
     batch.update(_clubs.doc(club.id), {
     'name': club.name.trim(),
     'email': normalizedEmail,
+    'coachName': club.coachName.trim(),
+    'coachDocument': club.coachDocument.trim(),
+    'coachEmail': club.coachEmail.trim().toLowerCase(),
     'assistantName': club.assistantName.trim(),
+    'assistantDocument': club.assistantDocument.trim(),
     'assistantEmail': club.assistantEmail.trim().toLowerCase(),
     'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -79,6 +87,18 @@ class ClubRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
     return batch.commit();
+  }
+
+  Future<Map<String, dynamic>?> findPersonByDocument(String document) async {
+    final normalized = document.trim();
+    if (normalized.isEmpty) return null;
+    for (final collection in ['profile_directory', 'users']) {
+      final result = await _firestore.collection(collection).where('document', isEqualTo: normalized).limit(1).get();
+      if (result.docs.isNotEmpty) return result.docs.first.data();
+      final byNumber = await _firestore.collection(collection).where('documentNumber', isEqualTo: normalized).limit(1).get();
+      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+    }
+    return null;
   }
 
   /// ES: Elimina el club oficial seleccionado.

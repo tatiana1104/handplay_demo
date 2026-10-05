@@ -66,7 +66,7 @@ class _ClubsScreenState extends State<ClubsScreen> {
   }
 
   Future<void> _editClub({ClubModel? club}) async {
-    final result = await showDialog<({String name, String email, String assistantName, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
+    final result = await showDialog<({String name, String email, String coachName, String coachDocument, String coachEmail, String assistantName, String assistantDocument, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
     final name = result?.name;
     if (name == null || !mounted || _savingClub) return;
     setState(() => _savingClub = true);
@@ -84,9 +84,9 @@ class _ClubsScreenState extends State<ClubsScreen> {
           _showMessage('Inicia sesión como administrador para crear un club.');
           return;
         }
-        await _repository.createClub(name: name, email: result?.email ?? '', createdBy: userId, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? '');
+        await _repository.createClub(name: name, email: result?.email ?? '', createdBy: userId, coachName: result?.coachName ?? '', coachDocument: result?.coachDocument ?? '', coachEmail: result?.coachEmail ?? '', assistantName: result?.assistantName ?? '', assistantDocument: result?.assistantDocument ?? '', assistantEmail: result?.assistantEmail ?? '');
       } else {
-        await _repository.updateClub(ClubModel(id: club.id, name: name, email: result?.email ?? '', assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? ''));
+        await _repository.updateClub(ClubModel(id: club.id, name: name, email: result?.email ?? '', coachName: result?.coachName ?? '', coachDocument: result?.coachDocument ?? '', coachEmail: result?.coachEmail ?? '', assistantName: result?.assistantName ?? '', assistantDocument: result?.assistantDocument ?? '', assistantEmail: result?.assistantEmail ?? ''));
       }
       if (mounted) _showMessage(club == null ? 'Club registrado.' : 'Club actualizado.');
     } on FirebaseException catch (error) {
@@ -137,16 +137,27 @@ class _ClubEditDialog extends StatefulWidget {
 class _ClubEditDialogState extends State<_ClubEditDialog> {
   late final TextEditingController _controller;
   late final TextEditingController _email;
+  late final TextEditingController _coachName;
+  late final TextEditingController _coachDocument;
+  late final TextEditingController _coachEmail;
   late final TextEditingController _assistantName;
+  late final TextEditingController _assistantDocument;
   late final TextEditingController _assistantEmail;
   final _formKey = GlobalKey<FormState>();
+  final _repository = ClubRepository();
+  bool _searchingCoach = false;
+  bool _searchingAssistant = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.club?.name ?? '');
     _email = TextEditingController(text: widget.club?.email ?? '');
+    _coachName = TextEditingController(text: widget.club?.coachName ?? '');
+    _coachDocument = TextEditingController(text: widget.club?.coachDocument ?? '');
+    _coachEmail = TextEditingController(text: widget.club?.coachEmail ?? '');
     _assistantName = TextEditingController(text: widget.club?.assistantName ?? '');
+    _assistantDocument = TextEditingController(text: widget.club?.assistantDocument ?? '');
     _assistantEmail = TextEditingController(text: widget.club?.assistantEmail ?? '');
   }
 
@@ -154,9 +165,31 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
   void dispose() {
     _controller.dispose();
     _email.dispose();
+    _coachName.dispose();
+    _coachDocument.dispose();
+    _coachEmail.dispose();
     _assistantName.dispose();
+    _assistantDocument.dispose();
     _assistantEmail.dispose();
     super.dispose();
+  }
+
+  Future<void> _lookup({required bool coach}) async {
+    final document = (coach ? _coachDocument : _assistantDocument).text.trim();
+    if (document.isEmpty) return;
+    setState(() => coach ? _searchingCoach = true : _searchingAssistant = true);
+    try {
+      final data = await _repository.findPersonByDocument(document);
+      if (!mounted) return;
+      if (data == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se encontró una persona con ese documento.')));
+        return;
+      }
+      (coach ? _coachName : _assistantName).text = data['displayName']?.toString() ?? data['nombre']?.toString() ?? '';
+      (coach ? _coachEmail : _assistantEmail).text = data['email']?.toString() ?? data['correo']?.toString() ?? '';
+    } finally {
+      if (mounted) setState(() => coach ? _searchingCoach = false : _searchingAssistant = false);
+    }
   }
 
   @override
@@ -181,8 +214,14 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
               decoration: const InputDecoration(labelText: 'Correo electrónico del club'),
               validator: (value) => value == null || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim()) ? 'Escribe un correo válido' : null,
             ),
-            TextFormField(controller: _assistantName, decoration: const InputDecoration(labelText: 'Asistente del club (opcional)')),
-            TextFormField(controller: _assistantEmail, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo del asistente (opcional)')),
+            const Align(alignment: Alignment.centerLeft, child: Text('Entrenador del club', style: TextStyle(fontWeight: FontWeight.bold))),
+            TextFormField(controller: _coachDocument, decoration: InputDecoration(labelText: 'Documento del entrenador', suffixIcon: IconButton(onPressed: _searchingCoach ? null : () => _lookup(coach: true), icon: _searchingCoach ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search)))),
+            TextFormField(controller: _coachName, readOnly: true, decoration: const InputDecoration(labelText: 'Nombre del entrenador')),
+            TextFormField(controller: _coachEmail, readOnly: true, decoration: const InputDecoration(labelText: 'Correo del entrenador')),
+            const Align(alignment: Alignment.centerLeft, child: Text('Asistente del club', style: TextStyle(fontWeight: FontWeight.bold))),
+            TextFormField(controller: _assistantDocument, decoration: InputDecoration(labelText: 'Documento del asistente', suffixIcon: IconButton(onPressed: _searchingAssistant ? null : () => _lookup(coach: false), icon: _searchingAssistant ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search)))),
+            TextFormField(controller: _assistantName, readOnly: true, decoration: const InputDecoration(labelText: 'Nombre del asistente')),
+            TextFormField(controller: _assistantEmail, readOnly: true, decoration: const InputDecoration(labelText: 'Correo del asistente')),
           ],
         ),
       ),
@@ -191,7 +230,7 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
         FilledButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), assistantName: _assistantName.text.trim(), assistantEmail: _assistantEmail.text.trim()));
+              Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), coachName: _coachName.text.trim(), coachDocument: _coachDocument.text.trim(), coachEmail: _coachEmail.text.trim(), assistantName: _assistantName.text.trim(), assistantDocument: _assistantDocument.text.trim(), assistantEmail: _assistantEmail.text.trim()));
             }
           },
           child: const Text('Guardar'),

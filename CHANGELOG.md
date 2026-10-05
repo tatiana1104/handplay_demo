@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Cambios recientes
 
+- Los clubes ahora permiten asignar entrenador y asistente mediante búsqueda por número de documento, guardando nombre, documento y correo en `clubs`; el detalle del club muestra ambos perfiles.
+
 - La entidad `clubs` ahora almacena el correo oficial y la vista de detalle muestra ese correo junto con el estado de equipos y jugadores. y lo utiliza para crear o actualizar el usuario de club en Firestore; se actualizaron formulario, repositorio y reglas.
 
 - La inscripción crea un perfil de club en Firestore, las ediciones sincronizan `users` y `profile_directory`, la ficha del entrenador muestra club asociado recuperándolo por documento cuando es necesario, los clubes admiten asistentes y se eliminaron experiencia y especialidad.

@@ -94,6 +94,17 @@ class ClubDetailScreen extends StatelessWidget {
                   ),
                 ),
               if (club.email.trim().isNotEmpty) const SizedBox(height: 16),
+              if (club.coachName.trim().isNotEmpty || club.assistantName.trim().isNotEmpty)
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      if (club.coachName.trim().isNotEmpty) ListTile(leading: const Icon(Icons.sports_outlined), title: const Text('Entrenador'), subtitle: Text('${club.coachName} · ${club.coachDocument}')),
+                      if (club.assistantName.trim().isNotEmpty) ListTile(leading: const Icon(Icons.support_agent_outlined), title: const Text('Asistente'), subtitle: Text('${club.assistantName} · ${club.assistantDocument}')),
+                    ],
+                  ),
+                ),
+              if (club.coachName.trim().isNotEmpty || club.assistantName.trim().isNotEmpty) const SizedBox(height: 16),
               const SectionHeader('Listado de jugadores'),
               const SizedBox(height: 8),
               if (teams.isEmpty)
