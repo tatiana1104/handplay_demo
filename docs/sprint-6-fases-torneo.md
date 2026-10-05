@@ -86,7 +86,7 @@ Crear torneo por grupos → definir grupos y posiciones clasificadas
 - Los equipos se mezclan aleatoriamente y se reparten de manera balanceada.
 - Se guarda `phaseOneGroup` en cada inscripción para mostrar Grupo A, Grupo B, etc. en la tabla.
 - Se calculan enfrentamientos sin repetir parejas y jornadas dentro del grupo correspondiente.
-- Todos-contra-todos usa un grupo general y genera una pareja única por combinación.
+- Todos-contra-todos usa un grupo general y genera jornadas de ida y vuelta; con tres equipos produce A-B, B-C, C-A y después B-A, C-B, A-C.
 - La fase 2 no crea cruces: el administrador conserva el control manual.
 
 ## Incidencias y soluciones

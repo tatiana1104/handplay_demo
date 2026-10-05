@@ -87,7 +87,7 @@ clubs/{clubId}
 tournaments/{tournamentId}
 tournaments/{tournamentId}/registrations/{registrationId}
 tournaments/{tournamentId}/teams/{registrationId}
-tournaments/{tournamentId}/matches/{matchId}
+tournaments/{tournamentId}/matches/{matchId}  (jornada, leg: ida|vuelta, homeTeamId, awayTeamId)
 ```
 
 ## Estados principales

@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Cambios recientes
 
+- El formato todos contra todos genera ahora jornada 1 de ida y jornada 2 de vuelta, invirtiendo local y visitante; para tres equipos respeta A-B, B-C, C-A y luego B-A, C-B, A-C.
+
 - Los clubes ahora permiten asignar entrenador y asistente mediante búsqueda por número de documento, guardando nombre, documento y correo en `clubs`; el detalle del club muestra ambos perfiles.
 
 - La entidad `clubs` ahora almacena el correo oficial y la vista de detalle muestra ese correo junto con el estado de equipos y jugadores. y lo utiliza para crear o actualizar el usuario de club en Firestore; se actualizaron formulario, repositorio y reglas.
