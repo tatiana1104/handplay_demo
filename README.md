@@ -146,7 +146,7 @@ flutter run
 
 Después de cada commit funcional se deben revisar y actualizar, cuando aplique, `README.md`, `CHANGELOG.md`, el documento del sprint correspondiente y los diagramas afectados (`docs/diagrama-*.md` o `docs/diagramas-*.md`). Así la documentación, los flujos y el modelo de datos permanecen alineados con el código.
 
-La entidad `clubs` guarda `email` como correo oficial. Al crear o actualizar un club se crea o actualiza su perfil de usuario en `users/club_<correo>` y `profile_directory/club_<correo>`. Los perfiles editados se sincronizan en `users/{uid}` y `profile_directory/{uid}`. El entrenador puede consultar el club asociado y su correo desde la ficha de perfil; al guardar el perfil se sincronizan esos campos desde `profile_directory/document_<documento>`, y el administrador puede guardar nombre y correo de un asistente en el club. Se eliminaron los campos de experiencia y especialidad.
+La entidad `clubs` guarda `email` como correo oficial y la vista de detalle lo muestra junto al resumen del club, incluso cuando todavía no tiene equipos. Al crear o actualizar un club se crea o actualiza su perfil de usuario en `users/club_<correo>` y `profile_directory/club_<correo>`. Los perfiles editados se sincronizan en `users/{uid}` y `profile_directory/{uid}`. El entrenador puede consultar el club asociado y su correo desde la ficha de perfil; al guardar el perfil se sincronizan esos campos desde `profile_directory/document_<documento>`, y el administrador puede guardar nombre y correo de un asistente en el club. Se eliminaron los campos de experiencia y especialidad.
 
 ## Convenciones
 

@@ -69,27 +69,39 @@ class ClubDetailScreen extends StatelessWidget {
             players.addAll(teamPlayers);
           }
 
-          if (teams.isEmpty) {
-            return const Center(
-              child: Text('Este club todavía no tiene equipos inscritos.'),
-            );
-          }
-
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
               DetailSummaryCard(
                 title: club.name,
-                subtitle: '${teams.length} equipos · ${players.length} jugadores',
+                subtitle: [
+                  if (club.email.trim().isNotEmpty) club.email.trim(),
+                  '${teams.length} equipos · ${players.length} jugadores',
+                ].join(' · '),
                 leading: const CircleAvatar(
                   radius: 20,
                   child: Icon(Icons.groups_2_outlined, size: 20),
                 ),
               ),
               const SizedBox(height: 16),
+              if (club.email.trim().isNotEmpty)
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: const Icon(Icons.email_outlined),
+                    title: const Text('Correo del club'),
+                    subtitle: Text(club.email.trim()),
+                  ),
+                ),
+              if (club.email.trim().isNotEmpty) const SizedBox(height: 16),
               const SectionHeader('Listado de jugadores'),
               const SizedBox(height: 8),
-              if (players.isEmpty)
+              if (teams.isEmpty)
+                const EmptySection(
+                  icon: Icons.groups_outlined,
+                  message: 'Este club todavía no tiene equipos inscritos.',
+                )
+              else if (players.isEmpty)
                 const EmptySection(
                   icon: Icons.person_off_outlined,
                   message: 'Este club todavía no tiene jugadores registrados.',
