@@ -26,14 +26,14 @@ service cloud.firestore {
     match /clubs/{clubId} {
       allow read: if true;
       allow create: if isAdmin()
-        && request.resource.data.keys().hasOnly(['name', 'createdBy', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'assistantName', 'assistantEmail', 'createdBy', 'createdAt', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt is timestamp
         && request.resource.data.updatedAt is timestamp;
       allow update: if isAdmin()
-        && request.resource.data.keys().hasOnly(['name', 'createdBy', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'assistantName', 'assistantEmail', 'createdBy', 'createdAt', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.createdBy == resource.data.createdBy
@@ -81,13 +81,13 @@ service cloud.firestore {
     && request.resource.data.uid == userId
     && request.resource.data.roles is list
     && request.resource.data.roles.size() > 0
-    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga']));
+    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'club', 'publico', 'admin', 'admin_liga']));
   allow update: if isAdmin()
   || (isSelf(userId)
     && request.resource.data.uid == userId
     && request.resource.data.roles is list
     && request.resource.data.roles.size() > 0
-    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'publico', 'admin', 'admin_liga'])
+    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'club', 'publico', 'admin', 'admin_liga'])
     && (!('roles' in resource.data) || request.resource.data.roles.hasAll(resource.data.roles)));
       allow delete: if isAdmin();
     }

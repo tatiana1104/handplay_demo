@@ -80,7 +80,8 @@ erDiagram
 ```text
 users/{uid}
 users/club_{emailKey}  (usuario de club creado al inscribir)
-clubs/{clubId}          (assistantName, assistantEmail)
+clubs/{clubId}          (email, assistantName, assistantEmail)
+users/club_{emailKey}   (usuario Firestore asociado al correo del club)
 profile_directory/{profileId}
 clubs/{clubId}
 tournaments/{tournamentId}

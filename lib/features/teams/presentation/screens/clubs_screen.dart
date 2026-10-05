@@ -66,7 +66,7 @@ class _ClubsScreenState extends State<ClubsScreen> {
   }
 
   Future<void> _editClub({ClubModel? club}) async {
-    final result = await showDialog<({String name, String assistantName, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
+    final result = await showDialog<({String name, String email, String assistantName, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
     final name = result?.name;
     if (name == null || !mounted || _savingClub) return;
     setState(() => _savingClub = true);
@@ -84,9 +84,9 @@ class _ClubsScreenState extends State<ClubsScreen> {
           _showMessage('Inicia sesión como administrador para crear un club.');
           return;
         }
-        await _repository.createClub(name: name, createdBy: userId, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? '');
+        await _repository.createClub(name: name, email: result?.email ?? '', createdBy: userId, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? '');
       } else {
-        await _repository.updateClub(ClubModel(id: club.id, name: name, assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? ''));
+        await _repository.updateClub(ClubModel(id: club.id, name: name, email: result?.email ?? '', assistantName: result?.assistantName ?? '', assistantEmail: result?.assistantEmail ?? ''));
       }
       if (mounted) _showMessage(club == null ? 'Club registrado.' : 'Club actualizado.');
     } on FirebaseException catch (error) {
@@ -136,6 +136,7 @@ class _ClubEditDialog extends StatefulWidget {
 
 class _ClubEditDialogState extends State<_ClubEditDialog> {
   late final TextEditingController _controller;
+  late final TextEditingController _email;
   late final TextEditingController _assistantName;
   late final TextEditingController _assistantEmail;
   final _formKey = GlobalKey<FormState>();
@@ -144,6 +145,7 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.club?.name ?? '');
+    _email = TextEditingController(text: widget.club?.email ?? '');
     _assistantName = TextEditingController(text: widget.club?.assistantName ?? '');
     _assistantEmail = TextEditingController(text: widget.club?.assistantEmail ?? '');
   }
@@ -151,6 +153,7 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
   @override
   void dispose() {
     _controller.dispose();
+    _email.dispose();
     _assistantName.dispose();
     _assistantEmail.dispose();
     super.dispose();
@@ -172,6 +175,12 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
               decoration: const InputDecoration(labelText: 'Nombre oficial del club', hintText: 'Club Deportivo Caquetá'),
               validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre del club' : null,
             ),
+            TextFormField(
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Correo electrónico del club'),
+              validator: (value) => value == null || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim()) ? 'Escribe un correo válido' : null,
+            ),
             TextFormField(controller: _assistantName, decoration: const InputDecoration(labelText: 'Asistente del club (opcional)')),
             TextFormField(controller: _assistantEmail, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Correo del asistente (opcional)')),
           ],
@@ -182,7 +191,7 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
         FilledButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop((name: _controller.text.trim(), assistantName: _assistantName.text.trim(), assistantEmail: _assistantEmail.text.trim()));
+              Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), assistantName: _assistantName.text.trim(), assistantEmail: _assistantEmail.text.trim()));
             }
           },
           child: const Text('Guardar'),

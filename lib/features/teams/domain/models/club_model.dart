@@ -5,10 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ClubModel {
   /// ES: Crea un club con su ID de Firestore y nombre visible.
   /// EN: Creates a club with its Firestore ID and display name.
-  const ClubModel({required this.id, required this.name, this.assistantName = '', this.assistantEmail = ''});
+  const ClubModel({required this.id, required this.name, this.email = '', this.assistantName = '', this.assistantEmail = ''});
 
   final String id;
   final String name;
+  final String email;
   final String assistantName;
   final String assistantEmail;
 
@@ -20,6 +21,7 @@ class ClubModel {
     return ClubModel(
       id: document.id,
       name: document.data()['name']?.toString() ?? '',
+      email: document.data()['email']?.toString() ?? '',
       assistantName: document.data()['assistantName']?.toString() ?? '',
       assistantEmail: document.data()['assistantEmail']?.toString() ?? '',
     );
