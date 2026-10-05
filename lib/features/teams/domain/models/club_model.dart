@@ -30,7 +30,7 @@ class ClubModel {
       coachDocument: document.data()['coachDocument']?.toString() ?? '',
       coachEmail: document.data()['coachEmail']?.toString() ?? '',
       assistantName: document.data()['assistantName']?.toString() ?? '',
-      assistantDocument: document.data()['assistantDocument']?.toString() ?? '', document.data()['assistantName']?.toString() ?? '',
+      assistantDocument: document.data()['assistantDocument']?.toString() ?? '',
       assistantEmail: document.data()['assistantEmail']?.toString() ?? '',
     );
   }

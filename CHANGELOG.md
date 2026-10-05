@@ -99,6 +99,8 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Cambios recientes
 
+- Corregido un argumento posicional duplicado en `ClubModel.fromDocument` que impedía compilar la aplicación.
+
 - El formato todos contra todos genera ahora jornada 1 de ida y jornada 2 de vuelta, invirtiendo local y visitante; para tres equipos respeta A-B, B-C, C-A y luego B-A, C-B, A-C.
 
 - Los clubes ahora permiten asignar entrenador y asistente mediante búsqueda por número de documento, guardando nombre, documento y correo en `clubs`; el detalle del club muestra ambos perfiles.
