@@ -42,8 +42,8 @@ class _TournamentMatchFormScreenState extends State<TournamentMatchFormScreen> {
     final match = widget.match;
     if (match == null) return;
 
-    _home = match['homeTeam']?.toString();
-    _away = match['awayTeam']?.toString();
+    _home = (match['homeTeam'] ?? match['homeTeamId'] ?? match['local'])?.toString();
+    _away = (match['awayTeam'] ?? match['awayTeamId'] ?? match['visitante'])?.toString();
     _refereeOne = match['refereeOne']?.toString();
     _refereeTwo = match['refereeTwo']?.toString();
     _timekeeper = match['timekeeper']?.toString();
@@ -115,6 +115,9 @@ class _TournamentMatchFormScreenState extends State<TournamentMatchFormScreen> {
             ...?_refereeDirectory.find(id)?.aliasIds,
         }.toList(),
         'status': widget.match?['status'] ?? 'scheduled',
+        'jornada': widget.match?['jornada'] ?? widget.match?['round'],
+        'round': widget.match?['round'] ?? widget.match?['jornada'],
+        'leg': widget.match?['leg'],
         'halfDurationMinutes': _halfDurationMinutes,
         if (widget.match == null) 'createdAt': FieldValue.serverTimestamp(),
       };

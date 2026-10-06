@@ -146,6 +146,8 @@ flutter run
 
 Después de cada commit funcional se deben revisar y actualizar, cuando aplique, `README.md`, `CHANGELOG.md`, el documento del sprint correspondiente y los diagramas afectados (`docs/diagrama-*.md` o `docs/diagramas-*.md`). Así la documentación, los flujos y el modelo de datos permanecen alineados con el código.
 
+La edición de clubes usa una pantalla desplazable para evitar overflow con el teclado, permite recuperar nombre y correo del personal por documento y muestra esa información en el detalle. Los partidos generados aleatoriamente conservan sus equipos, jornada y fase al abrir la edición.
+
 Los partidos de `todos_contra_todos` se generan en dos jornadas: ida y vuelta. Para tres equipos el orden es A-B, B-C, C-A y luego B-A, C-B, A-C.
 
 La entidad `clubs` guarda `email` como correo oficial, `coachDocument`/`coachEmail` para su entrenador y `assistantDocument`/`assistantEmail` para su asistente. El administrador de liga puede buscar ambas personas por documento y actualizar la asignación. y la vista de detalle lo muestra junto al resumen del club, incluso cuando todavía no tiene equipos. Al crear o actualizar un club se crea o actualiza su perfil de usuario en `users/club_<correo>` y `profile_directory/club_<correo>`. Los perfiles editados se sincronizan en `users/{uid}` y `profile_directory/{uid}`. El entrenador puede consultar el club asociado y su correo desde la ficha de perfil; al guardar el perfil se sincronizan esos campos desde `profile_directory/document_<documento>`, y el administrador puede guardar nombre y correo de un asistente en el club. Se eliminaron los campos de experiencia y especialidad.

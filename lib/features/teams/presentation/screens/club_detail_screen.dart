@@ -99,8 +99,8 @@ class ClubDetailScreen extends StatelessWidget {
                   margin: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      if (club.coachName.trim().isNotEmpty) ListTile(leading: const Icon(Icons.sports_outlined), title: const Text('Entrenador'), subtitle: Text('${club.coachName} · ${club.coachDocument}')),
-                      if (club.assistantName.trim().isNotEmpty) ListTile(leading: const Icon(Icons.support_agent_outlined), title: const Text('Asistente'), subtitle: Text('${club.assistantName} · ${club.assistantDocument}')),
+                      if (club.coachName.trim().isNotEmpty || club.coachEmail.trim().isNotEmpty) ListTile(leading: const Icon(Icons.sports_outlined), title: Text(club.coachName.trim().isEmpty ? 'Entrenador' : club.coachName), subtitle: Text([club.coachDocument, club.coachEmail].where((value) => value.trim().isNotEmpty).join(' · '))),
+                      if (club.assistantName.trim().isNotEmpty || club.assistantEmail.trim().isNotEmpty) ListTile(leading: const Icon(Icons.support_agent_outlined), title: Text(club.assistantName.trim().isEmpty ? 'Asistente' : club.assistantName), subtitle: Text([club.assistantDocument, club.assistantEmail].where((value) => value.trim().isNotEmpty).join(' · '))),
                     ],
                   ),
                 ),

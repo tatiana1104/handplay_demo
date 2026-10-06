@@ -30,6 +30,10 @@ Registrar el desarrollo del partido en tiempo real y convertir sus eventos aprob
 
 **Cómo se realizó:** El género del jugador se valida durante la inscripción y se usa para filtrar los resultados según la rama del torneo.
 
+## Corrección de edición de partidos
+
+Los partidos creados automáticamente por fases usan `homeTeamId` y `awayTeamId`; el formulario de edición ahora reconoce esos identificadores y conserva `jornada`, `round` y `leg` al guardar fecha, sede y oficiales.
+
 ## Resultado
 El partido queda registrado de forma auditable y las estadísticas se generan únicamente con información aprobada.
 

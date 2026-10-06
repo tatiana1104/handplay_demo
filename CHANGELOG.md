@@ -99,6 +99,9 @@ Registro de cambios del proyecto **handplay**. Este documento resume la evoluci�
 
 ## Cambios recientes
 
+- La edición de clubes pasó de modal a pantalla scrollable para evitar overflow con teclado; la búsqueda de personal acepta `displayName`, `nombre`, `name` y `fullName`; el detalle muestra nombre, documento y correo.
+- La edición de partidos reconoce `homeTeamId`/`awayTeamId` de partidos generados y conserva jornada, ronda y fase ida/vuelta.
+
 - Corregido un argumento posicional duplicado en `ClubModel.fromDocument` que impedía compilar la aplicación.
 
 - El formato todos contra todos genera ahora jornada 1 de ida y jornada 2 de vuelta, invirtiendo local y visitante; para tres equipos respeta A-B, B-C, C-A y luego B-A, C-B, A-C.

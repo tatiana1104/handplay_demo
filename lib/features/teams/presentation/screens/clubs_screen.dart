@@ -66,7 +66,7 @@ class _ClubsScreenState extends State<ClubsScreen> {
   }
 
   Future<void> _editClub({ClubModel? club}) async {
-    final result = await showDialog<({String name, String email, String coachName, String coachDocument, String coachEmail, String assistantName, String assistantDocument, String assistantEmail})>(context: context, builder: (_) => _ClubEditDialog(club: club));
+    final result = await Navigator.of(context).push<({String name, String email, String coachName, String coachDocument, String coachEmail, String assistantName, String assistantDocument, String assistantEmail})>(MaterialPageRoute(builder: (_) => _ClubEditScreen(club: club)));
     final name = result?.name;
     if (name == null || !mounted || _savingClub) return;
     setState(() => _savingClub = true);
@@ -126,15 +126,15 @@ class _ClubsScreenState extends State<ClubsScreen> {
   }
 }
 
-class _ClubEditDialog extends StatefulWidget {
-  const _ClubEditDialog({this.club});
+class _ClubEditScreen extends StatefulWidget {
+  const _ClubEditScreen({this.club});
   final ClubModel? club;
 
   @override
-  State<_ClubEditDialog> createState() => _ClubEditDialogState();
+  State<_ClubEditScreen> createState() => _ClubEditScreenState();
 }
 
-class _ClubEditDialogState extends State<_ClubEditDialog> {
+class _ClubEditScreenState extends State<_ClubEditScreen> {
   late final TextEditingController _controller;
   late final TextEditingController _email;
   late final TextEditingController _coachName;
@@ -185,8 +185,8 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se encontró una persona con ese documento.')));
         return;
       }
-      (coach ? _coachName : _assistantName).text = data['displayName']?.toString() ?? data['nombre']?.toString() ?? '';
-      (coach ? _coachEmail : _assistantEmail).text = data['email']?.toString() ?? data['correo']?.toString() ?? '';
+      (coach ? _coachName : _assistantName).text = data['displayName']?.toString() ?? data['nombre']?.toString() ?? data['name']?.toString() ?? data['fullName']?.toString() ?? '';
+      (coach ? _coachEmail : _assistantEmail).text = data['email']?.toString() ?? data['correo']?.toString() ?? data['emailAddress']?.toString() ?? '';
     } finally {
       if (mounted) setState(() => coach ? _searchingCoach = false : _searchingAssistant = false);
     }
@@ -194,11 +194,15 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.club == null ? 'Registrar club' : 'Editar club'),
-      content: Form(
-        key: _formKey,
-        child: Column(
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.club == null ? 'Registrar club' : 'Editar club')),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            children: [
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
@@ -222,20 +226,24 @@ class _ClubEditDialogState extends State<_ClubEditDialog> {
             TextFormField(controller: _assistantDocument, decoration: InputDecoration(labelText: 'Documento del asistente', suffixIcon: IconButton(onPressed: _searchingAssistant ? null : () => _lookup(coach: false), icon: _searchingAssistant ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search)))),
             TextFormField(controller: _assistantName, readOnly: true, decoration: const InputDecoration(labelText: 'Nombre del asistente')),
             TextFormField(controller: _assistantEmail, readOnly: true, decoration: const InputDecoration(labelText: 'Correo del asistente')),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))),
+                const SizedBox(width: 12),
+                Expanded(child: FilledButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), coachName: _coachName.text.trim(), coachDocument: _coachDocument.text.trim(), coachEmail: _coachEmail.text.trim(), assistantName: _assistantName.text.trim(), assistantDocument: _assistantDocument.text.trim(), assistantEmail: _assistantEmail.text.trim()));
+                    }
+                  },
+                  child: const Text('Guardar'),
+                )),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-        FilledButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), coachName: _coachName.text.trim(), coachDocument: _coachDocument.text.trim(), coachEmail: _coachEmail.text.trim(), assistantName: _assistantName.text.trim(), assistantDocument: _assistantDocument.text.trim(), assistantEmail: _assistantEmail.text.trim()));
-            }
-          },
-          child: const Text('Guardar'),
-        ),
-      ],
     );
   }
 }
