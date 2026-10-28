@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -46,152 +45,272 @@ class ProfileScreen extends StatelessWidget {
     final displayName = _displayName(user);
     final email = user?.email ?? 'Sin correo disponible';
     final roleLabel = user == null
-      ? 'Usuario'
-      : user.roles.map(_roleLabel).join(', ');
+        ? 'Usuario'
+        : user.roles.map(_roleLabel).join(', ');
 
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
       builder: (context, snapshot) {
         final profile = snapshot.data?.data() ?? const <String, dynamic>{};
-        final documentNumber = profile['document']?.toString() ?? profile['documentNumber']?.toString() ?? 'No registrado';
+        final documentNumber =
+            profile['document']?.toString() ??
+            profile['documentNumber']?.toString() ??
+            'No registrado';
         final roles = <String>{
           ...user.roles.map((value) => value.trim().toLowerCase()),
           ...((profile['roles'] as List?) ?? const [])
               .map((value) => value.toString().trim().toLowerCase())
               .where((value) => value.isNotEmpty),
         };
-        final storedPrimaryRole = profile['rol']?.toString().trim().toLowerCase();
+        final storedPrimaryRole = profile['rol']
+            ?.toString()
+            .trim()
+            .toLowerCase();
         if (storedPrimaryRole != null && storedPrimaryRole.isNotEmpty) {
           roles.add(storedPrimaryRole);
         }
         final hasRole = (String role) => roles.contains(role);
-        final normalizedRoles = roles.map((item) => item.trim().toLowerCase()).toSet();
-        final currentDisplayName = profile['displayName']?.toString() ?? displayName;
+        final normalizedRoles = roles
+            .map((item) => item.trim().toLowerCase())
+            .toSet();
+        final currentDisplayName =
+            profile['displayName']?.toString() ?? displayName;
         final currentEmail = profile['email']?.toString() ?? email;
-        final role = normalizedRoles.contains('jugador') || normalizedRoles.contains('player')
+        final role =
+            normalizedRoles.contains('jugador') ||
+                normalizedRoles.contains('player')
             ? 'jugador'
-            : normalizedRoles.contains('entrenador') || normalizedRoles.contains('coach')
-                ? 'entrenador'
-                : normalizedRoles.contains('arbitro') || normalizedRoles.contains('referee') || normalizedRoles.contains('árbitro')
-                    ? 'arbitro'
-                    : normalizedRoles.contains('admin_liga')
-                        ? 'admin_liga'
-                        : normalizedRoles.contains('admin')
-                            ? 'admin'
-                            : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
-        final hasPlayerRole = normalizedRoles.contains('jugador') || normalizedRoles.contains('player');
-        final isPublicProfile = normalizedRoles.contains('publico') ||
+            : normalizedRoles.contains('entrenador') ||
+                  normalizedRoles.contains('coach')
+            ? 'entrenador'
+            : normalizedRoles.contains('arbitro') ||
+                  normalizedRoles.contains('referee') ||
+                  normalizedRoles.contains('árbitro')
+            ? 'arbitro'
+            : normalizedRoles.contains('admin_liga')
+            ? 'admin_liga'
+            : normalizedRoles.contains('admin')
+            ? 'admin'
+            : (normalizedRoles.isNotEmpty ? normalizedRoles.first : 'jugador');
+        final hasPlayerRole =
+            normalizedRoles.contains('jugador') ||
+            normalizedRoles.contains('player');
+        final isPublicProfile =
+            normalizedRoles.contains('publico') ||
             normalizedRoles.contains('public') ||
             normalizedRoles.contains('público');
-        final hasDocument = profile['documentNumber']?.toString().trim().isNotEmpty == true;
-        final hasPlayerData = profile['shirtNumber'] != null &&
+        final hasDocument =
+            profile['documentNumber']?.toString().trim().isNotEmpty == true;
+        final hasPlayerData =
+            profile['shirtNumber'] != null &&
             int.tryParse(profile['shirtNumber'].toString()) != null &&
             profile['position']?.toString().trim().isNotEmpty == true;
-        final hasRequiredProfileData = hasDocument && (!hasPlayerRole || hasPlayerData);
-        final completedByRole = (profile['profileCompletedByRole'] as Map?)?.map(
-              (key, value) => MapEntry(key.toString().trim().toLowerCase(), value == true || value.toString().toLowerCase() == 'true'),
+        final hasRequiredProfileData =
+            hasDocument && (!hasPlayerRole || hasPlayerData);
+        final completedByRole =
+            (profile['profileCompletedByRole'] as Map?)?.map(
+              (key, value) => MapEntry(
+                key.toString().trim().toLowerCase(),
+                value == true || value.toString().toLowerCase() == 'true',
+              ),
             ) ??
             const <String, bool>{};
-        final completedForAllRoles = isPublicProfile ||
+        final completedForAllRoles =
+            isPublicProfile ||
             normalizedRoles
-                .where((item) => item != 'publico' && item != 'public' && item != 'público')
+                .where(
+                  (item) =>
+                      item != 'publico' &&
+                      item != 'public' &&
+                      item != 'público',
+                )
                 .every((item) => completedByRole[item] == true) ||
-            (profile['profileCompleted'] == true || profile['profileComplete'] == true);
-        final profileCompleted = completedForAllRoles ||
+            (profile['profileCompleted'] == true ||
+                profile['profileComplete'] == true);
+        final profileCompleted =
+            completedForAllRoles ||
             profile['profileCompleted'] == true ||
             profile['profileComplete'] == true ||
             profile['profileCompleted']?.toString().toLowerCase() == 'true' ||
             profile['profileComplete']?.toString().toLowerCase() == 'true' ||
             completedByRole[role] == true ||
             hasRequiredProfileData;
-        final profileReadyToEvaluate = snapshot.connectionState == ConnectionState.active || snapshot.connectionState == ConnectionState.done;
+        final profileReadyToEvaluate =
+            snapshot.connectionState == ConnectionState.active ||
+            snapshot.connectionState == ConnectionState.done;
         if (profileReadyToEvaluate && !snapshot.hasError && !profileCompleted) {
           return ProfileCompletionScreen(role: role);
         }
         return Scaffold(
-      appBar: AppBar(title: const Text('Perfil')),
-      // La barra inferior se mantiene también en el perfil para que todos
-      // los roles puedan regresar al home o consultar las demás secciones.
-      bottomNavigationBar: AppBottomNavigationBar(
-        selectedIndex: user?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true ? 4 : 2,
-        isAdmin: user?.roles.any((role) => role == 'admin' || role == 'admin_liga') == true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          CircleAvatar(
-            radius: 42,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Text(
-              currentDisplayName.isEmpty ? '?' : currentDisplayName[0].toUpperCase(),
-              style: Theme.of(context).textTheme.headlineMedium,
+          appBar: AppBar(title: const Text('Perfil')),
+          // La barra inferior se mantiene también en el perfil para que todos
+          // los roles puedan regresar al home o consultar las demás secciones.
+          bottomNavigationBar: AppBottomNavigationBar(
+            selectedIndex:
+                user.roles.any(
+                  (role) => role == 'admin' || role == 'admin_liga',
+                )
+                ? 4
+                : 2,
+            isAdmin: user.roles.any(
+              (role) => role == 'admin' || role == 'admin_liga',
             ),
           ),
-          const SizedBox(height: 24),
-          Text(
-            currentDisplayName,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            currentEmail,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 32),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Nombre de la cuenta'),
-              subtitle: Text(currentDisplayName),
-            ),
-          ),
-          Card(child: ListTile(leading: const Icon(Icons.badge_outlined), title: const Text('Número de documento'), subtitle: Text(documentNumber))),
-          Card(child: ListTile(leading: const Icon(Icons.email_outlined), title: const Text('Correo electrónico'), subtitle: Text(currentEmail))),
-          const SizedBox(height: 12),
-          Row(
+          body: ListView(
+            padding: const EdgeInsets.all(24),
             children: [
-              Expanded(child: OutlinedButton.icon(onPressed: () => context.push(RouteNames.editProfile, extra: profile), icon: const Icon(Icons.edit_outlined), label: const Text('Editar perfil'))),
-              const SizedBox(width: 12),
-              Expanded(child: OutlinedButton.icon(onPressed: () => context.push(RouteNames.changePassword), icon: const Icon(Icons.lock_reset_outlined), label: const Text('Cambiar contraseña'))),
+              CircleAvatar(
+                radius: 42,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(
+                  currentDisplayName.isEmpty
+                      ? '?'
+                      : currentDisplayName[0].toUpperCase(),
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                currentDisplayName,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                currentEmail,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                roleLabel,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(height: 32),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: const Text('Nombre de la cuenta'),
+                  subtitle: Text(currentDisplayName),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.badge_outlined),
+                  title: const Text('Número de documento'),
+                  subtitle: Text(documentNumber),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.email_outlined),
+                  title: const Text('Correo electrónico'),
+                  subtitle: Text(currentEmail),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push(RouteNames.editProfile, extra: profile),
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text('Editar perfil'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push(RouteNames.changePassword),
+                      icon: const Icon(Icons.lock_reset_outlined),
+                      label: const Text('Cambiar contraseña'),
+                    ),
+                  ),
+                ],
+              ),
+              if (hasRole('entrenador'))
+                _roleButton(
+                  context,
+                  'Entrenador',
+                  Icons.sports_outlined,
+                  () => _showRoleSheet(
+                    context,
+                    'Ficha de entrenador',
+                    profile,
+                    ['clubName', 'clubEmail', 'teamName'],
+                  ),
+                ),
+              if (hasRole('arbitro') ||
+                  hasRole('árbitro') ||
+                  hasRole('referee'))
+                _roleButton(
+                  context,
+                  'Árbitro',
+                  Icons.sports_handball_outlined,
+                  () => _showRoleSheet(context, 'Ficha de árbitro', profile, [
+                    'category',
+                    'phone',
+                  ]),
+                ),
+              if (hasRole('jugador') || hasRole('player'))
+                _roleButton(
+                  context,
+                  'Jugador',
+                  Icons.person_outline,
+                  () => _showRoleSheet(context, 'Ficha de jugador', profile, [
+                    'shirtNumber',
+                    'position',
+                    'teamName',
+                  ]),
+                ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    context.read<AuthBloc>().add(const AuthLogoutRequested()),
+                icon: const Icon(Icons.logout),
+                label: const Text('Cerrar sesión'),
+              ),
             ],
           ),
-          if (hasRole('entrenador'))
-            _roleButton(context, 'Entrenador', Icons.sports_outlined, () => _showRoleSheet(context, 'Ficha de entrenador', profile, ['clubName', 'clubEmail', 'teamName'])),
-          if (hasRole('arbitro') || hasRole('árbitro') || hasRole('referee'))
-            _roleButton(context, 'Árbitro', Icons.sports_handball_outlined, () => _showRoleSheet(context, 'Ficha de árbitro', profile, ['category', 'phone'])),
-          if (hasRole('jugador') || hasRole('player'))
-            _roleButton(context, 'Jugador', Icons.person_outline, () => _showRoleSheet(context, 'Ficha de jugador', profile, ['shirtNumber', 'position', 'teamName'])),
-          const SizedBox(height: 24),
-          OutlinedButton.icon(
-            onPressed: () => context.read<AuthBloc>().add(
-              const AuthLogoutRequested(),
-            ),
-            icon: const Icon(Icons.logout),
-            label: const Text('Cerrar sesión'),
-          ),
-        ],
-      ),
-    );
+        );
       },
     );
   }
 
   /// ES: Crea un botón para abrir la ficha de un rol específico.
   /// EN: Builds a button that opens a role-specific profile sheet.
-  Widget _roleButton(BuildContext context, String label, IconData icon, VoidCallback onPressed) {
+  Widget _roleButton(
+    BuildContext context,
+    String label,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
-      child: OutlinedButton.icon(onPressed: onPressed, icon: Icon(icon), label: Text(label)),
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(label),
+      ),
     );
   }
 
   /// ES: Muestra los detalles del rol en una hoja inferior modal.
   /// EN: Shows the selected role's details in a modal bottom sheet.
-  void _showRoleSheet(BuildContext context, String title, Map<String, dynamic> profile, List<String> fields) {
+  void _showRoleSheet(
+    BuildContext context,
+    String title,
+    Map<String, dynamic> profile,
+    List<String> fields,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -206,7 +325,11 @@ class ProfileScreen extends StatelessWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(_fieldLabel(field)),
-                subtitle: Text(profile[field]?.toString().trim().isNotEmpty == true ? profile[field].toString() : 'No registrado'),
+                subtitle: Text(
+                  profile[field]?.toString().trim().isNotEmpty == true
+                      ? profile[field].toString()
+                      : 'No registrado',
+                ),
               ),
           ],
         ),
@@ -217,7 +340,15 @@ class ProfileScreen extends StatelessWidget {
   /// ES: Traduce nombres de campos Firestore a etiquetas legibles.
   /// EN: Maps Firestore field names to readable profile labels.
   String _fieldLabel(String field) {
-    const labels = {'clubName': 'Club asociado', 'clubEmail': 'Correo del club', 'teamName': 'Equipo', 'category': 'Categoría', 'phone': 'Teléfono', 'shirtNumber': 'Número de camiseta', 'position': 'Posición'};
+    const labels = {
+      'clubName': 'Club asociado',
+      'clubEmail': 'Correo del club',
+      'teamName': 'Equipo',
+      'category': 'Categoría',
+      'phone': 'Teléfono',
+      'shirtNumber': 'Número de camiseta',
+      'position': 'Posición',
+    };
     return labels[field] ?? field;
   }
 
