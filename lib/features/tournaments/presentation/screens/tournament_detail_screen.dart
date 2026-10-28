@@ -164,13 +164,25 @@ class TournamentDetailScreen extends StatelessWidget {
               registrationClosed)
             OutlinedButton.icon(
               onPressed: () async {
-                await TournamentPhaseService().assignPhaseOne(tournament);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fase 1 asignada y jornadas generadas.'),
-                    ),
-                  );
+                try {
+                  await TournamentPhaseService().assignPhaseOne(tournament);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Fase 1 asignada y jornadas generadas.'),
+                      ),
+                    );
+                  }
+                } catch (error) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'No se pudo generar la fase 1: ${error.toString()}',
+                        ),
+                      ),
+                    );
+                  }
                 }
               },
               icon: const Icon(Icons.auto_awesome),
