@@ -36,7 +36,16 @@ void main() {
       ),
     );
 
-    expect(find.text('Atlético'), findsOneWidget);
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownButtonFormField<String> &&
+            widget.decoration.labelText == 'Club al que pertenece *',
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Atlético'), findsWidgets);
     expect(find.text('Real Caquetá'), findsOneWidget);
     expect(find.text('Unión'), findsOneWidget);
   });
