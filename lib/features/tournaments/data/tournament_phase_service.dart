@@ -46,6 +46,13 @@ class TournamentPhaseService {
       final groupCount = tournament.format == 'por_grupos'
           ? max(2, min(tournament.groupCount, teams.length))
           : 1;
+      if (tournament.format == 'por_grupos' &&
+          teams.length < groupCount * 2) {
+        throw StateError(
+          'Se necesitan al menos ${groupCount * 2} equipos aprobados para '
+          'formar $groupCount grupos de dos o más equipos.',
+        );
+      }
       final groups = List.generate(
         groupCount,
         (_) => <DocumentSnapshot<Map<String, dynamic>>>[],
@@ -61,7 +68,7 @@ class TournamentPhaseService {
         final groupName = tournament.format == 'por_grupos'
             ? _groupName(groupIndex)
             : 'General';
-        for (final fixture in _roundRobinFixtures(group)) {
+        for (final fixture in roundRobinFixtures(group.length)) {
           final home = group[fixture.$1];
           final away = group[fixture.$2];
           final match = matches.doc();
@@ -220,33 +227,40 @@ class TournamentPhaseService {
     }
   }
 
-  List<(int, int, int, String)> _roundRobinFixtures(
-    List<DocumentSnapshot<Map<String, dynamic>>> group,
-  ) {
-    final firstLeg = <(int, int)>[];
-    if (group.length == 3) {
-      // Mantiene el orden solicitado: A-B, B-C, C-A.
-      firstLeg.addAll(const [(0, 1), (1, 2), (2, 0)]);
-    } else {
-      for (var home = 0; home < group.length - 1; home++) {
-        for (var away = home + 1; away < group.length; away++) {
-          firstLeg.add((home, away));
-        }
-      }
-    }
-
-    final fixtures = <(int, int, int, String)>[];
-    for (final pair in firstLeg) {
-      fixtures.add((pair.$1, pair.$2, 1, 'ida'));
-    }
-    for (final pair in firstLeg) {
-      fixtures.add((pair.$2, pair.$1, 2, 'vuelta'));
-    }
-    return fixtures;
-  }
-
   String _groupName(int index) =>
       String.fromCharCode('A'.codeUnitAt(0) + index);
+}
+
+List<(int, int, int, String)> roundRobinFixtures(int teamCount) {
+  if (teamCount < 2) return [];
+
+  final slots = List<int?>.generate(teamCount, (index) => index);
+  if (slots.length.isOdd) slots.add(null);
+  final roundCount = slots.length - 1;
+  final firstLeg = <(int, int, int, String)>[];
+
+  for (var round = 0; round < roundCount; round++) {
+    for (var slot = 0; slot < slots.length ~/ 2; slot++) {
+      var home = slots[slot];
+      var away = slots[slots.length - 1 - slot];
+      if (home == null || away == null) continue;
+      if ((round + slot).isOdd) {
+        final previousHome = home;
+        home = away;
+        away = previousHome;
+      }
+      firstLeg.add((home, away, round + 1, 'ida'));
+    }
+
+    final lastSlot = slots.removeLast();
+    slots.insert(1, lastSlot);
+  }
+
+  return [
+    ...firstLeg,
+    for (final fixture in firstLeg)
+      (fixture.$2, fixture.$1, fixture.$3 + roundCount, 'vuelta'),
+  ];
 }
 
 List<int> advancingPositions(Tournament tournament) =>
