@@ -42,14 +42,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    function isAssignedOfficial(match) {
+    function isAssignedOfficial(matchData) {
       return signedIn()
-        && (match.get('refereeId', '') == request.auth.uid
-          || match.get('refereeOne', '') == request.auth.uid
-          || match.get('refereeTwo', '') == request.auth.uid
-          || match.get('timekeeper', '') == request.auth.uid
-          || match.get('scorer', '') == request.auth.uid
-          || match.get('officialIds', []).hasAny([request.auth.uid]));
+        && (matchData.get('refereeId', '') == request.auth.uid
+          || matchData.get('refereeOne', '') == request.auth.uid
+          || matchData.get('refereeTwo', '') == request.auth.uid
+          || matchData.get('timekeeper', '') == request.auth.uid
+          || matchData.get('scorer', '') == request.auth.uid
+          || matchData.get('officialIds', []).hasAny([request.auth.uid]));
     }
 
     function canManageTournament(tournamentId) {
