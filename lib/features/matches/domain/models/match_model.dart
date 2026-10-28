@@ -5,7 +5,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MatchModel {
   /// ES: Crea un modelo de partido con sus equipos y estado.
   /// EN: Creates a match model with its teams and status.
-  const MatchModel({required this.id, required this.tournamentId, required this.categoryId, required this.venueId, required this.venue, required this.homeTeamId, required this.awayTeamId, required this.homeTeamName, required this.awayTeamName, required this.homeTeamColor, required this.awayTeamColor, required this.round, required this.phase, required this.scheduledAt, required this.homeScore, required this.awayScore, required this.status, required this.period, required this.elapsedSeconds});
+  const MatchModel({
+    required this.id,
+    required this.tournamentId,
+    required this.categoryId,
+    required this.venueId,
+    required this.venue,
+    required this.homeTeamId,
+    required this.awayTeamId,
+    required this.homeTeamName,
+    required this.awayTeamName,
+    required this.homeTeamColor,
+    required this.awayTeamColor,
+    required this.round,
+    required this.phase,
+    required this.scheduledAt,
+    required this.homeScore,
+    required this.awayScore,
+    required this.status,
+    required this.period,
+    required this.elapsedSeconds,
+  });
+
   final String id;
   final String tournamentId;
   final String categoryId;
@@ -28,9 +49,57 @@ class MatchModel {
 
   /// ES: Convierte un documento Firestore a un modelo de partido.
   /// EN: Converts a Firestore document into a match model.
-  factory MatchModel.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory MatchModel.fromDocument(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final data = doc.data() ?? const <String, dynamic>{};
-    final scheduled = data['scheduledAt'];
-    return MatchModel(id: doc.id, tournamentId: data['tournamentId'] as String? ?? '', categoryId: data['categoryId'] as String? ?? '', venueId: data['venueId'] as String? ?? '', venue: data['venue']?.toString() ?? data['sede']?.toString() ?? data['cancha']?.toString() ?? '', homeTeamId: data['homeTeamId']?.toString() ?? data['homeTeam']?.toString() ?? data['local']?.toString() ?? '', awayTeamId: data['awayTeamId']?.toString() ?? data['awayTeam']?.toString() ?? data['visitante']?.toString() ?? '', homeTeamName: data['homeTeamName']?.toString() ?? data['localName']?.toString() ?? '', awayTeamName: data['awayTeamName']?.toString() ?? data['visitorName']?.toString() ?? '', homeTeamColor: data['homeTeamColor'], awayTeamColor: data['awayTeamColor'], round: (data['round'] as num?)?.toInt() ?? 0, phase: data['phase'] as String? ?? '', scheduledAt: scheduled is Timestamp ? scheduled.toDate() : null, homeScore: (data['homeScore'] as num?)?.toInt() ?? 0, awayScore: (data['awayScore'] as num?)?.toInt() ?? 0, status: data['status'] as String? ?? 'scheduled', period: data['period'] as String? ?? '', elapsedSeconds: (data['elapsedSeconds'] as num?)?.toInt() ?? 0);
+    final scheduledAt = _dateValue(
+      data['scheduledAt'] ?? data['date'] ?? data['fecha'],
+    );
+
+    return MatchModel(
+      id: doc.id,
+      tournamentId: _stringValue(data['tournamentId']),
+      categoryId: _stringValue(data['categoryId']),
+      venueId: _stringValue(data['venueId']),
+      venue: _stringValue(
+        data['venue'] ?? data['sede'] ?? data['cancha'],
+      ),
+      homeTeamId: _stringValue(
+        data['homeTeamId'] ?? data['homeTeam'] ?? data['local'],
+      ),
+      awayTeamId: _stringValue(
+        data['awayTeamId'] ?? data['awayTeam'] ?? data['visitante'],
+      ),
+      homeTeamName: _stringValue(data['homeTeamName'] ?? data['localName']),
+      awayTeamName: _stringValue(
+        data['awayTeamName'] ?? data['visitorName'] ?? data['visitanteName'],
+      ),
+      homeTeamColor: data['homeTeamColor'],
+      awayTeamColor: data['awayTeamColor'],
+      round: _intValue(data['round'] ?? data['jornada']),
+      phase: _stringValue(data['phase']),
+      scheduledAt: scheduledAt,
+      homeScore: _intValue(data['homeScore']),
+      awayScore: _intValue(data['awayScore']),
+      status: _stringValue(data['status'], fallback: 'scheduled'),
+      period: _stringValue(data['period']),
+      elapsedSeconds: _intValue(data['elapsedSeconds']),
+    );
   }
+}
+
+String _stringValue(dynamic value, {String fallback = ''}) =>
+    value == null ? fallback : value.toString();
+
+int _intValue(dynamic value) {
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+DateTime? _dateValue(dynamic value) {
+  if (value is Timestamp) return value.toDate();
+  if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
+  return null;
 }
