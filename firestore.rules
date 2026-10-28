@@ -132,10 +132,10 @@ service cloud.firestore {
         allow create: if get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.publicRegistration == true
           && request.resource.data.keys().hasOnly([
             'id', 'tournamentId', 'registrationId', 'teamName', 'clubName',
-            'clubs', 'coachName', 'coachDocument', 'coachPhone', 'clubEmail',
-            'category', 'uniformColor', 'logoUrl', 'players', 'playerCount',
-            'status', 'createdAt', 'updatedAt', 'verificationMessage',
-            'termsAccepted'
+            'clubs', 'coachName', 'coachDocument', 'coachPhone', 'coachEmail',
+            'clubEmail', 'category', 'uniformColor', 'logoUrl', 'players',
+            'playerCount', 'status', 'createdAt', 'updatedAt',
+            'verificationMessage', 'termsAccepted'
           ])
           && request.resource.data.status == 'pending'
           && request.resource.data.termsAccepted == true
@@ -146,6 +146,9 @@ service cloud.firestore {
           && request.resource.data.coachName.size() > 0
           && request.resource.data.coachDocument is string
           && request.resource.data.coachDocument.size() > 0
+          && request.resource.data.coachEmail is string
+          && request.resource.data.coachEmail.size() > 3
+          && request.resource.data.coachEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
           && request.resource.data.clubEmail is string
           && request.resource.data.clubEmail.size() > 3
           && request.resource.data.clubEmail.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
@@ -163,7 +166,8 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'teamName', 'clubName', 'clubs', 'coachName', 'coachDocument',
               'coachPhone', 'clubEmail', 'category', 'uniformColor', 'logoUrl',
-              'players', 'playerCount', 'updatedAt', 'rejectionReason'
+              'players', 'playerCount', 'status', 'updatedAt',
+              'rejectionReason'
             ])
             && request.resource.data.status == 'pending'
             && request.resource.data.termsAccepted == true

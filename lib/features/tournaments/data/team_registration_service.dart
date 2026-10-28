@@ -34,12 +34,14 @@ class TeamRegistrationService {
     required String coachName,
     required String coachDocument,
     required String coachPhone,
+    required String coachEmail,
     required String clubEmail,
     required String? category,
     required String uniformColor,
     required List<Map<String, String>> players,
   }) async {
     final normalizedClubEmail = clubEmail.trim().toLowerCase();
+    final normalizedCoachEmail = coachEmail.trim().toLowerCase();
     final registrationPlayers = players
         .map((player) => Map<String, String>.from(player))
         .toList();
@@ -60,6 +62,7 @@ class TeamRegistrationService {
       'coachName': coachName.trim(),
       'coachDocument': coachDocument.trim(),
       'coachPhone': coachPhone.trim(),
+      'coachEmail': normalizedCoachEmail,
       'clubEmail': normalizedClubEmail,
       'category': category,
       'uniformColor': uniformColor,

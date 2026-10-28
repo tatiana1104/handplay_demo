@@ -38,6 +38,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   final _coach = TextEditingController();
   final _coachDocument = TextEditingController();
   final _phone = TextEditingController();
+  final _coachEmail = TextEditingController();
   final _email = TextEditingController();
   final _players = <Map<String, String>>[];
   late final Stream<List<ClubModel>> _officialClubsStream = ClubRepository()
@@ -59,6 +60,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     _coach.text = data['coachName']?.toString() ?? '';
     _coachDocument.text = data['coachDocument']?.toString() ?? '';
     _phone.text = data['coachPhone']?.toString() ?? '';
+    _coachEmail.text = data['coachEmail']?.toString() ?? '';
     _email.text = data['clubEmail']?.toString() ?? '';
     _category = data['category']?.toString();
     _color = data['uniformColor']?.toString() ?? _color;
@@ -86,6 +88,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
       _coach,
       _coachDocument,
       _phone,
+      _coachEmail,
       _email,
     ])
       controller.dispose();
@@ -153,6 +156,10 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
           existing['documentNumber']?.toString() ??
           existing['numeroDocumento']?.toString() ??
           document;
+      _coachEmail.text =
+          existing['email']?.toString() ??
+          existing['correo']?.toString() ??
+          _coachEmail.text;
       _phone.text =
           existing['phone']?.toString() ??
           existing['telefono']?.toString() ??
@@ -217,7 +224,9 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
   Future<void> _submit() async {
     _addClub();
     final deadline = widget.tournament.registrationDeadline;
-    if (deadline != null && DateTime.now().isAfter(deadline)) {
+    if (widget.registrationId == null &&
+        deadline != null &&
+        DateTime.now().isAfter(deadline)) {
       _show(
         'El periodo de inscripción terminó. Las solicitudes ya enviadas sí pueden modificarse.',
       );
@@ -245,7 +254,8 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     }
     if (_coachDocument.text.trim().isEmpty)
       issues.add('El número de documento del entrenador es obligatorio.');
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_email.text.trim())) {
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        .hasMatch(_coachEmail.text.trim())) {
       issues.add('El correo del entrenador es obligatorio y debe ser válido.');
     }
 
@@ -279,6 +289,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
     setState(() => _saving = true);
     try {
       final clubEmail = _email.text.trim().toLowerCase();
+      final coachEmail = _coachEmail.text.trim().toLowerCase();
       final result = await TeamRegistrationService().submit(
         tournamentId: widget.tournament.id,
         registrationId: widget.registrationId,
@@ -287,6 +298,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         coachName: _coach.text,
         coachDocument: _coachDocument.text,
         coachPhone: _phone.text,
+        coachEmail: coachEmail,
         clubEmail: clubEmail,
         category: _category,
         uniformColor: _color,
@@ -395,6 +407,7 @@ class _TeamRegistrationScreenState extends State<TeamRegistrationScreen> {
         coachController: _coach,
         coachDocumentController: _coachDocument,
         phoneController: _phone,
+        coachEmailController: _coachEmail,
         clubEmailController: _email,
         clubs: _clubs,
         officialClubs:

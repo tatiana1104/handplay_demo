@@ -585,6 +585,8 @@ class _TournamentCard extends StatelessWidget {
                                   extra: TeamRegistrationScreen(
                                     tournament: tournament,
                                     registrationId: docs.first.id,
+                                    initialRegistration: data,
+                                    rejectionReason: rejectedReason,
                                   ),
                                 ),
                                 icon: const Icon(Icons.edit_outlined),
