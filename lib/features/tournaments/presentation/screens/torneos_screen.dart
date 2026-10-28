@@ -11,6 +11,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../data/tournament_repository.dart';
 import '../../domain/models/tournament_models.dart';
+import '../../domain/tournament_permissions.dart';
 import 'create_tournament_screen.dart';
 import 'pending_registrations_screen.dart';
 import 'team_registration_screen.dart';
@@ -34,7 +35,9 @@ class TorneosScreen extends StatelessWidget {
     return FutureBuilder<IdTokenResult?>(
       future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
       builder: (context, roleSnapshot) {
-        final isAdmin = _hasAdminRole(roleSnapshot.data?.claims);
+        final isAdmin = hasTournamentAdminRole(
+          claims: roleSnapshot.data?.claims,
+        );
         return Scaffold(
           appBar: AppBar(
             title: const Column(
@@ -83,7 +86,7 @@ class _CreateTournamentAction extends StatelessWidget {
     return FutureBuilder<IdTokenResult>(
       future: FirebaseAuth.instance.currentUser?.getIdTokenResult(),
       builder: (context, snapshot) {
-        if (!_hasAdminRole(snapshot.data?.claims))
+        if (!hasTournamentAdminRole(claims: snapshot.data?.claims))
           return const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(right: 12),
@@ -101,18 +104,6 @@ class _CreateTournamentAction extends StatelessWidget {
       },
     );
   }
-}
-
-/// ES: Verifica permisos de administración en claims actuales y heredados.
-/// EN: Checks administrator permissions in current and legacy claims.
-bool _hasAdminRole(Map<String, dynamic>? claims) {
-  final roles =
-      (claims?['roles'] as List?)?.whereType<String>().toSet() ?? <String>{};
-  final legacyRole = claims?['rol'];
-  return roles.contains('admin') ||
-      roles.contains('admin_liga') ||
-      legacyRole == 'admin' ||
-      legacyRole == 'admin_liga';
 }
 
 /// ES: Estados disponibles para filtrar la lista de torneos.

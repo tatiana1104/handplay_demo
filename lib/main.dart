@@ -26,6 +26,7 @@ import 'features/tournaments/presentation/screens/create_tournament_screen.dart'
 import 'features/tournaments/presentation/screens/torneos_screen.dart';
 import 'features/tournaments/presentation/screens/tournament_detail_screen.dart';
 import 'features/tournaments/domain/models/tournament_models.dart';
+import 'features/tournaments/domain/tournament_permissions.dart';
 import 'firebase_options.dart';
 
 /// ES: Inicializa Firebase y los servicios compartidos antes de abrir la app.
@@ -120,6 +121,27 @@ class _HandPlayAppState extends State<HandPlayApp> {
         if (isInitial) {
           // No bloquear la vista pública esperando la respuesta de Firebase.
           return isPublicRoute ? null : RouteNames.home;
+        }
+
+        if (state.matchedLocation == RouteNames.createTournament) {
+          final user = FirebaseAuth.instance.currentUser;
+          if (!isAuthenticated || user == null) return RouteNames.home;
+          try {
+            final claims = (await user.getIdTokenResult()).claims;
+            if (!hasTournamentAdminRole(claims: claims)) {
+              return RouteNames.home;
+            }
+          } on FirebaseAuthException catch (error) {
+            debugPrint(
+              '[auth] No se pudieron validar permisos de torneo: ${error.code}',
+            );
+            return RouteNames.home;
+          } catch (error) {
+            debugPrint(
+              '[auth] No se pudieron validar permisos de torneo: $error',
+            );
+            return RouteNames.home;
+          }
         }
 
         final canManageClubs =

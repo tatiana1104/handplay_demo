@@ -9,6 +9,7 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 
 import '../../../../core/routing/route_names.dart';
 import '../../domain/models/tournament_models.dart';
+import '../../domain/tournament_permissions.dart';
 import '../../data/tournament_phase_service.dart';
 import '../../../teams/domain/team_stats_calculator.dart' show formatCategory;
 import '../../../../shared/widgets/app_bottom_navigation_bar.dart';
@@ -76,7 +77,8 @@ class TournamentDetailScreen extends StatelessWidget {
     );
     final canRegisterTeam = hasPlayerOrCoachRole || !hasBlockedRole;
     final isTournamentAdmin =
-        FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
+        FirebaseAuth.instance.currentUser?.uid == tournament.adminId ||
+        hasTournamentAdminRole(roles: roles);
 
     return Scaffold(
       appBar: AppBar(
@@ -136,7 +138,10 @@ class TournamentDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _StatsGrid(tournament: tournament),
+          _StatsGrid(
+            tournament: tournament,
+            canManage: isTournamentAdmin,
+          ),
           const SizedBox(height: 18),
           SectionTitleAction(
             title: 'Tabla de posiciones',
@@ -233,8 +238,12 @@ class TournamentDetailScreen extends StatelessWidget {
 class _StatsGrid extends StatelessWidget {
   /// ES: Crea la cuadrícula de métricas del torneo.
   /// EN: Creates the tournament metrics grid.
-  const _StatsGrid({required this.tournament});
+  const _StatsGrid({
+    required this.tournament,
+    required this.canManage,
+  });
   final Tournament tournament;
+  final bool canManage;
 
   /// ES: Suscribe los conteos y permite abrir sus listas detalladas.
   /// EN: Subscribes to counts and opens their detailed lists.
@@ -296,7 +305,10 @@ class _StatsGrid extends StatelessWidget {
                   value: rounds == 0 ? '0 / 0' : '$currentRound / $rounds',
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => _MatchesScreen(tournament: tournament),
+                      builder: (_) => _MatchesScreen(
+                        tournament: tournament,
+                        canManage: canManage,
+                      ),
                     ),
                   ),
                 );
@@ -314,20 +326,22 @@ class _StatsGrid extends StatelessWidget {
 class _MatchesScreen extends StatelessWidget {
   /// ES: Crea la pantalla de partidos y jornadas.
   /// EN: Creates the rounds and matches screen.
-  const _MatchesScreen({required this.tournament});
+  const _MatchesScreen({
+    required this.tournament,
+    required this.canManage,
+  });
   final Tournament tournament;
+  final bool canManage;
 
   /// ES: Construye la lista de partidos y la acción de alta para el admin.
   /// EN: Builds the match list and the administrator's add action.
   @override
   Widget build(BuildContext context) {
-    final isAdmin =
-        FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Jornadas y partidos'),
         actions: [
-          if (isAdmin)
+          if (canManage)
             IconButton(
               tooltip: 'Nuevo partido',
               icon: const Icon(Icons.add),
@@ -342,7 +356,12 @@ class _MatchesScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [TournamentMatchSection(tournament: tournament)],
+        children: [
+          TournamentMatchSection(
+            tournament: tournament,
+            canManage: canManage,
+          ),
+        ],
       ),
     );
   }

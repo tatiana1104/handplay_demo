@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,14 +9,17 @@ import '../screens/tournament_match_form_screen.dart';
 import '../../domain/models/tournament_models.dart';
 
 class TournamentMatchSection extends StatelessWidget {
-  const TournamentMatchSection({required this.tournament, super.key});
+  const TournamentMatchSection({
+    required this.tournament,
+    required this.canManage,
+    super.key,
+  });
 
   final Tournament tournament;
+  final bool canManage;
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin =
-        FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
     final stream = MatchRepository().watchTournamentMatchDocuments(
       tournament.id,
     );
@@ -248,7 +250,7 @@ class TournamentMatchSection extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  if (isAdmin) ...[
+                                  if (canManage) ...[
                                     const Divider(height: 20),
                                     Wrap(
                                       spacing: 6,
