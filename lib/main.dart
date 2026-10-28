@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -46,21 +48,23 @@ Future<void> main() async {
   await initDependencies();
   runApp(const HandPlayApp());
   // Las notificaciones no deben retrasar ni bloquear el primer frame.
-  FirebaseMessaging.instance
-      .requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      )
-      .catchError((error) {
-        debugPrint(
-          '[v0] No se pudo solicitar permiso de notificaciones: $error',
-        );
-      });
+  unawaited(_requestNotificationPermission());
   FirebaseMessaging.onMessage.listen((message) {
     debugPrint('[v0] Notificación recibida: ${message.notification?.title}');
   });
+}
+
+Future<void> _requestNotificationPermission() async {
+  try {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+  } catch (error) {
+    debugPrint('[v0] No se pudo solicitar permiso de notificaciones: $error');
+  }
 }
 
 /// ES: Widget raíz que administra el BLoC de autenticación y las rutas.
