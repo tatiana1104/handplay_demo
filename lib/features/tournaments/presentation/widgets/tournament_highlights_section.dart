@@ -23,7 +23,7 @@ class TournamentHighlightsSection extends StatelessWidget {
           stream: FirebaseFirestore.instance
               .collection('tournaments')
               .doc(tournament.id)
-              .collection('registrations')
+              .collection('public_teams')
               .snapshots(),
           builder: (context, registrationSnapshot) {
             final registrations = registrationSnapshot.data?.docs ?? const [];
@@ -302,7 +302,7 @@ class TournamentHighlightsFullScreen extends StatelessWidget {
     final ref = FirebaseFirestore.instance
         .collection('tournaments')
         .doc(tournament.id);
-    final registrationSnapshot = await ref.collection('registrations').get();
+    final registrationSnapshot = await ref.collection('public_teams').get();
     final matchSnapshot = await ref.collection('matches').get();
     final players = <String, Map<String, dynamic>>{};
     final playerTeams = <String, String>{};

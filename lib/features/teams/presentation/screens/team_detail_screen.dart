@@ -42,7 +42,7 @@ class TeamDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(teamName, overflow: TextOverflow.ellipsis)),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: tournamentRef.collection('registrations').snapshots(),
+        stream: tournamentRef.collection('public_teams').snapshots(),
         builder: (context, registrations) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: tournamentRef.collection('matches').snapshots(),
           builder: (context, matches) {

@@ -42,10 +42,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    function tournamentMember(tournamentId) {
+    function isAssignedOfficial(match) {
       return signedIn()
-        && get(/databases/$(database)/documents/tournaments/$(tournamentId))
-          .data.participantIds.hasAny([request.auth.uid]);
+        && (match.get('refereeId', '') == request.auth.uid
+          || match.get('refereeOne', '') == request.auth.uid
+          || match.get('refereeTwo', '') == request.auth.uid
+          || match.get('timekeeper', '') == request.auth.uid
+          || match.get('scorer', '') == request.auth.uid
+          || match.get('officialIds', []).hasAny([request.auth.uid]));
     }
 
     function canManageTournament(tournamentId) {
@@ -55,53 +59,45 @@ service cloud.firestore {
             .data.adminId == request.auth.uid);
     }
 
-    // Las inscripciones públicas crean perfiles de directorio con IDs derivados
-    // del documento. Solo se aceptan perfiles mínimos y roles no privilegiados.
-    function isPublicRegistrationProfile() {
-      return request.resource.data.uid == request.resource.id
-        && request.resource.data.document is string
-        && request.resource.data.document.size() > 0
-        && request.resource.data.roles is list
-        && request.resource.data.roles.size() > 0
-        && request.resource.data.roles.hasOnly(['jugador', 'entrenador'])
-        && request.resource.data.keys().hasOnly([
-          'uid', 'displayName', 'nombre', 'document', 'email', 'phone',
-          'number', 'shirtNumber', 'position', 'gender', 'club', 'teamName',
-          'roles', 'updatedAt'
-        ]);
-    }
-
     // El usuario solo puede consultar y actualizar su propio perfil.
-  match /users/{userId} {
-    // Los perfiles pueden consultarse para autocompletar inscripciones y evitar duplicados.
-    allow read: if true;
-  allow create: if isPublicRegistrationProfile()
-  || isAdmin()
-  || (isSelf(userId)
-    && request.resource.data.uid == userId
-    && request.resource.data.roles is list
-    && request.resource.data.roles.size() > 0
-    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'club', 'publico', 'admin', 'admin_liga']));
-  allow update: if isAdmin()
-  || (isSelf(userId)
-    && request.resource.data.uid == userId
-    && request.resource.data.roles is list
-    && request.resource.data.roles.size() > 0
-    && request.resource.data.roles.hasOnly(['jugador', 'entrenador', 'arbitro', 'club', 'publico', 'admin', 'admin_liga'])
-    && (!('roles' in resource.data) || request.resource.data.roles.hasAll(resource.data.roles)));
+    match /users/{userId} {
+      allow read: if isAdmin()
+        || isSelf(userId)
+        || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin()
+        || (isSelf(userId)
+          && request.resource.data.uid == userId
+          && request.resource.data.roles is list
+          && request.resource.data.roles.size() > 0
+          && request.resource.data.roles.hasOnly([
+            'jugador', 'entrenador', 'arbitro', 'club', 'publico'
+          ]));
+      allow update: if isAdmin()
+        || (isSelf(userId)
+          && request.resource.data.uid == userId
+          && request.resource.data.roles is list
+          && request.resource.data.roles.size() > 0
+          && (request.resource.data.roles == resource.data.get('roles', [])
+            || request.resource.data.roles.hasOnly([
+              'jugador', 'entrenador', 'arbitro', 'club', 'publico'
+            ])));
       allow delete: if isAdmin();
     }
 
     // Los perfiles de árbitros pueden consultarse para completar inscripciones.
     match /referees/{refereeId} {
-      allow read: if true;
+      allow read: if isAdmin()
+        || isSelf(refereeId)
+        || (signedIn() && resource.data.uid == request.auth.uid);
       allow create, update, delete: if isAdmin();
     }
 
     // Directorio de perfiles para reutilizar datos en inscripciones.
     match /profile_directory/{profileId} {
-      allow read: if true;
-      allow create: if isPublicRegistrationProfile() || isSelf(profileId) || isAdmin();
+      allow read: if isAdmin()
+        || isSelf(profileId)
+        || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isSelf(profileId) || isAdmin();
       allow update: if isSelf(profileId) || isAdmin();
       allow delete: if isSelf(profileId) || isAdmin();
     }
@@ -122,8 +118,25 @@ service cloud.firestore {
         && request.resource.data.adminId == resource.data.adminId;
       allow delete: if canManageTournament(tournamentId);
 
+      match /categories/{categoryId} {
+        allow read: if true;
+        allow create, update, delete: if canManageTournament(tournamentId);
+      }
+
+      match /venues/{venueId} {
+        allow read: if true;
+        allow create, update, delete: if canManageTournament(tournamentId);
+      }
+
       match /registrations/{registrationId} {
         allow create: if get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.publicRegistration == true
+          && request.resource.data.keys().hasOnly([
+            'id', 'tournamentId', 'registrationId', 'teamName', 'clubName',
+            'clubs', 'coachName', 'coachDocument', 'coachPhone', 'clubEmail',
+            'category', 'uniformColor', 'logoUrl', 'players', 'playerCount',
+            'status', 'createdAt', 'updatedAt', 'verificationMessage',
+            'termsAccepted'
+          ])
           && request.resource.data.status == 'pending'
           && request.resource.data.termsAccepted == true
           && (get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('registrationDeadline', null) == null
@@ -139,13 +152,19 @@ service cloud.firestore {
           && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('minPlayersPerTeam', 1)
           && request.resource.data.players.size() <= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('maxPlayersPerTeam', 99);
         allow read: if canManageTournament(tournamentId)
-          || resource.data.status == 'approved'
           || (signedIn()
-            && resource.data.coachEmail == request.auth.token.email);
+            && resource.data.get('coachUid', '') == request.auth.uid)
+          || (signedIn()
+            && resource.data.get('coachEmail', '') == request.auth.token.email);
         allow update: if canManageTournament(tournamentId)
           || (signedIn()
             && resource.data.coachEmail == request.auth.token.email
             && request.resource.data.coachEmail == resource.data.coachEmail
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'teamName', 'clubName', 'clubs', 'coachName', 'coachDocument',
+              'coachPhone', 'clubEmail', 'category', 'uniformColor', 'logoUrl',
+              'players', 'playerCount', 'updatedAt', 'rejectionReason'
+            ])
             && request.resource.data.status == 'pending'
             && request.resource.data.termsAccepted == true
             && request.resource.data.players.size() >= get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('minPlayersPerTeam', 1)
@@ -153,20 +172,25 @@ service cloud.firestore {
         allow delete: if canManageTournament(tournamentId);
       }
 
-      // Los equipos pertenecen a un torneo y no pueden quedar accesibles de forma pública.
+      // Resumen público sin datos de identidad, separado de la inscripción privada.
+      match /public_teams/{teamId} {
+        allow read: if true;
+        allow create, update, delete: if canManageTournament(tournamentId);
+
+        match /matches/{matchId} {
+          allow read: if true;
+          allow create, update, delete: if canManageTournament(tournamentId);
+        }
+      }
+
+      // Los equipos contienen datos personales y solo los consulta su equipo administrador.
       match /teams/{teamId} {
         allow read: if canManageTournament(tournamentId)
-          || resource.data.status == 'approved'
-          || tournamentMember(tournamentId);
-        allow create: if canManageTournament(tournamentId)
           || (signedIn()
-            && request.resource.data.coachUid == request.auth.uid
-            && request.resource.data.status == 'pending');
-        allow update: if canManageTournament(tournamentId)
+            && resource.data.get('coachUid', '') == request.auth.uid)
           || (signedIn()
-            && resource.data.coachUid == request.auth.uid
-            && request.resource.data.coachUid == request.auth.uid
-            && request.resource.data.status == 'pending');
+            && resource.data.get('coachEmail', '') == request.auth.token.email);
+        allow create, update: if canManageTournament(tournamentId);
         allow delete: if canManageTournament(tournamentId);
       }
 
@@ -180,31 +204,37 @@ service cloud.firestore {
             || resource.data.timekeeper == request.auth.uid
             || resource.data.scorer == request.auth.uid
             || resource.data.get('officialIds', []).hasAny([request.auth.uid])));
-        allow create: if canManageTournament(tournamentId)
-          || (signedIn() && request.resource.data.refereeId == request.auth.uid);
+        allow create: if canManageTournament(tournamentId);
         allow update: if canManageTournament(tournamentId)
-          || (signedIn()
-            && resource.data.get('lineupStatus', 'pending') != 'approved'
-            && (request.resource.data.get('lineupStatus', 'pending') == 'approved'
-              || request.resource.data.get('lineupStatus', 'pending') == resource.data.get('lineupStatus', 'pending'))
-            && (resource.data.refereeId == request.auth.uid
-            || resource.data.refereeOne == request.auth.uid
-            || resource.data.refereeTwo == request.auth.uid
-            || resource.data.timekeeper == request.auth.uid
-            || resource.data.scorer == request.auth.uid
-            || resource.data.get('officialIds', []).hasAny([request.auth.uid])));
+          || (isAssignedOfficial(resource.data)
+            && resource.data.get('status', 'scheduled') != 'finished'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status', 'elapsedSeconds', 'period', 'periodStartedAt',
+              'startedAt', 'finishedAt', 'events', 'homeScore', 'awayScore',
+              'finalHomeScore', 'finalAwayScore', 'finalPeriod',
+              'finalElapsedSeconds', 'finalEvents', 'standingsUpdatedAt',
+              'timeoutOwner', 'timeoutRemaining', 'lineupStatus',
+              'lineupApprovedAt', 'lineupApprovedBy', 'lineupApprovedByName'
+            ])
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+              || request.resource.data.status in ['scheduled', 'paused', 'en_curso', 'tiempo_muerto', 'finished'])
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['homeScore'])
+              || (request.resource.data.homeScore is int && request.resource.data.homeScore >= 0))
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['awayScore'])
+              || (request.resource.data.awayScore is int && request.resource.data.awayScore >= 0))
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['events'])
+              || request.resource.data.events is list)
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lineupStatus'])
+              || (request.resource.data.get('lineupStatus', '') == 'approved'
+                && resource.data.get('lineupStatus', 'pending') != 'approved'
+                && request.resource.data.get('lineupApprovedBy', '') == request.auth.uid)));
         allow delete: if canManageTournament(tournamentId);
       }
     }
 
-    // Permite el calendario global basado en collectionGroup('matches').
-    // Las pantallas por torneo mantienen las validaciones específicas anteriores.
+    // Los partidos del calendario son públicos; las escrituras siguen sujetas
+    // a las reglas específicas de cada torneo.
     match /{path=**}/matches/{matchId} {
-      allow read: if true;
-    }
-
-    // Permite resolver nombres y colores de equipos inscritos en el calendario.
-    match /{path=**}/registrations/{registrationId} {
       allow read: if true;
     }
 

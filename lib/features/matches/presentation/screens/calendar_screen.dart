@@ -26,12 +26,11 @@ class CalendarScreen extends StatelessWidget {
     return !state.user.roles.any((role) => role == 'publico' || role == 'public');
   }
 
-  /// ES: Combina partidos e inscripciones para mostrar el calendario.
-  /// EN: Combines matches and registrations to display the calendar.
+  /// ES: Muestra el calendario usando solo datos públicos de los partidos.
+  /// EN: Displays the calendar using only public match data.
   @override
   Widget build(BuildContext context) {
     final matches = FirebaseFirestore.instance.collectionGroup('matches').snapshots();
-    final registrations = FirebaseFirestore.instance.collectionGroup('registrations').snapshots();
     return Scaffold(
       appBar: AppBar(title: const Text('Calendario')),
       bottomNavigationBar: AppBottomNavigationBar(
@@ -40,25 +39,11 @@ class CalendarScreen extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: matches,
-        builder: (context, snapshot) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: registrations,
-          builder: (context, registrationsSnapshot) {
+        builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('No se pudo cargar el calendario. Publica las reglas de Firestore y verifica que el usuario haya iniciado sesión.', textAlign: TextAlign.center)));
           }
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-            final registrationById = <String, Map<String, dynamic>>{
-            for (final doc in registrationsSnapshot.data?.docs ?? const []) ...{
-              doc.id: doc.data(),
-              if (doc.data()['id'] != null) doc.data()['id'].toString(): doc.data(),
-              if (doc.data()['teamId'] != null) doc.data()['teamId'].toString(): doc.data(),
-              if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
-              if (doc.data()['team'] != null) doc.data()['team'].toString(): doc.data(),
-              if (doc.data()['uid'] != null) doc.data()['uid'].toString(): doc.data(),
-              if (doc.data()['registrationId'] != null) doc.data()['registrationId'].toString(): doc.data(),
-              if (doc.data()['teamUid'] != null) doc.data()['teamUid'].toString(): doc.data(),
-            },
-          };
           final docs = [...snapshot.data!.docs]..sort((a, b) => _dateValue(a.data()['date']).compareTo(_dateValue(b.data()['date'])));
           if (docs.isEmpty) return const Center(child: Text('No hay partidos programados.'));
           final grouped = <String, List<Map<String, dynamic>>>{};
@@ -66,14 +51,8 @@ class CalendarScreen extends StatelessWidget {
             final data = Map<String, dynamic>.from(doc.data());
             data['matchId'] = doc.id;
             data['tournamentId'] = doc.reference.parent.parent?.id;
-            final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
-            final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
-            final home = _findRegistration(registrationById, homeId, data, true);
-            final away = _findRegistration(registrationById, awayId, data, false);
-            data['homeTeamName'] = _teamName(home, data['homeTeamName'] ?? data['localName'] ?? 'Equipo local');
-            data['awayTeamName'] = _teamName(away, data['awayTeamName'] ?? data['visitorName'] ?? 'Equipo visitante');
-            data['homeTeamColor'] = home?['uniformColor'] ?? data['homeTeamColor'];
-            data['awayTeamColor'] = away?['uniformColor'] ?? data['awayTeamColor'];
+            data['homeTeamName'] ??= data['localName'] ?? data['homeTeam'] ?? 'Equipo local';
+            data['awayTeamName'] ??= data['visitorName'] ?? data['awayTeam'] ?? 'Equipo visitante';
             grouped.putIfAbsent(_dateLabel(data['date']), () => []).add(data);
           }
           return ListView(
@@ -82,8 +61,7 @@ class CalendarScreen extends StatelessWidget {
                 .map((entry) => _CalendarDay(title: entry.key, matches: entry.value))
                 .toList(),
           );
-          },
-        ),
+        },
       ),
     );
   }
@@ -170,14 +148,6 @@ class _CalendarDay extends StatelessWidget {
   /// EN: Resolves the home or away team's display name.
   String _name(Map<String, dynamic> match, bool home) => match[home ? 'homeTeamName' : 'awayTeamName']?.toString() ?? match[home ? 'homeTeam' : 'awayTeam']?.toString() ?? (home ? 'Equipo local' : 'Equipo visitante');
 
-  /// ES: Traduce el estado del partido a una etiqueta resumida.
-  /// EN: Converts match status into a short display label.
-  String _statusLabel(String? status) => switch (status?.trim().toLowerCase()) {
-        'live' || 'en vivo' || 'playing' || 'jugando' => 'Jugando',
-        'finished' || 'finalizado' || 'completed' => 'Finalizado',
-        _ => 'Programado',
-      };
-
   /// ES: Convierte un color almacenado o nombre de uniforme a Color.
   /// EN: Converts a stored color or uniform name into a Color.
   Color _color(dynamic value, Color fallback) {
@@ -192,30 +162,6 @@ class _CalendarDay extends StatelessWidget {
   }
 }
 
-/// ES: Relaciona un equipo del partido con su inscripción usando IDs y nombres.
-/// EN: Matches a team in a fixture to its registration using IDs and names.
-Map<String, dynamic>? _findRegistration(Map<String, Map<String, dynamic>> registrations, String? teamId, Map<String, dynamic> match, bool home) {
-    if (teamId != null && registrations[teamId] != null) return registrations[teamId];
-    final storedName = match[home ? 'homeTeamName' : 'awayTeamName'] ?? match[home ? 'localName' : 'visitorName'];
-    for (final registration in registrations.values) {
-      final identifiers = [
-        registration['id'], registration['registrationId'], registration['teamId'],
-        registration['teamUid'], registration['uid'],
-      ].where((value) => value != null).map((value) => value.toString());
-      if (teamId != null && identifiers.contains(teamId)) return registration;
-      final registrationName = registration['teamName'] ?? registration['clubName'] ?? registration['name'] ?? registration['team'];
-      if (storedName != null && registrationName?.toString() == storedName.toString()) return registration;
-    }
-    return null;
-  }
-
-/// ES: Obtiene el nombre de equipo de una inscripción o usa el alternativo.
-/// EN: Gets the team name from a registration or uses a fallback.
-String _teamName(Map<String, dynamic>? registration, dynamic fallback) {
-    if (registration == null) return fallback.toString();
-    final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
-    return name?.toString().trim().isNotEmpty == true ? name.toString().trim() : fallback.toString();
-  }
 
 /// ES: Convierte un valor guardado en fecha para ordenar los partidos.
 /// EN: Converts a stored value into a date for sorting matches.

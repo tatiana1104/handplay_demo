@@ -30,13 +30,25 @@ class _RefereesScreenState extends State<RefereesScreen> {
   /// EN: Loads, deduplicates, and displays referees with admin actions.
   @override
   Widget build(BuildContext context) {
-    final referees = FirebaseFirestore.instance
-        .collection('users')
-        .where('roles', arrayContains: 'arbitro')
-        .snapshots();
-
     final authState = context.watch<AuthBloc>().state;
     final isAdmin = authState is AuthAuthenticated && authState.user.roles.any((role) => role == 'admin' || role == 'admin_liga');
+    if (!isAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Listado de árbitros')),
+        bottomNavigationBar: AppBottomNavigationBar(
+          selectedIndex: 2,
+          isAuthenticated: authState is AuthAuthenticated,
+        ),
+        body: const Center(
+          child: Text('El directorio de árbitros está disponible solo para la administración.'),
+        ),
+      );
+    }
+
+    final referees = FirebaseFirestore.instance
+        .collection('users')
+        .where('roles', arrayContainsAny: const ['arbitro', 'árbitro', 'referee'])
+        .snapshots();
 
     return Scaffold(
       appBar: AppBar(

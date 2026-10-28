@@ -203,45 +203,145 @@ class _ClubEditScreenState extends State<_ClubEditScreen> {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             children: [
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _controller,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Nombre oficial del club', hintText: 'Club Deportivo Caquetá'),
-              validator: (value) => value == null || value.trim().isEmpty ? 'Escribe el nombre del club' : null,
-            ),
-            TextFormField(
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Correo electrónico del club'),
-              validator: (value) => value == null || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim()) ? 'Escribe un correo válido' : null,
-            ),
-            const Align(alignment: Alignment.centerLeft, child: Text('Entrenador del club', style: TextStyle(fontWeight: FontWeight.bold))),
-            TextFormField(controller: _coachDocument, decoration: InputDecoration(labelText: 'Documento del entrenador', suffixIcon: IconButton(onPressed: _searchingCoach ? null : () => _lookup(coach: true), icon: _searchingCoach ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search)))),
-            TextFormField(controller: _coachName, readOnly: true, decoration: const InputDecoration(labelText: 'Nombre del entrenador')),
-            TextFormField(controller: _coachEmail, readOnly: true, decoration: const InputDecoration(labelText: 'Correo del entrenador')),
-            const Align(alignment: Alignment.centerLeft, child: Text('Asistente del club', style: TextStyle(fontWeight: FontWeight.bold))),
-            TextFormField(controller: _assistantDocument, decoration: InputDecoration(labelText: 'Documento del asistente', suffixIcon: IconButton(onPressed: _searchingAssistant ? null : () => _lookup(coach: false), icon: _searchingAssistant ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search)))),
-            TextFormField(controller: _assistantName, readOnly: true, decoration: const InputDecoration(labelText: 'Nombre del asistente')),
-            TextFormField(controller: _assistantEmail, readOnly: true, decoration: const InputDecoration(labelText: 'Correo del asistente')),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar'))),
-                const SizedBox(width: 12),
-                Expanded(child: FilledButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.of(context).pop((name: _controller.text.trim(), email: _email.text.trim(), coachName: _coachName.text.trim(), coachDocument: _coachDocument.text.trim(), coachEmail: _coachEmail.text.trim(), assistantName: _assistantName.text.trim(), assistantDocument: _assistantDocument.text.trim(), assistantEmail: _assistantEmail.text.trim()));
-                    }
-                  },
-                  child: const Text('Guardar'),
-                )),
-              ],
-            ),
-          ],
+              TextFormField(
+                controller: _controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre oficial del club',
+                  hintText: 'Club Deportivo Caquetá',
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Escribe el nombre del club'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico del club',
+                ),
+                validator: (value) =>
+                    value == null ||
+                        !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                            .hasMatch(value.trim())
+                    ? 'Escribe un correo válido'
+                    : null,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Entrenador del club',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _coachDocument,
+                decoration: InputDecoration(
+                  labelText: 'Documento del entrenador',
+                  suffixIcon: IconButton(
+                    onPressed: _searchingCoach
+                        ? null
+                        : () => _lookup(coach: true),
+                    icon: _searchingCoach
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _coachName,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del entrenador',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _coachEmail,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Correo del entrenador',
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Asistente del club',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _assistantDocument,
+                decoration: InputDecoration(
+                  labelText: 'Documento del asistente',
+                  suffixIcon: IconButton(
+                    onPressed: _searchingAssistant
+                        ? null
+                        : () => _lookup(coach: false),
+                    icon: _searchingAssistant
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _assistantName,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del asistente',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _assistantEmail,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Correo del asistente',
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          Navigator.of(context).pop((
+                            name: _controller.text.trim(),
+                            email: _email.text.trim(),
+                            coachName: _coachName.text.trim(),
+                            coachDocument: _coachDocument.text.trim(),
+                            coachEmail: _coachEmail.text.trim(),
+                            assistantName: _assistantName.text.trim(),
+                            assistantDocument: _assistantDocument.text.trim(),
+                            assistantEmail: _assistantEmail.text.trim(),
+                          ));
+                        }
+                      },
+                      child: const Text('Guardar'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

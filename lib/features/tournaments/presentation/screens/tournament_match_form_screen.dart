@@ -48,10 +48,10 @@ class _TournamentMatchFormScreenState extends State<TournamentMatchFormScreen> {
     _refereeTwo = match['refereeTwo']?.toString();
     _timekeeper = match['timekeeper']?.toString();
     _scorer = match['scorer']?.toString();
-    _venue.text = match['venue']?.toString() ?? '';
+    _venue.text = (match['venue'] ?? match['sede'] ?? match['cancha'])?.toString() ?? '';
     _halfDurationMinutes = (match['halfDurationMinutes'] as num?)?.toInt() ?? 20;
 
-    final timestamp = match['date'];
+    final timestamp = match['date'] ?? match['fecha'];
     final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.tryParse(timestamp?.toString() ?? '');
     if (date != null) {
       _date = date;
@@ -193,7 +193,6 @@ class _TournamentMatchFormScreenState extends State<TournamentMatchFormScreen> {
     return {
       key: official?.id ?? id,
       '${key}Name': official?.name ?? id ?? '',
-      '${key}Email': official?.email,
       '${key}Ids': official?.aliasIds.toList() ?? [if (id != null) id],
     };
   }
@@ -218,7 +217,7 @@ class _TournamentMatchFormScreenState extends State<TournamentMatchFormScreen> {
         .snapshots();
     final referees = FirebaseFirestore.instance
         .collection('users')
-        .where('roles', arrayContains: 'arbitro')
+        .where('roles', arrayContainsAny: const ['arbitro', 'árbitro', 'referee'])
         .snapshots();
 
     return Scaffold(

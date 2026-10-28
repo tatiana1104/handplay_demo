@@ -7,30 +7,34 @@ import '../domain/models/tournament_models.dart';
 class TournamentRepository {
   /// ES: Crea el repositorio con el cliente Firestore recibido o predeterminado.
   /// EN: Creates the repository with the supplied or default Firestore client.
-  TournamentRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  TournamentRepository({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
   /// ES: Expone la colección raíz de torneos.
   /// EN: Provides the root tournaments collection.
-  CollectionReference<Map<String, dynamic>> get _tournaments => _firestore.collection('tournaments');
+  CollectionReference<Map<String, dynamic>> get _tournaments =>
+      _firestore.collection('tournaments');
 
   /// ES: Emite los torneos públicos ordenados por fecha de inicio.
   /// EN: Streams public tournaments in start-date order.
-  Stream<List<Tournament>> watchPublicTournaments() => _tournaments
-      .snapshots()
-      .map(_sortedTournaments);
+  Stream<List<Tournament>> watchPublicTournaments() =>
+      _tournaments.snapshots().map(_sortedTournaments);
 
   /// ES: Emite los torneos del administrador indicado.
   /// EN: Streams tournaments owned by the specified administrator.
-  Stream<List<Tournament>> watchTournamentsForAdmin(String adminId) => _tournaments
-      .where('adminId', isEqualTo: adminId)
-      .snapshots()
-      .map((snapshot) => _sortDocuments(snapshot));
+  Stream<List<Tournament>> watchTournamentsForAdmin(String adminId) =>
+      _tournaments
+          .where('adminId', isEqualTo: adminId)
+          .snapshots()
+          .map((snapshot) => _sortDocuments(snapshot));
 
   /// ES: Convierte y ordena resultados de torneos por fecha de inicio.
   /// EN: Converts and sorts tournament query results by start date.
-  List<Tournament> _sortDocuments(QuerySnapshot<Map<String, dynamic>> snapshot) {
+  List<Tournament> _sortDocuments(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) {
     final tournaments = snapshot.docs.map(Tournament.fromDocument).toList();
     tournaments.sort((a, b) {
       final aDate = a.startDate ?? DateTime(9999);
@@ -42,16 +46,25 @@ class TournamentRepository {
 
   /// ES: Ordena los modelos recibidos de la consulta pública.
   /// EN: Sorts models from the public tournament query.
-  List<Tournament> _sortedTournaments(QuerySnapshot<Map<String, dynamic>> snapshot) => _sortDocuments(snapshot);
+  List<Tournament> _sortedTournaments(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) => _sortDocuments(snapshot);
 
   /// ES: Emite las categorías de un torneo en orden alfabético.
   /// EN: Streams a tournament's categories alphabetically.
-  Stream<List<TournamentCategory>> watchCategories(String tournamentId) => _tournaments
-      .doc(tournamentId)
-      .collection('categories')
-      .orderBy('name')
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => TournamentCategory.fromDocument(doc, tournamentId)).toList());
+  Stream<List<TournamentCategory>> watchCategories(String tournamentId) =>
+      _tournaments
+          .doc(tournamentId)
+          .collection('categories')
+          .orderBy('name')
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs
+                .map(
+                  (doc) => TournamentCategory.fromDocument(doc, tournamentId),
+                )
+                .toList(),
+          );
 
   /// ES: Emite las sedes de un torneo en orden alfabético.
   /// EN: Streams a tournament's venues alphabetically.
@@ -60,7 +73,11 @@ class TournamentRepository {
       .collection('venues')
       .orderBy('name')
       .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => TournamentVenue.fromDocument(doc, tournamentId)).toList());
+      .map(
+        (snapshot) => snapshot.docs
+            .map((doc) => TournamentVenue.fromDocument(doc, tournamentId))
+            .toList(),
+      );
 
   /// ES: Crea el documento del torneo y devuelve su ID generado.
   /// EN: Creates a tournament document and returns its generated ID.
@@ -72,9 +89,49 @@ class TournamentRepository {
 
   /// ES: Actualiza un torneo guardado con los valores actuales del modelo.
   /// EN: Updates a saved tournament with the model's current values.
-  Future<void> updateTournament(Tournament tournament) => _tournaments.doc(tournament.id).update(tournament.toFirestore());
+  Future<void> updateTournament(Tournament tournament) =>
+      _tournaments.doc(tournament.id).update(tournament.toFirestore());
 
-  /// ES: Elimina el documento del torneo indicado.
-  /// EN: Deletes the specified tournament document.
-  Future<void> deleteTournament(String tournamentId) => _tournaments.doc(tournamentId).delete();
+  /// ES: Elimina los datos del torneo antes de borrar su documento raíz.
+  /// EN: Deletes tournament data before removing its root document.
+  Future<void> deleteTournament(String tournamentId) async {
+    final tournament = _tournaments.doc(tournamentId);
+    final publicTeams = tournament.collection('public_teams');
+    while (true) {
+      final snapshot = await publicTeams.limit(100).get();
+      if (snapshot.docs.isEmpty) break;
+      for (final team in snapshot.docs) {
+        await _deleteCollection(team.reference.collection('matches'));
+      }
+      final batch = _firestore.batch();
+      for (final team in snapshot.docs) {
+        batch.delete(team.reference);
+      }
+      await batch.commit();
+    }
+    for (final collectionName in [
+      'categories',
+      'venues',
+      'registrations',
+      'teams',
+      'matches',
+    ]) {
+      await _deleteCollection(tournament.collection(collectionName));
+    }
+    await tournament.delete();
+  }
+
+  Future<void> _deleteCollection(
+    CollectionReference<Map<String, dynamic>> collection,
+  ) async {
+    while (true) {
+      final snapshot = await collection.limit(400).get();
+      if (snapshot.docs.isEmpty) break;
+      final batch = _firestore.batch();
+      for (final document in snapshot.docs) {
+        batch.delete(document.reference);
+      }
+      await batch.commit();
+    }
+  }
 }

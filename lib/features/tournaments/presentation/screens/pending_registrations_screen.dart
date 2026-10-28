@@ -121,6 +121,32 @@ class _PendingRegistrationsScreenState
               .map((player) => Map<String, dynamic>.from(player))
               .toList() ??
           const <Map<String, dynamic>>[];
+      final publicPlayers = currentPlayers.map((player) {
+        return <String, dynamic>{
+          for (final field in ['name', 'number', 'position', 'gender', 'club'])
+            if (player[field] != null) field: player[field],
+        };
+      }).toList();
+      batch.set(
+        FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(widget.tournamentId)
+            .collection('public_teams')
+            .doc(id),
+        {
+          'registrationId': id,
+          'teamName': current['teamName']?.toString() ?? '',
+          'clubName': current['clubName']?.toString() ?? '',
+          'clubs': current['clubs'] is List ? current['clubs'] : const [],
+          'category': current['category'],
+          'uniformColor': current['uniformColor'],
+          'playerCount': publicPlayers.length,
+          'players': publicPlayers,
+          'status': 'approved',
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
       final profiles = FirebaseFirestore.instance.collection(
         'profile_directory',
       );
@@ -169,6 +195,14 @@ class _PendingRegistrationsScreenState
           }, SetOptions(merge: true));
         }
       }
+    } else {
+      batch.delete(
+        FirebaseFirestore.instance
+            .collection('tournaments')
+            .doc(widget.tournamentId)
+            .collection('public_teams')
+            .doc(id),
+      );
     }
     await batch.commit();
     if (context.mounted) {

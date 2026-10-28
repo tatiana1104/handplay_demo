@@ -58,6 +58,12 @@ class ClubDetailScreen extends StatelessWidget {
               .map((doc) => doc.data())
               .where((registration) => _matchesClub(registration, club.name))
               .toList();
+          final hasCoachInformation = club.coachName.trim().isNotEmpty ||
+              club.coachDocument.trim().isNotEmpty ||
+              club.coachEmail.trim().isNotEmpty;
+          final hasAssistantInformation = club.assistantName.trim().isNotEmpty ||
+              club.assistantDocument.trim().isNotEmpty ||
+              club.assistantEmail.trim().isNotEmpty;
 
           final players = <Map<String, dynamic>>[];
           for (final team in teams) {
@@ -94,17 +100,44 @@ class ClubDetailScreen extends StatelessWidget {
                   ),
                 ),
               if (club.email.trim().isNotEmpty) const SizedBox(height: 16),
-              if (club.coachName.trim().isNotEmpty || club.assistantName.trim().isNotEmpty)
+              if (hasCoachInformation || hasAssistantInformation)
                 Card(
                   margin: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      if (club.coachName.trim().isNotEmpty || club.coachEmail.trim().isNotEmpty) ListTile(leading: const Icon(Icons.sports_outlined), title: Text(club.coachName.trim().isEmpty ? 'Entrenador' : club.coachName), subtitle: Text([club.coachDocument, club.coachEmail].where((value) => value.trim().isNotEmpty).join(' · '))),
-                      if (club.assistantName.trim().isNotEmpty || club.assistantEmail.trim().isNotEmpty) ListTile(leading: const Icon(Icons.support_agent_outlined), title: Text(club.assistantName.trim().isEmpty ? 'Asistente' : club.assistantName), subtitle: Text([club.assistantDocument, club.assistantEmail].where((value) => value.trim().isNotEmpty).join(' · '))),
+                      if (hasCoachInformation)
+                        ListTile(
+                          leading: const Icon(Icons.sports_outlined),
+                          title: Text(
+                            club.coachName.trim().isEmpty
+                                ? 'Entrenador'
+                                : club.coachName,
+                          ),
+                          subtitle: Text(
+                            [club.coachDocument, club.coachEmail]
+                                .where((value) => value.trim().isNotEmpty)
+                                .join(' · '),
+                          ),
+                        ),
+                      if (hasAssistantInformation)
+                        ListTile(
+                          leading: const Icon(Icons.support_agent_outlined),
+                          title: Text(
+                            club.assistantName.trim().isEmpty
+                                ? 'Asistente'
+                                : club.assistantName,
+                          ),
+                          subtitle: Text(
+                            [club.assistantDocument, club.assistantEmail]
+                                .where((value) => value.trim().isNotEmpty)
+                                .join(' · '),
+                          ),
+                        ),
                     ],
                   ),
                 ),
-              if (club.coachName.trim().isNotEmpty || club.assistantName.trim().isNotEmpty) const SizedBox(height: 16),
+              if (hasCoachInformation || hasAssistantInformation)
+                const SizedBox(height: 16),
               const SectionHeader('Listado de jugadores'),
               const SizedBox(height: 8),
               if (teams.isEmpty)

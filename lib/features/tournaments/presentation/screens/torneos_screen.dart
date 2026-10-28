@@ -209,9 +209,6 @@ class _PublicTournamentListState extends State<_PublicTournamentList> {
                           visibleTournaments[index],
                         ),
                         coachEmail: widget.coachEmail,
-                        coachUid: widget.adminId == null
-                            ? null
-                            : FirebaseAuth.instance.currentUser?.uid,
                       ),
                     ),
             ),
@@ -443,7 +440,6 @@ class _TournamentCard extends StatelessWidget {
     required this.onRequests,
     required this.onDelete,
     this.coachEmail,
-    this.coachUid,
   });
 
   final Tournament tournament;
@@ -453,21 +449,22 @@ class _TournamentCard extends StatelessWidget {
   final VoidCallback onRequests;
   final VoidCallback onDelete;
   final String? coachEmail;
-  final String? coachUid;
 
   /// ES: Construye la tarjeta y sus acciones de usuario.
   /// EN: Builds the card and its user actions.
   @override
   Widget build(BuildContext context) {
-  final registrationStream = coachUid == null
-      ? null
-      : FirebaseFirestore.instance
-          .collection('tournaments')
-          .doc(tournament.id)
-          .collection('registrations')
-          .where('coachUid', isEqualTo: coachUid)
-          .limit(20)
-          .snapshots();
+    final normalizedCoachEmail = coachEmail?.trim().toLowerCase();
+    final registrationStream =
+        normalizedCoachEmail == null || normalizedCoachEmail.isEmpty
+        ? null
+        : FirebaseFirestore.instance
+              .collection('tournaments')
+              .doc(tournament.id)
+              .collection('registrations')
+              .where('coachEmail', isEqualTo: normalizedCoachEmail)
+              .limit(20)
+              .snapshots();
     final status = _statusOf(tournament);
     final isPlaying = status == _TournamentStatus.playing;
     final isFinished = status == _TournamentStatus.finished;

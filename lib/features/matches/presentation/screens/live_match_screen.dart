@@ -25,8 +25,6 @@ class LiveMatchScreen extends StatefulWidget {
 
 class _LiveMatchScreenState extends State<LiveMatchScreen> {
   late final Map<String, dynamic> _match = Map<String, dynamic>.from(widget.match);
-  final Map<String, String> _officialNames = {};
-  final Map<String, String> _officialEmails = {};
   bool _showOfficials = true;
   Timer? _timer;
   Timer? _suspensionTimer;
@@ -50,7 +48,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'lineupStatus': 'approved',
       'lineupApprovedAt': FieldValue.serverTimestamp(),
       'lineupApprovedBy': _currentUid,
-      'lineupApprovedByName': _currentEmail,
+      'lineupApprovedByName': _currentName,
     });
   }
 
@@ -62,46 +60,6 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     _elapsedSeconds = (_match['elapsedSeconds'] as num?)?.toInt() ?? 0;
     _isPaused = !_isLiveStatus(_match['status']?.toString());
     if (_isLiveStatus(_match['status']?.toString())) _startLocalTimer();
-    _loadOfficialNames();
-    _loadTeamNames();
-  }
-
-  /// ES: Busca inscripciones aprobadas para resolver nombres de los equipos.
-  /// EN: Loads approved registrations to resolve team names.
-  Future<void> _loadTeamNames() async {
-    final tournamentId = _match['tournamentId']?.toString();
-    if (tournamentId == null || tournamentId.isEmpty) return;
-    final snapshot = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').get();
-    final registrations = snapshot.docs.map((doc) => <String, dynamic>{...doc.data(), 'documentId': doc.id}).toList();
-    for (final side in ['home', 'away']) {
-      final id = _match['${side}Team']?.toString();
-      final registration = registrations.firstWhere((item) => [item['documentId'], item['id'], item['registrationId'], item['teamId'], item['teamUid'], item['uid']].map((value) => value?.toString()).contains(id), orElse: () => <String, dynamic>{});
-      final name = registration['teamName'] ?? registration['name'] ?? registration['clubName'] ?? registration['team'];
-      if (name != null && name.toString().trim().isNotEmpty && mounted) {
-        setState(() => _match['${side}TeamName'] = name.toString().trim());
-      }
-    }
-  }
-
-  /// ES: Carga nombres y correos de los oficiales asignados al partido.
-  /// EN: Loads names and emails for the officials assigned to the match.
-  Future<void> _loadOfficialNames() async {
-    final ids = ['refereeOne', 'refereeTwo', 'timekeeper', 'scorer']
-        .map((key) => _match[key]?.toString())
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toSet();
-    for (final id in ids) {
-      final snapshot = await FirebaseFirestore.instance.collection('users').doc(id).get();
-      final data = snapshot.data();
-      final name = data?['displayName']?.toString() ?? data?['nombre']?.toString();
-      final email = (data?['email'] ?? data?['correo'])?.toString().trim().toLowerCase();
-      if (!mounted) return;
-      setState(() {
-        if (name != null && name.trim().isNotEmpty) _officialNames[id] = name.trim();
-        if (email != null && email.isNotEmpty) _officialEmails[id] = email;
-      });
-    }
   }
 
   /// ES: Obtiene el nombre del oficial o un texto alternativo.
@@ -109,7 +67,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   String _officialDisplayName(String key) {
     final value = _match[key]?.toString();
     if (value == null || value.isEmpty) return 'Sin asignar';
-    return _match['${key}Name']?.toString() ?? _officialNames[value] ?? 'Sin nombre';
+    return _match['${key}Name']?.toString() ?? 'Sin nombre';
   }
 
   /// ES: Comprueba si el usuario autenticado tiene rol de árbitro.
@@ -131,9 +89,9 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
 
   /// ES: Devuelve el correo normalizado del usuario autenticado.
   /// EN: Returns the authenticated user's normalized email.
-  String? get _currentEmail {
+  String? get _currentName {
     final state = context.read<AuthBloc>().state;
-    return state is AuthAuthenticated ? state.user.email?.trim().toLowerCase() : null;
+    return state is AuthAuthenticated ? state.user.displayName : null;
   }
 
   /// Un oficial puede tener varios documentos en `users` (cuenta de login y
@@ -146,11 +104,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       _match[key]?.toString(),
       ...((_match['${key}Ids'] as List?) ?? const []).map((id) => id.toString()),
     };
-    if (aliases.contains(uid)) return true;
-    final email = _currentEmail;
-    if (email == null || email.isEmpty) return false;
-    final assignedEmail = (_match['${key}Email'] ?? _officialEmails[_match[key]?.toString()])?.toString().trim().toLowerCase();
-    return assignedEmail == email;
+    return aliases.contains(uid);
   }
 
   /// ES: Permisos de operación según el rol asignado en la mesa.
@@ -363,94 +317,11 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
     }
   }
 
-  /// ES: Actualiza puntos y goles de ambos equipos en una transacción.
-  /// EN: Updates both teams' points and goals in one transaction.
-  Future<void> _updateTournamentStandings(int homeScore, int awayScore) async {
-    final tournamentId = _match['tournamentId']?.toString();
-    /// ES: Extrae un identificador de equipo desde texto o mapa.
-    /// EN: Extracts a team identifier from a string or map.
-    String? identifierFor(Object? value) {
-      if (value is Map) {
-        for (final key in ['id', 'teamId', 'registrationId', 'uid', 'name', 'teamName']) {
-          final candidate = value[key];
-          if (candidate != null && candidate.toString().trim().isNotEmpty) return candidate.toString().trim();
-        }
-      }
-      final text = value?.toString().trim();
-      return text == null || text.isEmpty ? null : text;
-    }
-    final homeIdentifier = identifierFor(_match['homeTeamId'] ?? _match['homeTeam'] ?? _match['homeTeamName']);
-    final awayIdentifier = identifierFor(_match['awayTeamId'] ?? _match['awayTeam'] ?? _match['awayTeamName']);
-    if (tournamentId == null || homeIdentifier == null || awayIdentifier == null) return;
-    final registrations = await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').get();
-    /// ES: Busca la inscripción que corresponde a un identificador de equipo.
-    /// EN: Finds the registration matching a team identifier.
-    QueryDocumentSnapshot<Map<String, dynamic>>? findRegistration(String identifier) {
-      for (final doc in registrations.docs) {
-        final data = doc.data();
-        final identifiers = [doc.id, data['id'], data['registrationId'], data['teamId'], data['teamUid'], data['uid'], data['teamName'], data['name']].whereType<Object>().map((value) => value.toString().trim()).toSet();
-        if (identifiers.contains(identifier)) return doc;
-      }
-      return null;
-    }
-    final homeDoc = findRegistration(homeIdentifier);
-    final awayDoc = findRegistration(awayIdentifier);
-    if (homeDoc == null || awayDoc == null || homeDoc.id == awayDoc.id) return;
-    final homeRef = homeDoc.reference;
-    final awayRef = awayDoc.reference;
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final home = (await transaction.get(homeRef)).data() ?? <String, dynamic>{};
-      final away = (await transaction.get(awayRef)).data() ?? <String, dynamic>{};
-      final homeWin = homeScore > awayScore;
-      final awayWin = awayScore > homeScore;
-      /// ES: Calcula los acumulados del equipo tras este resultado.
-      /// EN: Calculates a team's cumulative statistics after this result.
-      Map<String, dynamic> stats(Map<String, dynamic> current, bool win, bool draw) => {
-        'points': ((current['points'] as num?)?.toInt() ?? 0) + (win ? 3 : draw ? 1 : 0),
-        'played': ((current['played'] as num?)?.toInt() ?? 0) + 1,
-        'wins': ((current['wins'] as num?)?.toInt() ?? 0) + (win ? 1 : 0),
-        'draws': ((current['draws'] as num?)?.toInt() ?? 0) + (draw ? 1 : 0),
-        'losses': ((current['losses'] as num?)?.toInt() ?? 0) + ((!win && !draw) ? 1 : 0),
-        'goalsFor': ((current['goalsFor'] as num?)?.toInt() ?? 0),
-      };
-      final draw = homeScore == awayScore;
-      final homeStats = stats(home, homeWin, draw);
-      final awayStats = stats(away, awayWin, draw);
-      homeStats['goalsFor'] = ((home['goalsFor'] as num?)?.toInt() ?? 0) + homeScore;
-      homeStats['goalsAgainst'] = ((home['goalsAgainst'] as num?)?.toInt() ?? 0) + awayScore;
-      awayStats['goalsFor'] = ((away['goalsFor'] as num?)?.toInt() ?? 0) + awayScore;
-      awayStats['goalsAgainst'] = ((away['goalsAgainst'] as num?)?.toInt() ?? 0) + homeScore;
-      /// ES: Mantiene alias cortos para compatibilidad con otros lectores.
-      /// EN: Keeps short aliases for compatibility with existing readers.
-      void addAliases(Map<String, dynamic> stats) {
-        stats['pts'] = stats['points'];
-        stats['pj'] = stats['played'];
-        stats['pg'] = stats['wins'];
-        stats['pe'] = stats['draws'];
-        stats['pp'] = stats['losses'];
-        stats['gf'] = stats['goalsFor'];
-        stats['gc'] = stats['goalsAgainst'];
-      }
-      addAliases(homeStats);
-      addAliases(awayStats);
-      transaction.update(homeRef, homeStats);
-      transaction.update(awayRef, awayStats);
-    });
-  }
-
   /// ES: Calcula posiciones y guarda el marcador final y los eventos.
   /// EN: Updates standings and saves the final score and match events.
   Future<void> _finishMatch() async {
     if (!_isTimekeeper || _match['status'] == 'finished') return;
     _timer?.cancel();
-    final finalHomeScore = (_match['homeScore'] as num?)?.toInt() ?? 0;
-    final finalAwayScore = (_match['awayScore'] as num?)?.toInt() ?? 0;
-    try {
-      await _updateTournamentStandings(finalHomeScore, finalAwayScore);
-    } catch (_) {
-      // ES: El partido debe finalizar aunque no se actualice la tabla.
-      // EN: The match must finish even if standings cannot be updated.
-    }
     await _saveMatch({
       'status': 'finished',
       'elapsedSeconds': _elapsedSeconds,
@@ -464,10 +335,6 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
       'timeoutOwner': null,
       'timeoutRemaining': 0,
     });
-    final tournamentId = _match['tournamentId']?.toString();
-    if (tournamentId != null && tournamentId.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).set({'status': 'active', 'updatedAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
-    }
     if (!mounted) return;
     setState(() {
       _isPaused = true;
@@ -764,7 +631,7 @@ class _LiveMatchScreenState extends State<LiveMatchScreen> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? get _registrationStream {
     final tournamentId = _match['tournamentId']?.toString();
     if (tournamentId == null || tournamentId.isEmpty) return null;
-    return FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('registrations').where('status', isEqualTo: 'approved').snapshots();
+    return FirebaseFirestore.instance.collection('tournaments').doc(tournamentId).collection('public_teams').where('status', isEqualTo: 'approved').snapshots();
   }
 
   /// ES: Busca la plantilla que corresponde al equipo local o visitante.

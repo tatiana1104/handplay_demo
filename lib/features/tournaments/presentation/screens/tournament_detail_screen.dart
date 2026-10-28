@@ -231,7 +231,7 @@ class _StatsGrid extends StatelessWidget {
     final approvedTeams = FirebaseFirestore.instance
         .collection('tournaments')
         .doc(tournament.id)
-        .collection('registrations')
+        .collection('public_teams')
         .where('status', isEqualTo: 'approved')
         .snapshots();
 

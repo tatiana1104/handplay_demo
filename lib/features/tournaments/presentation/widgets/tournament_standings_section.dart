@@ -58,7 +58,7 @@ class TournamentStandingsData extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('tournaments')
             .doc(tournament.id)
-            .collection('registrations')
+            .collection('public_teams')
             .snapshots(),
         builder: (context, registrations) =>
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(

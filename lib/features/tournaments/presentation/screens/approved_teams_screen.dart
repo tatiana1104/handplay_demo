@@ -13,7 +13,7 @@ class ApprovedTeamsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stream = TeamRepository().watchTournamentRegistrationDocuments(tournament.id);
+    final stream = TeamRepository().watchTournamentPublicTeams(tournament.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Equipos inscritos')),

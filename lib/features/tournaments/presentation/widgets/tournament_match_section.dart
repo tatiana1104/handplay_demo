@@ -16,24 +16,15 @@ class TournamentMatchSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
-    final stream = MatchRepository().watchTournamentMatchDocuments(tournament.id);
-    final teamsStream = FirebaseFirestore.instance
-        .collection('tournaments')
-        .doc(tournament.id)
-        .collection('registrations')
-        .snapshots();
-
+    final isAdmin =
+        FirebaseAuth.instance.currentUser?.uid == tournament.adminId;
+    final stream = MatchRepository().watchTournamentMatchDocuments(
+      tournament.id,
+    );
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: stream,
       builder: (context, snapshot) {
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: teamsStream,
-          builder: (context, teamsSnapshot) {
-            final matches = snapshot.data?.docs ?? const [];
-            final teamsById = <String, Map<String, dynamic>>{
-              for (final doc in teamsSnapshot.data?.docs ?? const []) doc.id: doc.data(),
-            };
+        final matches = snapshot.data?.docs ?? const [];
 
             if (matches.isEmpty) {
               return const Column(
@@ -42,7 +33,9 @@ class TournamentMatchSection extends StatelessWidget {
                   _SectionTitle(title: 'Partidos'),
                   SizedBox(height: 8),
                   Card(
-                    child: ListTile(title: Text('Aún no hay partidos programados.')),
+                    child: ListTile(
+                      title: Text('Aún no hay partidos programados.'),
+                    ),
                   ),
                 ],
               );
@@ -52,20 +45,16 @@ class TournamentMatchSection extends StatelessWidget {
             for (final doc in matches) {
               final data = Map<String, dynamic>.from(doc.data());
               data['id'] = doc.id;
-              final homeId = data['homeTeam']?.toString() ?? data['local']?.toString();
-              final awayId = data['awayTeam']?.toString() ?? data['visitante']?.toString();
-              final homeRegistration = teamsById[homeId];
-              final awayRegistration = teamsById[awayId];
-              data['homeTeamName'] = _registrationTeamName(
-                homeRegistration,
-                data['homeTeamName'] ?? homeId ?? 'Equipo local',
-              );
-              data['awayTeamName'] = _registrationTeamName(
-                awayRegistration,
-                data['awayTeamName'] ?? awayId ?? 'Equipo visitante',
-              );
-              data['homeTeamColor'] = homeRegistration?['uniformColor'] ?? data['homeTeamColor'];
-              data['awayTeamColor'] = awayRegistration?['uniformColor'] ?? data['awayTeamColor'];
+              final homeId =
+                  data['homeTeam']?.toString() ??
+                  data['homeTeamId']?.toString() ??
+                  data['local']?.toString();
+              final awayId =
+                  data['awayTeam']?.toString() ??
+                  data['awayTeamId']?.toString() ??
+                  data['visitante']?.toString();
+              data['homeTeamName'] ??= homeId ?? 'Equipo local';
+              data['awayTeamName'] ??= awayId ?? 'Equipo visitante';
 
               final date = _matchDateKey(data['date'] ?? data['fecha']);
               grouped.putIfAbsent(date, () => []).add(data);
@@ -81,35 +70,53 @@ class TournamentMatchSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          bottom: 6,
+                          top: 4,
+                        ),
                         child: Text(
                           _matchDateLabel(entry.key),
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                       ),
                       ...entry.value.map((match) {
-                        final home = match['homeTeamName']?.toString() ??
+                        final home =
+                            match['homeTeamName']?.toString() ??
                             match['localName']?.toString() ??
                             match['homeTeam']?.toString() ??
                             match['local']?.toString() ??
                             'Equipo local';
-                        final away = match['awayTeamName']?.toString() ??
+                        final away =
+                            match['awayTeamName']?.toString() ??
                             match['visitorName']?.toString() ??
                             match['awayTeam']?.toString() ??
                             match['visitante']?.toString() ??
                             'Equipo visitante';
-                        final homeColor = _teamColorFromValue(match['homeTeamColor'], Colors.green);
-                        final awayColor = _teamColorFromValue(match['awayTeamColor'], Colors.deepOrange);
-                        final time = match['time']?.toString() ?? _matchTimeLabel(match['date']);
-                        final venue = match['venue']?.toString() ??
+                        final homeColor = _teamColorFromValue(
+                          match['homeTeamColor'],
+                          Colors.green,
+                        );
+                        final awayColor = _teamColorFromValue(
+                          match['awayTeamColor'],
+                          Colors.deepOrange,
+                        );
+                        final time =
+                            match['time']?.toString() ??
+                            _matchTimeLabel(match['date']);
+                        final venue =
+                            match['venue']?.toString() ??
                             match['sede']?.toString() ??
                             match['cancha']?.toString() ??
                             'Sede por definir';
-                        final status = match['status']?.toString() ?? 'scheduled';
+                        final status =
+                            match['status']?.toString() ?? 'scheduled';
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 10),
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           child: InkWell(
                             onTap: () => context.go(
                               RouteNames.liveMatch,
@@ -120,20 +127,36 @@ class TournamentMatchSection extends StatelessWidget {
                               },
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
+                              padding: const EdgeInsets.fromLTRB(
+                                14,
+                                13,
+                                14,
+                                12,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Align(
                                     alignment: Alignment.topRight,
                                     child: Container(
-                                      constraints: const BoxConstraints(maxWidth: 120),
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 120,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: matchStatusColor(context, status).withValues(alpha: .16),
+                                        color: matchStatusColor(
+                                          context,
+                                          status,
+                                        ).withValues(alpha: .16),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: matchStatusColor(context, status).withValues(alpha: .28),
+                                          color: matchStatusColor(
+                                            context,
+                                            status,
+                                          ).withValues(alpha: .28),
                                         ),
                                       ),
                                       child: Text(
@@ -141,7 +164,10 @@ class TournamentMatchSection extends StatelessWidget {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          color: matchStatusColor(context, status),
+                                          color: matchStatusColor(
+                                            context,
+                                            status,
+                                          ),
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -161,27 +187,37 @@ class TournamentMatchSection extends StatelessWidget {
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          if (status.toLowerCase() == 'finished' ||
-                                              status.toLowerCase() == 'finalizado')
+                                          if (status.toLowerCase() ==
+                                                  'finished' ||
+                                              status.toLowerCase() ==
+                                                  'finalizado')
                                             Text(
                                               '${match['homeScore'] ?? match['finalHomeScore'] ?? 0} - ${match['awayScore'] ?? match['finalAwayScore'] ?? 0}',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleMedium
-                                                  ?.copyWith(fontWeight: FontWeight.w800),
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
                                             ),
-                                          if (status.toLowerCase() != 'finished' &&
-                                              status.toLowerCase() != 'finalizado')
+                                          if (status.toLowerCase() !=
+                                                  'finished' &&
+                                              status.toLowerCase() !=
+                                                  'finalizado')
                                             Text(
                                               time,
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodyMedium
-                                                  ?.copyWith(fontWeight: FontWeight.w600),
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                             ),
                                           const SizedBox(height: 3),
                                           ConstrainedBox(
-                                            constraints: const BoxConstraints(maxWidth: 105),
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 105,
+                                            ),
                                             child: Text(
                                               venue,
                                               maxLines: 2,
@@ -222,39 +258,61 @@ class TournamentMatchSection extends StatelessWidget {
                                           onPressed: () async {
                                             await Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (_) => TournamentMatchFormScreen(
-                                                  tournament: tournament,
-                                                  match: match,
-                                                  matchId: match['id']?.toString(),
-                                                ),
+                                                builder: (_) =>
+                                                    TournamentMatchFormScreen(
+                                                      tournament: tournament,
+                                                      match: match,
+                                                      matchId: match['id']
+                                                          ?.toString(),
+                                                    ),
                                               ),
                                             );
                                           },
-                                          icon: const Icon(Icons.edit_outlined, size: 17),
+                                          icon: const Icon(
+                                            Icons.edit_outlined,
+                                            size: 17,
+                                          ),
                                           label: const Text('Editar'),
                                         ),
                                         TextButton.icon(
                                           onPressed: () async {
-                                            final confirmed = await showDialog<bool>(
-                                              context: context,
-                                              builder: (dialogContext) => AlertDialog(
-                                                title: const Text('Eliminar partido'),
-                                                content: const Text(
-                                                  'Esta acción no se puede deshacer.',
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.pop(dialogContext, false),
-                                                    child: const Text('Cancelar'),
-                                                  ),
-                                                  FilledButton(
-                                                    onPressed: () => Navigator.pop(dialogContext, true),
-                                                    child: const Text('Eliminar'),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                            if (confirmed == true && context.mounted) {
+                                            final confirmed =
+                                                await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (dialogContext) =>
+                                                      AlertDialog(
+                                                        title: const Text(
+                                                          'Eliminar partido',
+                                                        ),
+                                                        content: const Text(
+                                                          'Esta acción no se puede deshacer.',
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  dialogContext,
+                                                                  false,
+                                                                ),
+                                                            child: const Text(
+                                                              'Cancelar',
+                                                            ),
+                                                          ),
+                                                          FilledButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  dialogContext,
+                                                                  true,
+                                                                ),
+                                                            child: const Text(
+                                                              'Eliminar',
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                );
+                                            if (confirmed == true &&
+                                                context.mounted) {
                                               await FirebaseFirestore.instance
                                                   .collection('tournaments')
                                                   .doc(tournament.id)
@@ -263,7 +321,10 @@ class TournamentMatchSection extends StatelessWidget {
                                                   .delete();
                                             }
                                           },
-                                          icon: const Icon(Icons.delete_outline, size: 17),
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            size: 17,
+                                          ),
                                           label: const Text('Eliminar'),
                                         ),
                                       ],
@@ -280,15 +341,13 @@ class TournamentMatchSection extends StatelessWidget {
                 }),
               ],
             );
-          },
-        );
       },
     );
   }
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, super.key});
+  const _SectionTitle({required this.title});
 
   final String title;
 
@@ -298,9 +357,9 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(top: 12, bottom: 8),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -321,37 +380,39 @@ class _TeamMatchLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+    crossAxisAlignment: alignEnd
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start,
+    children: [
+      Text(label, style: Theme.of(context).textTheme.labelSmall),
+      Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!alignEnd)
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                ),
-              if (!alignEnd) const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-              ),
-              if (alignEnd) const SizedBox(width: 4),
-              if (alignEnd)
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                ),
-            ],
+          if (!alignEnd)
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+          if (!alignEnd) const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
+          if (alignEnd) const SizedBox(width: 4),
+          if (alignEnd)
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
         ],
-      );
+      ),
+    ],
+  );
 }
 
 Color _teamColorFromValue(dynamic value, Color fallback) {
@@ -377,14 +438,6 @@ Color _teamColorFromValue(dynamic value, Color fallback) {
   return fallback;
 }
 
-String _registrationTeamName(Map<String, dynamic>? registration, dynamic fallback) {
-  if (registration == null) return fallback.toString();
-  return registration['teamName']?.toString() ??
-      registration['clubName']?.toString() ??
-      registration['name']?.toString() ??
-      fallback.toString();
-}
-
 String _matchDateKey(dynamic value) {
   if (value is Timestamp) return value.toDate().toIso8601String();
   return value?.toString() ?? 'Fecha por definir';
@@ -397,33 +450,36 @@ String _matchDateLabel(String value) {
 }
 
 String _matchTimeLabel(dynamic value) {
-  final date = value is Timestamp ? value.toDate() : DateTime.tryParse(value?.toString() ?? '');
-  if (date != null) return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  final date = value is Timestamp
+      ? value.toDate()
+      : DateTime.tryParse(value?.toString() ?? '');
+  if (date != null)
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   return 'Hora por definir';
 }
 
 String _weekdayName(int weekday) => const [
-      '',
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
-      'Domingo',
-    ][weekday];
+  '',
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+  'Domingo',
+][weekday];
 
 String _monthName(int month) => const [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ][month - 1];
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+][month - 1];

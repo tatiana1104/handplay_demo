@@ -92,13 +92,35 @@ class ClubRepository {
   Future<Map<String, dynamic>?> findPersonByDocument(String document) async {
     final normalized = document.trim();
     if (normalized.isEmpty) return null;
+    final matches = <Map<String, dynamic>>[];
     for (final collection in ['profile_directory', 'users']) {
       final result = await _firestore.collection(collection).where('document', isEqualTo: normalized).limit(1).get();
-      if (result.docs.isNotEmpty) return result.docs.first.data();
+      matches.addAll(result.docs.map((doc) => doc.data()));
       final byNumber = await _firestore.collection(collection).where('documentNumber', isEqualTo: normalized).limit(1).get();
-      if (byNumber.docs.isNotEmpty) return byNumber.docs.first.data();
+      matches.addAll(byNumber.docs.map((doc) => doc.data()));
     }
-    return null;
+    if (matches.isEmpty) return null;
+
+    final profile = <String, dynamic>{};
+    for (final match in matches) {
+      profile.addAll(match);
+    }
+    for (final match in matches) {
+      final name = [
+        match['displayName'],
+        match['nombre'],
+        match['name'],
+        match['fullName'],
+      ].map((value) => value?.toString().trim() ?? '').firstWhere(
+            (value) => value.isNotEmpty,
+            orElse: () => '',
+          );
+      if (name.isNotEmpty) {
+        profile['displayName'] = name;
+        break;
+      }
+    }
+    return profile;
   }
 
   /// ES: Elimina el club oficial seleccionado.

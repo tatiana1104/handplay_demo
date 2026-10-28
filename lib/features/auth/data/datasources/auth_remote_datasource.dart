@@ -168,68 +168,12 @@ class AuthRemoteDataSource {
     final ref = users.doc(user.uid);
     final existing = await ref.get().timeout(const Duration(seconds: 5));
     final data = existing.data();
-    final email = user.email?.trim().toLowerCase();
-    Map<String, dynamic>? pendingData;
-    DocumentReference<Map<String, dynamic>>? pendingRef;
     final document = documentNumber?.trim().isNotEmpty == true
         ? documentNumber!.trim()
         : (data?['document']?.toString().trim().isNotEmpty == true
             ? data!['document'].toString().trim()
             : data?['documentNumber']?.toString().trim());
-    final queries = <Query<Map<String, dynamic>>>[];
-    if (email != null && email.isNotEmpty) {
-      queries.add(users.where('email', isEqualTo: email).limit(5));
-      queries.add(users.where('correo', isEqualTo: email).limit(5));
-    }
-    if (document != null && document.isNotEmpty) {
-      queries.add(users.where('document', isEqualTo: document).limit(5));
-      queries.add(users.where('documentNumber', isEqualTo: document).limit(5));
-    }
-    if (document != null && document.isNotEmpty) {
-      final directory = FirebaseFirestore.instance.collection('profile_directory');
-      final directorySnapshots = await Future.wait([
-        directory.where('document', isEqualTo: document).limit(5).get(),
-        directory.where('documentNumber', isEqualTo: document).limit(5).get(),
-      ]);
-      for (final snapshot in directorySnapshots) {
-        if (snapshot.docs.isEmpty) continue;
-        final profile = snapshot.docs.first;
-        final profileData = profile.data();
-        final profileUid = profileData['uid']?.toString().trim().isNotEmpty == true
-            ? profileData['uid'].toString().trim()
-            : profile.id;
-        final profileUser = await users.doc(profileUid).get();
-        pendingRef = profileUser.reference;
-        pendingData = {
-          ...profileData,
-          ...?profileUser.data(),
-        };
-        break;
-      }
-    }
-    if (queries.isNotEmpty && pendingData == null) {
-      final snapshots = await Future.wait(queries.map((query) => query.get()));
-      final candidates = {
-        for (final snapshot in snapshots)
-          for (final candidate in snapshot.docs)
-            if (candidate.id != user.uid) candidate.id: candidate,
-      }.values;
-      for (final candidate in candidates) {
-        final candidateData = candidate.data();
-        final candidateRoles = _rolesFromProfile(candidateData);
-        final hasRoleProfile = candidateRoles.intersection({'arbitro', 'árbitro', 'referee', 'entrenador', 'coach'}).isNotEmpty;
-        final hasRefereeData = candidateData['accreditation'] != null || candidateData['category'] != null;
-        if (hasRoleProfile || hasRefereeData) {
-          pendingRef = candidate.reference;
-          pendingData = candidateData;
-          break;
-        }
-      }
-    }
-    final mergedData = {...?pendingData, ...?data};
-    final pendingRoles = _rolesFromProfile(pendingData);
-    final currentRoles = _rolesFromProfile(data);
-    final existingRoles = {...pendingRoles, ...currentRoles};
+    final existingRoles = _rolesFromProfile(data);
     final roles = {
       ...existingRoles,
       if (existingRoles.isEmpty) 'jugador',
@@ -237,50 +181,40 @@ class AuthRemoteDataSource {
     await ref.set({
       'uid': user.uid,
       'email': user.email?.trim().toLowerCase(),
-      'displayName': name?.isNotEmpty == true ? name : (mergedData['displayName'] ?? mergedData['nombre'] ?? user.displayName ?? ''),
+      'displayName': name?.isNotEmpty == true ? name : (data?['displayName'] ?? data?['nombre'] ?? user.displayName ?? ''),
       'roles': roles.toList(),
       'correo': FieldValue.delete(),
       'nombre': FieldValue.delete(),
       'telefono': FieldValue.delete(),
       'nivel': FieldValue.delete(),
       'rol': FieldValue.delete(),
-      if (mergedData['displayName'] != null) 'displayName': mergedData['displayName'],
+      if (data?['displayName'] != null) 'displayName': data!['displayName'],
       if (document != null && document.isNotEmpty) 'document': document,
       if (document != null && document.isNotEmpty) 'documentNumber': document,
-      if (mergedData['document'] != null) 'document': mergedData['document'],
-      if (mergedData['accreditation'] != null) 'accreditation': mergedData['accreditation'],
-      if (mergedData['category'] != null) 'category': mergedData['category'],
-      if (mergedData['phone'] != null) 'phone': mergedData['phone'],
-      if (mergedData['documentNumber'] != null) 'documentNumber': mergedData['documentNumber'],
-      if (mergedData['shirtNumber'] != null) 'shirtNumber': mergedData['shirtNumber'],
-      if (mergedData['position'] != null) 'position': mergedData['position'],
-      if (mergedData['teamName'] != null) 'teamName': mergedData['teamName'],
-      if (mergedData['nivel'] != null) 'nivel': mergedData['nivel'],
+      if (data?['document'] != null) 'document': data!['document'],
+      if (data?['accreditation'] != null) 'accreditation': data!['accreditation'],
+      if (data?['category'] != null) 'category': data!['category'],
+      if (data?['phone'] != null) 'phone': data!['phone'],
+      if (data?['documentNumber'] != null) 'documentNumber': data!['documentNumber'],
+      if (data?['shirtNumber'] != null) 'shirtNumber': data!['shirtNumber'],
+      if (data?['position'] != null) 'position': data!['position'],
+      if (data?['teamName'] != null) 'teamName': data!['teamName'],
+      if (data?['nivel'] != null) 'nivel': data!['nivel'],
       'updatedAt': FieldValue.serverTimestamp(),
       if (!existing.exists) 'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
     await FirebaseFirestore.instance.collection('profile_directory').doc(user.uid).set({
-      'name': name?.isNotEmpty == true ? name : (mergedData['displayName'] ?? mergedData['nombre'] ?? user.displayName ?? ''),
-      'document': mergedData['document'] ?? mergedData['documentNumber'] ?? '',
+      'uid': user.uid,
+      'name': name?.isNotEmpty == true ? name : (data?['displayName'] ?? data?['nombre'] ?? user.displayName ?? ''),
+      'document': data?['document'] ?? data?['documentNumber'] ?? '',
       'email': user.email?.trim().toLowerCase() ?? '',
-      'phone': mergedData['phone'] ?? '',
+      'phone': data?['phone'] ?? '',
       'roles': roles.toList(),
-      'shirtNumber': mergedData['shirtNumber'] ?? '',
-      'position': mergedData['position'] ?? '',
-      'teamName': mergedData['teamName'] ?? '',
+      'shirtNumber': data?['shirtNumber'] ?? '',
+      'position': data?['position'] ?? '',
+      'teamName': data?['teamName'] ?? '',
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-    if (pendingRef != null) {
-      await pendingRef.update({
-        'linkedUid': user.uid,
-        'linkedAt': FieldValue.serverTimestamp(),
-        'roles': FieldValue.arrayRemove(['arbitro', 'entrenador', 'coach', 'jugador', 'player']),
-        'correo': FieldValue.delete(),
-        'nombre': FieldValue.delete(),
-        'telefono': FieldValue.delete(),
-        'nivel': FieldValue.delete(),
-      });
-    }
   }
 
   /// ES: Combina la lista de roles actual con el campo de rol heredado.
