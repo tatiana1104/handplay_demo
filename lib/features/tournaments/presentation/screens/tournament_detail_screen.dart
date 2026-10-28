@@ -51,9 +51,11 @@ class TournamentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = tournament.status.toLowerCase();
-    final registrationClosed =
+    final registrationDeadlinePassed =
         tournament.registrationDeadline != null &&
         DateTime.now().isAfter(tournament.registrationDeadline!);
+    final registrationClosed =
+        !tournament.publicRegistration || registrationDeadlinePassed;
     final colors = Theme.of(context).colorScheme;
     final authState = context.watch<AuthBloc>().state;
     final roles = authState is AuthAuthenticated
@@ -138,10 +140,7 @@ class TournamentDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _StatsGrid(
-            tournament: tournament,
-            canManage: isTournamentAdmin,
-          ),
+          _StatsGrid(tournament: tournament, canManage: isTournamentAdmin),
           const SizedBox(height: 18),
           SectionTitleAction(
             title: 'Tabla de posiciones',
@@ -164,9 +163,7 @@ class TournamentDetailScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailsCard(tournament: tournament),
           const SizedBox(height: 18),
-          if (isTournamentAdmin &&
-              tournament.registrationDeadline != null &&
-              registrationClosed)
+          if (isTournamentAdmin && registrationClosed)
             OutlinedButton.icon(
               onPressed: () async {
                 try {
@@ -222,7 +219,9 @@ class TournamentDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                'La fecha límite de inscripción ya pasó. Las solicitudes enviadas todavía pueden modificarse.',
+                registrationDeadlinePassed
+                    ? 'La fecha límite de inscripción ya pasó. Las solicitudes enviadas todavía pueden modificarse.'
+                    : 'Las inscripciones fueron cerradas por la administración.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -238,10 +237,7 @@ class TournamentDetailScreen extends StatelessWidget {
 class _StatsGrid extends StatelessWidget {
   /// ES: Crea la cuadrícula de métricas del torneo.
   /// EN: Creates the tournament metrics grid.
-  const _StatsGrid({
-    required this.tournament,
-    required this.canManage,
-  });
+  const _StatsGrid({required this.tournament, required this.canManage});
   final Tournament tournament;
   final bool canManage;
 
@@ -326,10 +322,7 @@ class _StatsGrid extends StatelessWidget {
 class _MatchesScreen extends StatelessWidget {
   /// ES: Crea la pantalla de partidos y jornadas.
   /// EN: Creates the rounds and matches screen.
-  const _MatchesScreen({
-    required this.tournament,
-    required this.canManage,
-  });
+  const _MatchesScreen({required this.tournament, required this.canManage});
   final Tournament tournament;
   final bool canManage;
 
@@ -357,10 +350,7 @@ class _MatchesScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          TournamentMatchSection(
-            tournament: tournament,
-            canManage: canManage,
-          ),
+          TournamentMatchSection(tournament: tournament, canManage: canManage),
         ],
       ),
     );
